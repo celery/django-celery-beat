@@ -53,8 +53,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_nose',
-    'rest_framework',
-    'rest_framework.authtoken',
     'django_celery_beat',
 ]
 
