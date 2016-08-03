@@ -1,0 +1,2 @@
+coverage>=3.0
+codecov

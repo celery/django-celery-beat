@@ -1,0 +1,10 @@
+:Version: 1.0.0
+:Web: http://django-celery-beat.readthedocs.org/
+:Download: http://pypi.python.org/pypi/django-celery-beat
+:Source: http://github.com/celery/django-celery-beat
+:Keywords: KEYWORDS
+
+About
+=====
+
+# I'm too lazy to edit the defaults.

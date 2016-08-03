@@ -1,0 +1,15 @@
+[run]
+branch = 1
+cover_pylib = 0
+include=*thorn*
+omit = */tests/*;testproj/*;testapp/*;*/migrations/*
+
+[report]
+omit =
+    */python?.?/*
+    */site-packages/*
+    */pypy/*
+    */tests/*
+    */testproj/*
+    */testapp/*
+    */migrations/*

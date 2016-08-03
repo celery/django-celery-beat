@@ -1,0 +1,11 @@
+[run]
+branch = 1
+cover_pylib = 0
+include = *django_celery_beat/*
+omit = django_celery_beat.tests.*
+
+[report]
+omit =
+    */python?.?/*
+    */site-packages/*
+    */pypy/*
