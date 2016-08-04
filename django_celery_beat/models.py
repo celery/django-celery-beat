@@ -56,7 +56,7 @@ class IntervalSchedule(models.Model):
     def __str__(self):
         if self.every == 1:
             return _('every {0.period_singular}').format(self)
-        return _('every {0.every:d} {0.period}').format(self)
+        return _('every {0.every} {0.period}').format(self)
 
     @property
     def period_singular(self):
@@ -161,7 +161,7 @@ class PeriodicTask(models.Model):
     )
     queue = models.CharField(
         _('queue'), max_length=200, blank=True, null=True, default=None,
-        help_text=_('Queue defined in CELERY_QUEUES'),
+        help_text=_('Queue defined in CELERY_TASK_QUEUES'),
     )
     exchange = models.CharField(
         _('exchange'), max_length=200, blank=True, null=True, default=None,

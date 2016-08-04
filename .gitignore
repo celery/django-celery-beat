@@ -25,3 +25,4 @@ celery/tests/cover/
 .ve*
 cover/
 .vagrant/
+*.sqlite3

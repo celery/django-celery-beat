@@ -10,4 +10,10 @@
 .. toctree::
     :maxdepth: 1
 
-    django_celery_beat
+    django-celery-beat
+    django-celery-beat.models
+    django-celery-beat.managers
+    django-celery-beat.schedulers
+    django-celery-beat.admin
+    django-celery-beat.db
+    django-celery-beat.utils

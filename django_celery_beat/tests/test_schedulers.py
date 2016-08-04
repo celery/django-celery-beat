@@ -3,42 +3,16 @@ from __future__ import absolute_import, unicode_literals
 from datetime import datetime, timedelta
 from itertools import count
 
-from celery import current_app
 from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab
+from celery.tests.case import AppCase
 
 from django_celery_beat import schedulers
 from django_celery_beat.models import (
     PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
 )
 
-from .case import Case
-
-
-def create_model_interval(schedule, **kwargs):
-    interval = IntervalSchedule.from_schedule(schedule)
-    interval.save()
-    return create_model(interval=interval, **kwargs)
-
-
-def create_model_crontab(schedule, **kwargs):
-    crontab = CrontabSchedule.from_schedule(schedule)
-    crontab.save()
-    return create_model(crontab=crontab, **kwargs)
-
-
 _ids = count(0)
-
-
-def create_model(Model=PeriodicTask, **kwargs):
-    entry = dict(name='thefoo{0}'.format(next(_ids)),
-                 task='djcelery.unittest.add{0}'.format(next(_ids)),
-                 args='[2, 2]',
-                 kwargs='{"callback": "foo"}',
-                 queue='xaz',
-                 routing_key='cpu',
-                 exchange='foo')
-    return Model(**dict(entry, **kwargs))
 
 
 class EntryTrackSave(schedulers.ModelEntry):
@@ -70,15 +44,43 @@ class TrackingScheduler(schedulers.DatabaseScheduler):
         schedulers.DatabaseScheduler.sync(self)
 
 
-class test_ModelEntry(Case):
+class SchedulerCase(AppCase):
+
+    def teardown(self):
+        PeriodicTask.objects.all().delete()
+        PeriodicTasks.objects.all().delete()
+        IntervalSchedule.objects.all().delete()
+        CrontabSchedule.objects.all().delete()
+
+    def create_model_interval(self, schedule, **kwargs):
+        interval = IntervalSchedule.from_schedule(schedule)
+        interval.save()
+        return self.create_model(interval=interval, **kwargs)
+
+    def create_model_crontab(self, schedule, **kwargs):
+        crontab = CrontabSchedule.from_schedule(schedule)
+        crontab.save()
+        return self.create_model(crontab=crontab, **kwargs)
+
+    def create_model(self, Model=PeriodicTask, **kwargs):
+        entry = dict(
+            name='thefoo{0}'.format(next(_ids)),
+            task='djcelery.unittest.add{0}'.format(next(_ids)),
+            args='[2, 2]',
+            kwargs='{"callback": "foo"}',
+            queue='xaz',
+            routing_key='cpu',
+            exchange='foo',
+        )
+        return Model(**dict(entry, **kwargs))
+
+
+class test_ModelEntry(SchedulerCase):
     Entry = EntryTrackSave
 
-    def tearDown(self):
-        PeriodicTask.objects.all().delete()
-
     def test_entry(self):
-        m = create_model_interval(schedule(timedelta(seconds=10)))
-        e = self.Entry(m)
+        m = self.create_model_interval(schedule(timedelta(seconds=10)))
+        e = self.Entry(m, app=self.app)
 
         self.assertListEqual(e.args, [2, 2])
         self.assertDictEqual(e.kwargs, {'callback': 'foo'})
@@ -89,11 +91,13 @@ class test_ModelEntry(Case):
                                        'exchange': 'foo',
                                        'routing_key': 'cpu'}, e.options)
 
-        right_now = current_app.now()
-        m2 = create_model_interval(schedule(timedelta(seconds=10)),
-                                   last_run_at=right_now)
+        right_now = self.app.now()
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=10)),
+            last_run_at=right_now,
+        )
         self.assertTrue(m2.last_run_at)
-        e2 = self.Entry(m2)
+        e2 = self.Entry(m2, app=self.app)
         self.assertIs(e2.last_run_at, right_now)
 
         e3 = e2.next()
@@ -101,26 +105,26 @@ class test_ModelEntry(Case):
         self.assertEqual(e3.total_run_count, 1)
 
 
-class test_DatabaseScheduler(Case):
+class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    def setUp(self):
-        PeriodicTask.objects.all().delete()
-        self.prev_schedule = current_app.conf.CELERYBEAT_SCHEDULE
-        current_app.conf.CELERYBEAT_SCHEDULE = {}
-        m1 = create_model_interval(schedule(timedelta(seconds=10)))
-        m2 = create_model_interval(schedule(timedelta(minutes=20)))
-        m3 = create_model_crontab(crontab(minute='2,4,5'))
-        for obj in m1, m2, m3:
-            obj.save()
-        self.s = self.Scheduler(app=current_app)
-        self.m1 = PeriodicTask.objects.get(name=m1.name)
-        self.m2 = PeriodicTask.objects.get(name=m2.name)
-        self.m3 = PeriodicTask.objects.get(name=m3.name)
+    def setup(self):
+        self.app.conf.beat_schedule = {}
 
-    def tearDown(self):
-        current_app.conf.CELERYBEAT_SCHEDULE = self.prev_schedule
-        PeriodicTask.objects.all().delete()
+        self.m1 = self.create_model_interval(
+            schedule(timedelta(seconds=10)))
+        self.m1.save()
+        self.m1.refresh_from_db()
+        self.m2 = self.create_model_interval(
+            schedule(timedelta(minutes=20)))
+        self.m2.save()
+        self.m2.refresh_from_db()
+        self.m3 = self.create_model_crontab(
+            crontab(minute='2,4,5'))
+        self.m3.save()
+        self.m3.refresh_from_db()
+
+        self.s = self.Scheduler(app=self.app)
 
     def test_constructor(self):
         self.assertIsInstance(self.s._dirty, set)
@@ -210,79 +214,100 @@ class test_DatabaseScheduler(Case):
         self.s.sync()
 
     def test_sync_rollback_on_save_error(self):
-        self.s.schedule[self.m1.name] = EntrySaveRaises(self.m1)
+        self.s.schedule[self.m1.name] = EntrySaveRaises(self.m1, app=self.app)
         self.s._dirty.add(self.m1.name)
         self.assertRaises(RuntimeError, self.s.sync)
 
 
-class test_models(Case):
+class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
-        self.assertEqual(text_t(IntervalSchedule(every=1, period='seconds')),
-                         'every second')
-        self.assertEqual(text_t(IntervalSchedule(every=10, period='seconds')),
-                         'every 10 seconds')
+        self.assertEqual(
+            text_t(IntervalSchedule(every=1, period='seconds')),
+            'every second')
+        self.assertEqual(
+            text_t(IntervalSchedule(every=10, period='seconds')),
+            'every 10 seconds')
 
     def test_CrontabSchedule_unicode(self):
-        self.assertEqual(text_t(CrontabSchedule(minute=3,
-                                                 hour=3,
-                                                 day_of_week=None)),
-                         '3 3 * * * (m/h/d/dM/MY)')
-        self.assertEqual(text_t(CrontabSchedule(minute=3,
-                                                 hour=3,
-                                                 day_of_week='tue',
-                                                 day_of_month='*/2',
-                                                 month_of_year='4,6')),
-                         '3 3 tue */2 4,6 (m/h/d/dM/MY)')
+        self.assertEqual(
+            text_t(CrontabSchedule(
+                minute=3,
+                hour=3,
+                day_of_week=None,
+            )),
+            '3 3 * * * (m/h/d/dM/MY)',
+        )
+        self.assertEqual(
+            text_t(CrontabSchedule(
+                minute=3,
+                hour=3,
+                day_of_week='tue',
+                day_of_month='*/2',
+                month_of_year='4,6',
+            )),
+            '3 3 tue */2 4,6 (m/h/d/dM/MY)',
+        )
 
     def test_PeriodicTask_unicode_interval(self):
-        p = create_model_interval(schedule(timedelta(seconds=10)))
-        self.assertEqual(text_t(p),
-                         '{0}: every 10 seconds'.format(p.name))
+        p = self.create_model_interval(schedule(timedelta(seconds=10)))
+        self.assertEqual(
+            text_t(p),
+            '{0}: every 10.0 seconds'.format(p.name),
+        )
 
     def test_PeriodicTask_unicode_crontab(self):
-        p = create_model_crontab(crontab(hour='4, 5', day_of_week='4, 5'))
-        self.assertEqual(text_t(p),
-                         '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name))
+        p = self.create_model_crontab(crontab(
+            hour='4, 5',
+            day_of_week='4, 5',
+        ))
+        self.assertEqual(
+            text_t(p),
+            '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name),
+        )
 
     def test_PeriodicTask_schedule_property(self):
-        p1 = create_model_interval(schedule(timedelta(seconds=10)))
+        p1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         s1 = p1.schedule
         self.assertEqual(s1.run_every.total_seconds(), 10)
 
-        p2 = create_model_crontab(crontab(hour='4, 5',
-                                          minute='10,20,30',
-                                          day_of_month='1-7',
-                                          month_of_year='*/3'))
+        p2 = self.create_model_crontab(crontab(
+            hour='4, 5',
+            minute='10,20,30',
+            day_of_month='1-7',
+            month_of_year='*/3',
+        ))
         s2 = p2.schedule
-        self.assertSetEqual(s2.hour, set([4, 5]))
-        self.assertSetEqual(s2.minute, set([10, 20, 30]))
-        self.assertSetEqual(s2.day_of_week, set([0, 1, 2, 3, 4, 5, 6]))
-        self.assertSetEqual(s2.day_of_month, set([1, 2, 3, 4, 5, 6, 7]))
-        self.assertSetEqual(s2.month_of_year, set([1, 4, 7, 10]))
+        self.assertSetEqual(s2.hour, {4, 5})
+        self.assertSetEqual(s2.minute, {10, 20, 30})
+        self.assertSetEqual(s2.day_of_week, {0, 1, 2, 3, 4, 5, 6})
+        self.assertSetEqual(s2.day_of_month, {1, 2, 3, 4, 5, 6, 7})
+        self.assertSetEqual(s2.month_of_year, {1, 4, 7, 10})
 
     def test_PeriodicTask_unicode_no_schedule(self):
-        p = create_model()
+        p = self.create_model()
         self.assertEqual(text_t(p), '{0}: {{no schedule}}'.format(p.name))
 
     def test_CrontabSchedule_schedule(self):
-        s = CrontabSchedule(minute='3, 7', hour='3, 4', day_of_week='*',
-                            day_of_month='1, 16', month_of_year='1, 7')
-        self.assertEqual(s.schedule.minute, set([3, 7]))
-        self.assertEqual(s.schedule.hour, set([3, 4]))
-        self.assertEqual(s.schedule.day_of_week, set([0, 1, 2, 3, 4, 5, 6]))
-        self.assertEqual(s.schedule.day_of_month, set([1, 16]))
-        self.assertEqual(s.schedule.month_of_year, set([1, 7]))
+        s = CrontabSchedule(
+            minute='3, 7',
+            hour='3, 4',
+            day_of_week='*',
+            day_of_month='1, 16',
+            month_of_year='1, 7',
+        )
+        self.assertSetEqual(s.schedule.minute, {3, 7})
+        self.assertSetEqual(s.schedule.hour, {3, 4})
+        self.assertSetEqual(s.schedule.day_of_week, {0, 1, 2, 3, 4, 5, 6})
+        self.assertSetEqual(s.schedule.day_of_month, {1, 16})
+        self.assertSetEqual(s.schedule.month_of_year, {1, 7})
 
 
-class test_model_PeriodicTasks(Case):
-
-    def setUp(self):
-        PeriodicTasks.objects.all().delete()
+class test_model_PeriodicTasks(SchedulerCase):
 
     def test_track_changes(self):
         self.assertIsNone(PeriodicTasks.last_change())
-        m1 = create_model_interval(schedule(timedelta(seconds=10)))
+        m1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         m1.save()
         x = PeriodicTasks.last_change()
         self.assertTrue(x)

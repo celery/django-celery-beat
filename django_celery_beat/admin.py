@@ -1,7 +1,5 @@
 from __future__ import absolute_import, unicode_literals
 
-from anyjson import loads
-
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -10,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from celery import current_app
 from celery.utils import cached_property
+from kombu.utils.json import loads
 
 from .models import PeriodicTask, IntervalSchedule, CrontabSchedule
 from .utils import is_database_scheduler
@@ -122,7 +121,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        scheduler = getattr(settings, 'CELERYBEAT_SCHEDULER', None)
+        scheduler = getattr(settings, 'CELERY_BEAT_SCHEDULER', None)
         extra_context['wrong_scheduler'] = not is_database_scheduler(scheduler)
         return super(PeriodicTaskAdmin, self).changelist_view(request,
                                                               extra_context)

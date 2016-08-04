@@ -1,17 +1,17 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 
 from multiprocessing.util import Finalize
 
-from anyjson import loads, dumps
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
-from celery.five import values
+from celery.five import values, items
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.timeutils import is_naive
+from kombu.utils.json import dumps, loads
 
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,37 +33,44 @@ Couldn't add entry %r to database schedule: %r. Contents: %r
 """
 
 logger = get_logger(__name__)
-debug, info, error = logger.debug, logger.info, logger.error
+debug, info = logger.debug, logger.info
 
 
 class ModelEntry(ScheduleEntry):
-    model_schedules = ((schedules.crontab, CrontabSchedule, 'crontab'),
-                       (schedules.schedule, IntervalSchedule, 'interval'))
+    model_schedules = (
+        (schedules.crontab, CrontabSchedule, 'crontab'),
+        (schedules.schedule, IntervalSchedule, 'interval'),
+    )
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
-    def __init__(self, model):
-        self.app = current_app._get_current_object()
+    def __init__(self, model, app=None):
+        self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
         try:
             self.schedule = model.schedule
         except model.DoesNotExist:
-            logger.error('Schedule was removed from database')
-            logger.warning('Disabling %s', self.name)
+            logger.error(
+                'Disabling schedule %s that was removed from database',
+                self.name,
+            )
             self._disable(model)
         try:
             self.args = loads(model.args or '[]')
             self.kwargs = loads(model.kwargs or '{}')
-        except ValueError:
-            logging.error('Failed to serialize arguments for %s.', self.name,
-                          exc_info=1)
-            logging.warning('Disabling %s', self.name)
+        except ValueError as exc:
+            logger.exception(
+                'Removing schedule %s for argument deseralization error: %r',
+                self.name, exc,
+            )
             self._disable(model)
 
-        self.options = {'queue': model.queue,
-                        'exchange': model.exchange,
-                        'routing_key': model.routing_key,
-                        'expires': model.expires}
+        self.options = {
+            'queue': model.queue,
+            'exchange': model.exchange,
+            'routing_key': model.routing_key,
+            'expires': model.expires,
+        }
         self.total_run_count = model.total_run_count
         self.model = model
 
@@ -115,22 +122,32 @@ class ModelEntry(ScheduleEntry):
             'Cannot convert schedule type {0!r} to model'.format(schedule))
 
     @classmethod
-    def from_entry(cls, name, skip_fields=('relative', 'options'), **entry):
-        options = entry.get('options') or {}
-        fields = dict(entry)
-        for skip_field in skip_fields:
-            fields.pop(skip_field, None)
-        schedule = fields.pop('schedule')
-        model_schedule, model_field = cls.to_model_schedule(schedule)
-        fields[model_field] = model_schedule
-        fields['args'] = dumps(fields.get('args') or [])
-        fields['kwargs'] = dumps(fields.get('kwargs') or {})
-        fields['queue'] = options.get('queue')
-        fields['exchange'] = options.get('exchange')
-        fields['routing_key'] = options.get('routing_key')
+    def from_entry(cls, name, app=None, **entry):
         return cls(PeriodicTask._default_manager.update_or_create(
-            name=name, defaults=fields,
-        ))
+            name=name, defaults=cls._unpack_fields(**entry),
+        ), app=app)
+
+    @classmethod
+    def _unpack_fields(cls, schedule,
+                       args=None, kwargs=None, relative=None, options=None,
+                       **entry):
+        model_schedule, model_field = cls.to_model_schedule(schedule)
+        entry.update(
+            {model_field: model_schedule},
+            args=dumps(args or []),
+            kwargs=dumps(kwargs or {}),
+            **cls._unpack_options(**options or {})
+        )
+        return entry
+
+    @classmethod
+    def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
+                        **kwargs):
+        return {
+            'queue': queue,
+            'exchange': exchange,
+            'routing_key': routing_key,
+        }
 
     def __repr__(self):
         return '<ModelEntry: {0} {1}(*{2}, **{3}) {4}>'.format(
@@ -143,29 +160,30 @@ class DatabaseScheduler(Scheduler):
     Entry = ModelEntry
     Model = PeriodicTask
     Changes = PeriodicTasks
+
     _schedule = None
     _last_timestamp = None
     _initial_read = False
 
     def __init__(self, *args, **kwargs):
         self._dirty = set()
-        self._finalize = Finalize(self, self.sync, exitpriority=5)
         Scheduler.__init__(self, *args, **kwargs)
+        self._finalize = Finalize(self, self.sync, exitpriority=5)
         self.max_interval = (
             kwargs.get('max_interval') or
-            self.app.conf.CELERYBEAT_MAX_LOOP_INTERVAL or
+            self.app.conf.beat_max_loop_interval or
             DEFAULT_MAX_INTERVAL)
 
     def setup_schedule(self):
         self.install_default_entries(self.schedule)
-        self.update_from_dict(self.app.conf.CELERYBEAT_SCHEDULE)
+        self.update_from_dict(self.app.conf.beat_schedule)
 
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
         for model in self.Model.objects.enabled():
             try:
-                s[model.name] = self.Entry(model)
+                s[model.name] = self.Entry(model, app=self.app)
             except ValueError:
                 pass
         return s
@@ -183,7 +201,7 @@ class DatabaseScheduler(Scheduler):
 
             last, ts = self._last_timestamp, self.Changes.last_change()
         except DATABASE_ERRORS as exc:
-            error('Database gave error: %r', exc, exc_info=1)
+            logger.exception('Database gave error: %r', exc)
             return False
         try:
             if ts and ts > (last if last else ts):
@@ -214,20 +232,20 @@ class DatabaseScheduler(Scheduler):
         except DATABASE_ERRORS as exc:
             # retry later
             self._dirty |= _tried
-            error('Database error while sync: %r', exc, exc_info=1)
+            logger.exception('Database error while sync: %r', exc)
 
-    def update_from_dict(self, dict_):
+    def update_from_dict(self, mapping):
         s = {}
-        for name, entry in dict_.items():
+        for name, entry in items(mapping):
             try:
-                s[name] = self.Entry.from_entry(name, **entry)
+                s[name] = self.Entry.from_entry(name, app=self.app, **entry)
             except Exception as exc:
-                error(ADD_ENTRY_ERROR, name, exc, entry)
+                logger.error(ADD_ENTRY_ERROR, name, exc, entry)
         self.schedule.update(s)
 
     def install_default_entries(self, data):
         entries = {}
-        if self.app.conf.CELERY_TASK_RESULT_EXPIRES:
+        if self.app.conf.result_expires:
             entries.setdefault(
                 'celery.backend_cleanup', {
                     'task': 'celery.backend_cleanup',

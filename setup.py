@@ -166,4 +166,9 @@ setup(
     cmdclass={'test': RunTests},
     classifiers=classifiers,
     long_description=long_description,
+    entry_points={
+        'celery.beat_schedulers': [
+            'django = django_celery_beat.schedulers:DatabaseScheduler',
+        ],
+    },
 )
