@@ -15,5 +15,4 @@
     django-celery-beat.managers
     django-celery-beat.schedulers
     django-celery-beat.admin
-    django-celery-beat.db
     django-celery-beat.utils

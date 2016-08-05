@@ -14,14 +14,14 @@ from celery.utils.timeutils import is_naive
 from kombu.utils.json import dumps, loads
 
 from django.db import transaction
+from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
-from .db import commit_on_success
 from .models import (
     PeriodicTask, PeriodicTasks,
     CrontabSchedule, IntervalSchedule,
 )
-from .utils import DATABASE_ERRORS, make_aware
+from .utils import make_aware
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -200,7 +200,7 @@ class DatabaseScheduler(Scheduler):
                 pass  # not in transaction management.
 
             last, ts = self._last_timestamp, self.Changes.last_change()
-        except DATABASE_ERRORS as exc:
+        except DatabaseError as exc:
             logger.exception('Database gave error: %r', exc)
             return False
         try:
@@ -221,7 +221,7 @@ class DatabaseScheduler(Scheduler):
         info('Writing entries...')
         _tried = set()
         try:
-            with commit_on_success():
+            with transaction.atomic():
                 while self._dirty:
                     try:
                         name = self._dirty.pop()
@@ -229,7 +229,7 @@ class DatabaseScheduler(Scheduler):
                         self.schedule[name].save()
                     except (KeyError, ObjectDoesNotExist):
                         pass
-        except DATABASE_ERRORS as exc:
+        except DatabaseError as exc:
             # retry later
             self._dirty |= _tried
             logger.exception('Database error while sync: %r', exc)
