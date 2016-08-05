@@ -8,12 +8,10 @@ from django.db.models.query import QuerySet
 
 class ExtendedQuerySet(QuerySet):
 
-    def update_or_create(self, **kwargs):
-        obj, created = self.get_or_create(**kwargs)
+    def update_or_create(self, defaults=None, **kwargs):
+        obj, created = self.get_or_create(defaults=defaults, **kwargs)
         if not created:
-            fields = dict(kwargs.pop('defaults', {}))
-            fields.update(kwargs)
-            self._update_model_with_dict(obj, fields)
+            self._update_model_with_dict(obj, dict(defaults or {}, **kwargs))
         return obj
 
     def _update_model_with_dict(self, obj, fields):
