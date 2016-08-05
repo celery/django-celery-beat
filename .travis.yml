@@ -10,11 +10,18 @@ env:
   global:
     PYTHONUNBUFFERED=yes
   matrix:
-    - TOXENV=2.7
-    - TOXENV=3.4
-    - TOXENV=pypy
-    - TOXENV=3.5
-    - TOXENV=pypy3
+    - TOXENV=2.7-django1.10
+    - TOXENV=2.7-django1.9
+    - TOXENV=2.7-django1.8
+    - TOXENV=pypy-django1.10
+    - TOXENV=pypy-django1.9
+    - TOXENV=pypy-django1.8
+    - TOXENV=3.4-django1.10
+    - TOXENV=3.4-django1.9
+    - TOXENV=3.4-django1.8
+    - TOXENV=3.5-django1.10
+    - TOXENV=3.5-django1.9
+    - TOXENV=3.5-django1.8
     - TOXENV=flake8
     - TOXENV=flakeplus
     - TOXENV=apicheck
