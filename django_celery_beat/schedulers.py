@@ -259,7 +259,7 @@ class DatabaseScheduler(Scheduler):
     def schedule(self):
         update = False
         if not self._initial_read:
-            debug('DatabaseScheduler: intial read')
+            debug('DatabaseScheduler: initial read')
             update = True
             self._initial_read = True
         elif self.schedule_changed():
