@@ -4,9 +4,9 @@ import os
 
 from celery import Celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'testproj.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proj.settings')
 
-app = Celery('testproj')
+app = Celery('proj')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object.

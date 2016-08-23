@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import Command, setup, find_packages
-
 import os
 import re
 import sys
 import codecs
+
+import setuptools
+import setuptools.command.test
 
 try:
     import platform
@@ -116,59 +117,40 @@ else:
 
 # -*- %%% -*-
 
-class RunTests(Command):
-    description = 'Run the test suite from the testproj dir.'
-    user_options = []
-    extra_env = {}
-    extra_args = []
 
-    def run(self):
-        for env_name, env_value in self.extra_env.items():
-            os.environ[env_name] = str(env_value)
-
-        this_dir = os.getcwd()
-        testproj_dir = os.path.join(this_dir, 'testproj')
-        os.chdir(testproj_dir)
-        sys.path.append(testproj_dir)
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'testproj.settings')
-        import django
-        django.setup()
-        from django.core.management import execute_from_command_line
-        prev_argv = list(sys.argv)
-        try:
-            sys.argv = [__file__, 'test'] + self.extra_args
-            execute_from_command_line(argv=sys.argv)
-        finally:
-            sys.argv = prev_argv
+class pytest(setuptools.command.test.test):
+    user_options = [('pytest-args=', 'a', 'Arguments to pass to py.test')]
 
     def initialize_options(self):
-        pass
+        setuptools.command.test.test.initialize_options(self)
+        self.pytest_args = []
 
-    def finalize_options(self):
-        pass
+    def run_tests(self):
+        import pytest
+        sys.exit(pytest.main(self.pytest_args))
 
-
-setup(
+setuptools.setup(
     name=NAME,
+    packages=setuptools.find_packages(exclude=[
+        'ez_setup', 't', 't.*',
+    ]),
     version=meta['version'],
     description=meta['doc'],
+    long_description=long_description,
     author=meta['author'],
     author_email=meta['contact'],
     url=meta['homepage'],
     platforms=['any'],
     license='BSD',
-    packages=find_packages(exclude=['ez_setup', 'tests', 'tests.*']),
-    include_package_data=False,
-    zip_safe=False,
     install_requires=reqs('default.txt'),
-    tests_require=reqs('test.txt'),
-    test_suite='nose.collector',
-    cmdclass={'test': RunTests},
+    tests_require=reqs('test.txt') + reqs('test-django.txt'),
+    cmdclass={'test': pytest},
     classifiers=classifiers,
-    long_description=long_description,
     entry_points={
         'celery.beat_schedulers': [
             'django = django_celery_beat.schedulers:DatabaseScheduler',
         ],
     },
+    include_package_data=False,
+    zip_safe=False,
 )

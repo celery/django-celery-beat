@@ -1,11 +1,12 @@
 from __future__ import absolute_import, unicode_literals
 
+import pytest
+
 from datetime import datetime, timedelta
 from itertools import count
 
 from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab
-from celery.tests.case import AppCase
 
 from django_celery_beat import schedulers
 from django_celery_beat.models import (
@@ -13,6 +14,12 @@ from django_celery_beat.models import (
 )
 
 _ids = count(0)
+
+
+@pytest.fixture(autouse=True)
+def no_multiprocessing_finalizers(patching):
+    patching('multiprocessing.util.Finalize')
+    patching('django_celery_beat.schedulers.Finalize')
 
 
 class EntryTrackSave(schedulers.ModelEntry):
@@ -44,13 +51,8 @@ class TrackingScheduler(schedulers.DatabaseScheduler):
         schedulers.DatabaseScheduler.sync(self)
 
 
-class SchedulerCase(AppCase):
-
-    def teardown(self):
-        PeriodicTask.objects.all().delete()
-        PeriodicTasks.objects.all().delete()
-        IntervalSchedule.objects.all().delete()
-        CrontabSchedule.objects.all().delete()
+@pytest.mark.django_db()
+class SchedulerCase:
 
     def create_model_interval(self, schedule, **kwargs):
         interval = IntervalSchedule.from_schedule(schedule)
@@ -75,6 +77,7 @@ class SchedulerCase(AppCase):
         return Model(**dict(entry, **kwargs))
 
 
+@pytest.mark.django_db()
 class test_ModelEntry(SchedulerCase):
     Entry = EntryTrackSave
 
@@ -82,33 +85,37 @@ class test_ModelEntry(SchedulerCase):
         m = self.create_model_interval(schedule(timedelta(seconds=10)))
         e = self.Entry(m, app=self.app)
 
-        self.assertListEqual(e.args, [2, 2])
-        self.assertDictEqual(e.kwargs, {'callback': 'foo'})
-        self.assertTrue(e.schedule)
-        self.assertEqual(e.total_run_count, 0)
-        self.assertIsInstance(e.last_run_at, datetime)
-        self.assertDictContainsSubset({'queue': 'xaz',
-                                       'exchange': 'foo',
-                                       'routing_key': 'cpu'}, e.options)
+        assert e.args == [2, 2]
+        assert e.kwargs == {'callback': 'foo'}
+        assert e.schedule
+        assert e.total_run_count == 0
+        assert isinstance(e.last_run_at, datetime)
+        assert e.options['queue'] == 'xaz'
+        assert e.options['exchange'] == 'foo'
+        assert e.options['routing_key'] == 'cpu'
 
         right_now = self.app.now()
         m2 = self.create_model_interval(
             schedule(timedelta(seconds=10)),
             last_run_at=right_now,
         )
-        self.assertTrue(m2.last_run_at)
+        assert m2.last_run_at
         e2 = self.Entry(m2, app=self.app)
-        self.assertIs(e2.last_run_at, right_now)
+        assert e2.last_run_at is right_now
 
         e3 = e2.next()
-        self.assertGreater(e3.last_run_at, e2.last_run_at)
-        self.assertEqual(e3.total_run_count, 1)
+        assert e3.last_run_at > e2.last_run_at
+        assert e3.total_run_count == 1
 
 
+@pytest.mark.django_db()
 class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    def setup(self):
+    @pytest.mark.django_db()
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
         self.app.conf.beat_schedule = {}
 
         self.m1 = self.create_model_interval(
@@ -127,50 +134,51 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s = self.Scheduler(app=self.app)
 
     def test_constructor(self):
-        self.assertIsInstance(self.s._dirty, set)
-        self.assertIsNone(self.s._last_sync)
-        self.assertTrue(self.s.sync_every)
+        assert isinstance(self.s._dirty, set)
+        assert self.s._last_sync is None
+        assert self.s.sync_every
 
     def test_all_as_schedule(self):
         sched = self.s.schedule
-        self.assertTrue(sched)
-        self.assertEqual(len(sched), 4)
-        self.assertIn('celery.backend_cleanup', sched)
+        assert sched
+        assert len(sched) == 4
+        assert 'celery.backend_cleanup' in sched
         for n, e in sched.items():
-            self.assertIsInstance(e, self.s.Entry)
+            assert isinstance(e, self.s.Entry)
 
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
         self.m2.save()
         e2 = self.s.schedule[self.m2.name]
-        self.assertListEqual(e2.args, [16, 16])
+        assert e2.args == [16, 16]
 
         self.m1.args = '[32, 32]'
         self.m1.save()
         e1 = self.s.schedule[self.m1.name]
-        self.assertListEqual(e1.args, [32, 32])
+        assert e1.args == [32, 32]
         e1 = self.s.schedule[self.m1.name]
-        self.assertListEqual(e1.args, [32, 32])
+        assert e1.args == [32, 32]
 
         self.m3.delete()
-        self.assertRaises(KeyError, self.s.schedule.__getitem__, self.m3.name)
+        with pytest.raises(KeyError):
+            self.s.schedule.__getitem__(self.m3.name)
 
     def test_should_sync(self):
-        self.assertTrue(self.s.should_sync())
+        assert self.s.should_sync()
         self.s._last_sync = monotonic()
-        self.assertFalse(self.s.should_sync())
+        assert not self.s.should_sync()
         self.s._last_sync -= self.s.sync_every
-        self.assertTrue(self.s.should_sync())
+        assert self.s.should_sync()
 
     def test_reserve(self):
         e1 = self.s.schedule[self.m1.name]
         self.s.schedule[self.m1.name] = self.s.reserve(e1)
-        self.assertEqual(self.s.flushed, 1)
+        assert self.s.flushed == 1
 
         e2 = self.s.schedule[self.m2.name]
         self.s.schedule[self.m2.name] = self.s.reserve(e2)
-        self.assertEqual(self.s.flushed, 1)
-        self.assertIn(self.m2.name, self.s._dirty)
+        assert self.s.flushed == 1
+        assert self.m2.name in self.s._dirty
 
     def test_sync_saves_last_run_at(self):
         e1 = self.s.schedule[self.m2.name]
@@ -181,7 +189,7 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s.sync()
 
         e2 = self.s.schedule[self.m2.name]
-        self.assertEqual(e2.last_run_at, last_run2)
+        assert e2.last_run_at == last_run2
 
     def test_sync_syncs_before_save(self):
         # Get the entry for m2
@@ -190,7 +198,7 @@ class test_DatabaseScheduler(SchedulerCase):
         # Increment the entry (but make sure it doesn't sync)
         self.s._last_sync = monotonic()
         e2 = self.s.schedule[e1.name] = self.s.reserve(e1)
-        self.assertEqual(self.s.flushed, 1)
+        assert self.s.flushed == 1
 
         # Fetch the raw object from db, change the args
         # and save the changes.
@@ -201,9 +209,9 @@ class test_DatabaseScheduler(SchedulerCase):
         # get_schedule should now see the schedule has changed.
         # and also sync the dirty objects.
         e3 = self.s.schedule[self.m2.name]
-        self.assertEqual(self.s.flushed, 2)
-        self.assertEqual(e3.last_run_at, e2.last_run_at)
-        self.assertListEqual(e3.args, [16, 16])
+        assert self.s.flushed == 2
+        assert e3.last_run_at == e2.last_run_at
+        assert e3.args == [16, 16]
 
     def test_sync_not_dirty(self):
         self.s._dirty.clear()
@@ -216,60 +224,48 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_sync_rollback_on_save_error(self):
         self.s.schedule[self.m1.name] = EntrySaveRaises(self.m1, app=self.app)
         self.s._dirty.add(self.m1.name)
-        self.assertRaises(RuntimeError, self.s.sync)
+        with pytest.raises(RuntimeError):
+            self.s.sync()
 
 
+@pytest.mark.django_db()
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
-        self.assertEqual(
-            text_t(IntervalSchedule(every=1, period='seconds')),
-            'every second')
-        self.assertEqual(
-            text_t(IntervalSchedule(every=10, period='seconds')),
-            'every 10 seconds')
+        assert (text_t(IntervalSchedule(every=1, period='seconds')) ==
+                'every second')
+        assert (text_t(IntervalSchedule(every=10, period='seconds')) ==
+                'every 10 seconds')
 
     def test_CrontabSchedule_unicode(self):
-        self.assertEqual(
-            text_t(CrontabSchedule(
-                minute=3,
-                hour=3,
-                day_of_week=None,
-            )),
-            '3 3 * * * (m/h/d/dM/MY)',
-        )
-        self.assertEqual(
-            text_t(CrontabSchedule(
-                minute=3,
-                hour=3,
-                day_of_week='tue',
-                day_of_month='*/2',
-                month_of_year='4,6',
-            )),
-            '3 3 tue */2 4,6 (m/h/d/dM/MY)',
-        )
+        assert text_t(CrontabSchedule(
+            minute=3,
+            hour=3,
+            day_of_week=None,
+        )) == '3 3 * * * (m/h/d/dM/MY)'
+        assert text_t(CrontabSchedule(
+            minute=3,
+            hour=3,
+            day_of_week='tue',
+            day_of_month='*/2',
+            month_of_year='4,6',
+        )) == '3 3 tue */2 4,6 (m/h/d/dM/MY)'
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
-        self.assertEqual(
-            text_t(p),
-            '{0}: every 10.0 seconds'.format(p.name),
-        )
+        assert text_t(p) == '{0}: every 10.0 seconds'.format(p.name)
 
     def test_PeriodicTask_unicode_crontab(self):
         p = self.create_model_crontab(crontab(
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        self.assertEqual(
-            text_t(p),
-            '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name),
-        )
+        assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name)
 
     def test_PeriodicTask_schedule_property(self):
         p1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         s1 = p1.schedule
-        self.assertEqual(s1.run_every.total_seconds(), 10)
+        assert s1.run_every.total_seconds() == 10
 
         p2 = self.create_model_crontab(crontab(
             hour='4, 5',
@@ -278,15 +274,15 @@ class test_models(SchedulerCase):
             month_of_year='*/3',
         ))
         s2 = p2.schedule
-        self.assertSetEqual(s2.hour, {4, 5})
-        self.assertSetEqual(s2.minute, {10, 20, 30})
-        self.assertSetEqual(s2.day_of_week, {0, 1, 2, 3, 4, 5, 6})
-        self.assertSetEqual(s2.day_of_month, {1, 2, 3, 4, 5, 6, 7})
-        self.assertSetEqual(s2.month_of_year, {1, 4, 7, 10})
+        assert s2.hour == {4, 5}
+        assert s2.minute == {10, 20, 30}
+        assert s2.day_of_week == {0, 1, 2, 3, 4, 5, 6}
+        assert s2.day_of_month == {1, 2, 3, 4, 5, 6, 7}
+        assert s2.month_of_year == {1, 4, 7, 10}
 
     def test_PeriodicTask_unicode_no_schedule(self):
         p = self.create_model()
-        self.assertEqual(text_t(p), '{0}: {{no schedule}}'.format(p.name))
+        assert text_t(p) == '{0}: {{no schedule}}'.format(p.name)
 
     def test_CrontabSchedule_schedule(self):
         s = CrontabSchedule(
@@ -296,23 +292,24 @@ class test_models(SchedulerCase):
             day_of_month='1, 16',
             month_of_year='1, 7',
         )
-        self.assertSetEqual(s.schedule.minute, {3, 7})
-        self.assertSetEqual(s.schedule.hour, {3, 4})
-        self.assertSetEqual(s.schedule.day_of_week, {0, 1, 2, 3, 4, 5, 6})
-        self.assertSetEqual(s.schedule.day_of_month, {1, 16})
-        self.assertSetEqual(s.schedule.month_of_year, {1, 7})
+        assert s.schedule.minute == {3, 7}
+        assert s.schedule.hour == {3, 4}
+        assert s.schedule.day_of_week == {0, 1, 2, 3, 4, 5, 6}
+        assert s.schedule.day_of_month == {1, 16}
+        assert s.schedule.month_of_year == {1, 7}
 
 
+@pytest.mark.django_db()
 class test_model_PeriodicTasks(SchedulerCase):
 
     def test_track_changes(self):
-        self.assertIsNone(PeriodicTasks.last_change())
+        assert PeriodicTasks.last_change() is None
         m1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         m1.save()
         x = PeriodicTasks.last_change()
-        self.assertTrue(x)
+        assert x
         m1.args = '(23, 24)'
         m1.save()
         y = PeriodicTasks.last_change()
-        self.assertTrue(y)
-        self.assertGreater(y, x)
+        assert y
+        assert y > x

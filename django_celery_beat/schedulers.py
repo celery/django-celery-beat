@@ -10,7 +10,7 @@ from celery.beat import Scheduler, ScheduleEntry
 from celery.five import values, items
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
-from celery.utils.timeutils import is_naive
+from celery.utils.time import is_naive
 from kombu.utils.json import dumps, loads
 
 from django.db import transaction

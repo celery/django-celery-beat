@@ -1,9 +1,9 @@
 PROJ=django_celery_beat
 PGPIDENT="Celery Security Team"
 PYTHON=python
+PYTEST=py.test
 GIT=git
 TOX=tox
-NOSETESTS=nosetests
 ICONV=iconv
 FLAKE8=flake8
 FLAKEPLUS=flakeplus
@@ -21,7 +21,7 @@ FLAKEPLUSTARGET=2.7
 
 COVERAGE=coverage
 COVERAGE_HTML_DEST=cover
-TESTPROJ=testproj
+TESTDIR=t
 
 all: help
 
@@ -85,13 +85,13 @@ configcheck:
 	true
 
 flakecheck:
-	$(FLAKE8) --ignore=X999 "$(PROJ)"
+	$(FLAKE8) --ignore=X999 "$(PROJ)" "$(TESTDIR)"
 
 flakediag:
 	-$(MAKE) flakecheck
 
 flakepluscheck:
-	$(FLAKEPLUS) --$(FLAKEPLUSTARGET) "$(PROJ)"
+	$(FLAKEPLUS) --$(FLAKEPLUSTARGET) "$(PROJ)" "$(TESTDIR)"
 
 flakeplusdiag:
 	-$(MAKE) flakepluscheck
@@ -138,11 +138,8 @@ test-all: clean-pyc
 test:
 	$(PYTHON) setup.py test
 
-covbuild:
-	REUSE_DB=1 $(COVERAGE) run ./testproj/manage.py test
-
-cov: covbuild
-	$(COVERAGE) html -d "$(COVERAGE_HTML_DEST)"
+cov:
+	(cd $(TESTDIR); $(PYTEST) -x --cov="$(PROJ)" --cov-report=html)
 
 build:
 	$(PYTHON) setup.py sdist bdist_wheel

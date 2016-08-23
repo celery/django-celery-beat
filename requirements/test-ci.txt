@@ -1,2 +1,2 @@
-coverage>=3.0
+pytest-cov
 codecov
