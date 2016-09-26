@@ -99,7 +99,7 @@ class PeriodicTaskForm(forms.ModelForm):
 class PeriodicTaskAdmin(admin.ModelAdmin):
     form = PeriodicTaskForm
     model = PeriodicTask
-    list_display = ('__unicode__', 'enabled')
+    list_display = ('__str__', 'enabled')
     fieldsets = (
         (None, {
             'fields': ('name', 'regtask', 'task', 'enabled'),
