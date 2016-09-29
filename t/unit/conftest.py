@@ -21,9 +21,11 @@ def zzzz_test_cases_calls_setup_teardown(request):
         # we set the .patching attribute for every test class.
         setup = getattr(request.instance, 'setup', None)
         # we also call .setup() and .teardown() after every test method.
-        teardown = getattr(request.instance, 'teardown', None)
         setup and setup()
-        teardown and request.addfinalizer(teardown)
+    yield
+    if request.instance:
+        teardown = getattr(request.instance, 'teardown', None)
+        teardown and teardown()
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +40,6 @@ def test_cases_shortcuts(request, app, patching):
         request.instance.Celery = TestApp
         request.instance.add = add
         request.instance.patching = patching
-
-        def fin():
-            request.instance.app = None
-        request.addfinalizer(fin)
+    yield
+    if request.instance:
+        request.instance.app = None
