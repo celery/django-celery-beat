@@ -1,3 +1,4 @@
+"""Periodic Task Admin interface."""
 from __future__ import absolute_import, unicode_literals
 
 from django import forms
@@ -20,6 +21,8 @@ except ImportError:
 
 
 class TaskSelectWidget(Select):
+    """Widget that lets you choose between task names."""
+
     celery_app = current_app
     _choices = None
 
@@ -47,6 +50,8 @@ class TaskSelectWidget(Select):
 
 
 class TaskChoiceField(forms.ChoiceField):
+    """Field that lets you choose between task names."""
+
     widget = TaskSelectWidget
 
     def valid_value(self, value):
@@ -54,6 +59,8 @@ class TaskChoiceField(forms.ChoiceField):
 
 
 class PeriodicTaskForm(forms.ModelForm):
+    """Form that lets you create and modify periodic tasks."""
+
     regtask = TaskChoiceField(
         label=_('Task (registered)'),
         required=False,
@@ -65,6 +72,8 @@ class PeriodicTaskForm(forms.ModelForm):
     )
 
     class Meta:
+        """Form metadata."""
+
         model = PeriodicTask
         exclude = ()
 
@@ -97,6 +106,8 @@ class PeriodicTaskForm(forms.ModelForm):
 
 
 class PeriodicTaskAdmin(admin.ModelAdmin):
+    """Admin-interface for peridic tasks."""
+
     form = PeriodicTaskForm
     model = PeriodicTask
     list_display = ('__str__', 'enabled')
@@ -123,8 +134,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         scheduler = getattr(settings, 'CELERY_BEAT_SCHEDULER', None)
         extra_context['wrong_scheduler'] = not is_database_scheduler(scheduler)
-        return super(PeriodicTaskAdmin, self).changelist_view(request,
-                                                              extra_context)
+        return super(PeriodicTaskAdmin, self).changelist_view(
+            request, extra_context)
 
     def get_queryset(self, request):
         qs = super(PeriodicTaskAdmin, self).get_queryset(request)

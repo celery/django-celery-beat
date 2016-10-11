@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Database-backed Periodic Tasks"""
+"""Database-backed Periodic Tasks."""
 # :copyright: (c) 2016, Ask Solem.
 #             All rights reserved.
 # :license:   BSD (3 Clause), see LICENSE for more details.

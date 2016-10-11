@@ -1,4 +1,4 @@
-"""django-celery-beat application configurations."""
+"""Django Application configuration."""
 from __future__ import absolute_import, unicode_literals
 
 from django.apps import AppConfig
@@ -8,6 +8,8 @@ __all__ = ['BeatConfig']
 
 
 class BeatConfig(AppConfig):
+    """Default configuration for django_celery_beat app."""
+
     name = 'django_celery_beat'
     label = 'beat'
     verbose_name = _('Beat')

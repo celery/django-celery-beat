@@ -1,3 +1,4 @@
+"""Model managers."""
 from __future__ import absolute_import, unicode_literals
 
 from celery.five import items
@@ -7,6 +8,7 @@ from django.db.models.query import QuerySet
 
 
 class ExtendedQuerySet(QuerySet):
+    """Base class for query sets."""
 
     def update_or_create(self, defaults=None, **kwargs):
         obj, created = self.get_or_create(defaults=defaults, **kwargs)
@@ -22,10 +24,11 @@ class ExtendedQuerySet(QuerySet):
 
 
 class ExtendedManager(models.Manager.from_queryset(ExtendedQuerySet)):
-    pass
+    """Manager with common utilities."""
 
 
 class PeriodicTaskManager(ExtendedManager):
+    """Manager for PeriodicTask model."""
 
     def enabled(self):
         return self.filter(enabled=True)

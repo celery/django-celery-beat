@@ -1,3 +1,4 @@
+"""Database models."""
 from __future__ import absolute_import, unicode_literals
 
 from datetime import timedelta
@@ -23,17 +24,22 @@ PERIOD_CHOICES = (
 
 
 def cronexp(field):
+    """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
 
 
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
+    """Schedule executing every n seconds."""
+
     every = models.IntegerField(_('every'), null=False)
     period = models.CharField(
         _('period'), max_length=24, choices=PERIOD_CHOICES,
     )
 
     class Meta:
+        """Table information."""
+
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
@@ -65,6 +71,8 @@ class IntervalSchedule(models.Model):
 
 @python_2_unicode_compatible
 class CrontabSchedule(models.Model):
+    """Crontab-like schedule."""
+
     minute = models.CharField(_('minute'), max_length=64, default='*')
     hour = models.CharField(_('hour'), max_length=64, default='*')
     day_of_week = models.CharField(
@@ -78,6 +86,8 @@ class CrontabSchedule(models.Model):
     )
 
     class Meta:
+        """Table information."""
+
         verbose_name = _('crontab')
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
@@ -117,6 +127,8 @@ class CrontabSchedule(models.Model):
 
 
 class PeriodicTasks(models.Model):
+    """Helper table for tracking updates to periodic tasks."""
+
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
     last_update = models.DateTimeField(null=False)
 
@@ -138,6 +150,8 @@ class PeriodicTasks(models.Model):
 
 @python_2_unicode_compatible
 class PeriodicTask(models.Model):
+    """Model representing a periodic task."""
+
     name = models.CharField(
         _('name'), max_length=200, unique=True,
         help_text=_('Useful description'),
@@ -189,6 +203,8 @@ class PeriodicTask(models.Model):
     no_changes = False
 
     class Meta:
+        """Table information."""
+
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
 

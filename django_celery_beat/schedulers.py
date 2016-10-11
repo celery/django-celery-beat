@@ -1,3 +1,4 @@
+"""Beat Scheduler Implementation."""
 from __future__ import absolute_import, unicode_literals
 
 import logging
@@ -41,6 +42,8 @@ debug, info = logger.debug, logger.info
 
 
 class ModelEntry(ScheduleEntry):
+    """Scheduler entry taken from database row."""
+
     model_schedules = (
         (schedules.crontab, CrontabSchedule, 'crontab'),
         (schedules.schedule, IntervalSchedule, 'interval'),
@@ -161,6 +164,8 @@ class ModelEntry(ScheduleEntry):
 
 
 class DatabaseScheduler(Scheduler):
+    """Database-backed Beat Scheduler."""
+
     Entry = ModelEntry
     Model = PeriodicTask
     Changes = PeriodicTasks
