@@ -8,7 +8,7 @@
 
 .. include:: ../includes/installation.txt
 
-.. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.png?branch=master
+.. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
     :alt: Build status
     :target: https://travis-ci.org/celery/django-celery-beat
 
