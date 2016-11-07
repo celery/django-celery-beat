@@ -9,7 +9,7 @@ recursive-include docs *
 recursive-include extra/*
 recursive-include examples *
 recursive-include requirements *.txt *.rst
-recursive-include django_celery_beat/templates *.html
+recursive-include django_celery_beat *.py *.html
 recursive-include t *.py
 
 recursive-exclude * __pycache__
