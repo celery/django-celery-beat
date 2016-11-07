@@ -2,9 +2,8 @@ from __future__ import absolute_import, unicode_literals
 
 import pytest
 
-from celery.utils.pytest import (  # noqa
-    TestApp, Trap, app, depends_on_current_app,
-)
+from celery.contrib.testing.app import TestApp, Trap
+from celery.contrib.pytest import depends_on_current_app
 
 __all__ = ['app', 'depends_on_current_app']
 
@@ -15,17 +14,9 @@ def setup_default_app_trap():
     set_default_app(Trap())
 
 
-@pytest.fixture(autouse=True)
-def zzzz_test_cases_calls_setup_teardown(request):
-    if request.instance:
-        # we set the .patching attribute for every test class.
-        setup = getattr(request.instance, 'setup', None)
-        # we also call .setup() and .teardown() after every test method.
-        setup and setup()
-    yield
-    if request.instance:
-        teardown = getattr(request.instance, 'teardown', None)
-        teardown and teardown()
+@pytest.fixture()
+def app(celery_app):
+    return celery_app
 
 
 @pytest.fixture(autouse=True)
