@@ -4,11 +4,24 @@
  Change history
 ================
 
+.. _version-1.0.1:
+
+1.0.1
+=====
+:release-date: 2016-11-07 02:28 p.m. PST
+:release-by: Ask Solem
+
+- Now depends on Celery 4.0.0.
+
+- Migration modules were not included in the distribution.
+
+- Adds documentation: http://django-celery-beat.readthedocs.io/
+
 .. _version-1.0.0:
 
 1.0.0
 =====
-:release-date: TBA
-:release-by:
+:release-date: 2016-09-08 03:19 p.m. PDT
+:release-by: Ask Solem
 
 - Initial release
