@@ -10,7 +10,7 @@ globals().update(conf.build_config(
     project='django_celery_beat',
     # version_dev='2.0',
     # version_stable='1.4',
-    canonical_url='http://django-celery-beat.readthedocs.org',
+    canonical_url='http://django-celery-beat.readthedocs.io',
     webdomain='',
     github_project='celery/django-celery-beat',
     copyright='2016',

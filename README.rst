@@ -5,7 +5,7 @@
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
 :Version: 1.0.0
-:Web: http://django-celery-beat.readthedocs.org/
+:Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
 :Keywords: django, celery, beat, periodic task, cron, scheduling
