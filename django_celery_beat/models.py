@@ -14,12 +14,18 @@ from celery.five import python_2_unicode_compatible
 from . import managers
 from .utils import now
 
+DAYS = 'days'
+HOURS = 'hours'
+MINUTES = 'minutes'
+SECONDS = 'seconds'
+MICROSECONDS = 'microseconds'
+
 PERIOD_CHOICES = (
-    ('days', _('Days')),
-    ('hours', _('Hours')),
-    ('minutes', _('Minutes')),
-    ('seconds', _('Seconds')),
-    ('microseconds', _('Microseconds')),
+    (DAYS, _('Days')),
+    (HOURS, _('Hours')),
+    (MINUTES, _('Minutes')),
+    (SECONDS, _('Seconds')),
+    (MICROSECONDS, _('Microseconds')),
 )
 
 
@@ -31,6 +37,14 @@ def cronexp(field):
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
     """Schedule executing every n seconds."""
+
+    DAYS = DAYS
+    HOURS = HOURS
+    MINUTES = MINUTES
+    SECONDS = SECONDS
+    MICROSECONDS = MICROSECONDS
+
+    PERIOD_CHOICES = PERIOD_CHOICES
 
     every = models.IntegerField(_('every'), null=False)
     period = models.CharField(
@@ -49,7 +63,7 @@ class IntervalSchedule(models.Model):
         return schedules.schedule(timedelta(**{self.period: self.every}))
 
     @classmethod
-    def from_schedule(cls, schedule, period='seconds'):
+    def from_schedule(cls, schedule, period=SECONDS):
         every = max(schedule.run_every.total_seconds(), 0)
         try:
             return cls.objects.get(every=every, period=period)
