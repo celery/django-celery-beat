@@ -13,10 +13,10 @@ database.
 The periodic tasks can be managed from the Django Admin interface, where you
 can create, edit and delete periodic tasks and how often they should run.
 
-Installing
-==========
+Using the Extension
+===================
 
-The installation instructions for this extension is available
+Usage and installation instructions for this extension are available
 from the `Celery documentation`_:
 
 http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-custom-scheduler-classes
@@ -25,10 +25,10 @@ http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-cust
 .. _`Celery documentation`:
     http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-custom-scheduler-classes
 
-Important Warning
-=================
+Important Warning about Time Zones
+==================================
 
-.. admonition:: Timezones
+.. warning::
 
     If you change the Django ``TIME_ZONE`` setting your periodic task schedule
     will still be based on the old timezone.

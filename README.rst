@@ -19,10 +19,10 @@ database.
 The periodic tasks can be managed from the Django Admin interface, where you
 can create, edit and delete periodic tasks and how often they should run.
 
-Installing
-==========
+Using the Extension
+===================
 
-The installation instructions for this extension is available
+Usage and installation instructions for this extension are available
 from the `Celery documentation`_:
 
 http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-custom-scheduler-classes
@@ -36,18 +36,18 @@ Important Warning about Time Zones
 
 .. warning::
 
-If you change the Django ``TIME_ZONE`` setting your periodic task schedule
-will still be based on the old timezone.
+    If you change the Django ``TIME_ZONE`` setting your periodic task schedule
+    will still be based on the old timezone.
 
-To fix that you would have to reset the "last run time" for each periodic
-task::
+    To fix that you would have to reset the "last run time" for each periodic
+    task::
 
-    >>> from django_celery_beat import PeriodicTask, PeriodicTasks
-    >>> PeriodicTask.objects.all().update(last_run_at=None)
-    >>> PeriodicTasks.changed()
+        >>> from django_celery_beat import PeriodicTask, PeriodicTasks
+        >>> PeriodicTask.objects.all().update(last_run_at=None)
+        >>> PeriodicTasks.changed()
 
-Note that this will reset the state as if the periodic tasks have never run
-before.
+    Note that this will reset the state as if the periodic tasks have never run
+    before.
 
 Models
 ======
@@ -189,8 +189,6 @@ You can use the ``enabled`` flag to temporarily disable a periodic task::
     >>> periodic_task.enabled = False
     >>> periodic_task.save()
 
-.. _installation:
-
 Installation
 ============
 
@@ -200,8 +198,6 @@ or from source.
 To install using `pip`,::
 
     $ pip install -U django-celery-beat
-
-.. _installing-from-source:
 
 Downloading and installing from source
 --------------------------------------
@@ -218,8 +214,6 @@ You can install it by doing the following,::
 
 The last command must be executed as a privileged user if
 you are not currently using a virtualenv.
-
-.. _installing-from-git:
 
 Using the development version
 -----------------------------
