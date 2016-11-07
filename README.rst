@@ -31,10 +31,10 @@ http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-cust
 .. _`Celery documentation`:
     http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#using-custom-scheduler-classes
 
-Important Warning
-=================
+Important Warning about Time Zones
+==================================
 
-.. admonition:: Timezones
+.. warning::
 
 If you change the Django ``TIME_ZONE`` setting your periodic task schedule
 will still be based on the old timezone.
