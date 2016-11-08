@@ -32,3 +32,5 @@ del(_temp)
 del(re)
 
 __all__ = []
+
+default_app_config = 'django_celery_beat.apps.BeatConfig'
