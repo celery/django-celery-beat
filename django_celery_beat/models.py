@@ -28,10 +28,56 @@ PERIOD_CHOICES = (
     (MICROSECONDS, _('Microseconds')),
 )
 
+SOLAR_SCHEDULES = [(x, _(x)) for x in schedules.solar._all_events]
+
 
 def cronexp(field):
     """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
+
+
+@python_2_unicode_compatible
+class SolarSchedule(models.Model):
+    """Schedule following astronomical patterns."""
+
+    event = models.CharField(
+        _('event'), max_length=24, choices=SOLAR_SCHEDULES
+    )
+    latitude = models.DecimalField(
+        _('latitude'), max_digits=9, decimal_places=6
+    )
+    longitude = models.DecimalField(
+        _('latitude'), max_digits=9, decimal_places=6
+    )
+
+    class Meta:
+        verbose_name = _('solar')
+        verbose_name_plural = _('solars')
+        ordering = ['event', 'latitude', 'longitude']
+
+    @property
+    def schedule(self):
+        return schedules.solar(self.event, self.latitude, self.longitude)
+
+    @classmethod
+    def from_schedule(cls, schedule):
+        spec = {'event': schedule.event,
+                'latitude': schedule.lat,
+                'longitude': schedule.lon}
+        try:
+            return cls.objects.get(**spec)
+        except cls.DoesNotExist:
+            return cls(**spec)
+        except MultipleObjectsReturned:
+            cls.objects.filter(**spec).delete()
+            return cls(**spec)
+
+    def __str__(self):
+        return '{0} ({1}, {2})'.format(
+            self.get_event_display(),
+            self.latitude,
+            self.longitude
+        )
 
 
 @python_2_unicode_compatible
@@ -179,6 +225,10 @@ class PeriodicTask(models.Model):
         CrontabSchedule, null=True, blank=True, verbose_name=_('crontab'),
         help_text=_('Use one of interval/crontab'),
     )
+    solar = models.ForeignKey(
+        SolarSchedule, null=True, blank=True, verbose_name=_('solar'),
+        help_text=_('Use a solar schedule')
+    )
     args = models.TextField(
         _('Arguments'), blank=True, default='[]',
         help_text=_('JSON encoded positional arguments'),
@@ -224,12 +274,12 @@ class PeriodicTask(models.Model):
 
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
-        if not self.interval and not self.crontab:
+        if not self.interval and not self.crontab and not self.solar:
             raise ValidationError(
-                {'interval': ['One of interval or crontab must be set.']})
-        if self.interval and self.crontab:
+                {'interval': ['One of interval, crontab, or solar must be set.']})
+        if self.interval and self.crontab and self.solar:
             raise ValidationError(
-                {'crontab': ['Only one of interval or crontab must be set']})
+                {'crontab': ['Only one of interval, crontab, or solar must be set']})
 
     def save(self, *args, **kwargs):
         self.exchange = self.exchange or None
@@ -245,6 +295,8 @@ class PeriodicTask(models.Model):
             fmt = '{0.name}: {0.interval}'
         if self.crontab:
             fmt = '{0.name}: {0.crontab}'
+        if self.solar:
+            fmt = '{0.name}: {0.solar}'
         return fmt.format(self)
 
     @property
