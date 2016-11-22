@@ -34,7 +34,7 @@ except ImportError:  # pragma: no cover
 DEFAULT_MAX_INTERVAL = 5  # seconds
 
 ADD_ENTRY_ERROR = """\
-Couldn't add entry %r to database schedule: %r. Contents: %r
+Cannot add entry %r to database schedule: %r. Contents: %r
 """
 
 logger = get_logger(__name__)

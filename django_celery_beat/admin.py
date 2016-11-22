@@ -140,6 +140,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super(PeriodicTaskAdmin, self).get_queryset(request)
         return qs.select_related('interval', 'crontab')
+
+
 admin.site.register(IntervalSchedule)
 admin.site.register(CrontabSchedule)
 admin.site.register(PeriodicTask, PeriodicTaskAdmin)

@@ -254,5 +254,6 @@ class PeriodicTask(models.Model):
         if self.crontab:
             return self.crontab.schedule
 
+
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
 signals.pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
