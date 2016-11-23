@@ -53,9 +53,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE_CLASSES = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
-ROOT_URLCONF = 'proj.urls'
+ROOT_URLCONF = 't.proj.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +78,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'proj.wsgi.application'
+WSGI_APPLICATION = 't.proj.wsgi.application'
 
 
 # Database

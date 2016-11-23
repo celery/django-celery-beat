@@ -11,5 +11,5 @@ class BeatConfig(AppConfig):
     """Default configuration for django_celery_beat app."""
 
     name = 'django_celery_beat'
-    label = 'beat'
-    verbose_name = _('Beat')
+    label = 'django_celery_beat'
+    verbose_name = _('Periodic Tasks')
