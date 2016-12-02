@@ -282,4 +282,6 @@ class DatabaseScheduler(Scheduler):
                 debug('Current schedule:\n%s', '\n'.join(
                     repr(entry) for entry in values(self._schedule)),
                 )
+            # _heap will be rebuilt on the next run
+            super(Scheduler, self).__setattr__('_heap', None)
         return self._schedule
