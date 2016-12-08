@@ -51,6 +51,8 @@ class SolarSchedule(models.Model):
     )
 
     class Meta:
+        """Table information."""
+
         verbose_name = _('solar')
         verbose_name_plural = _('solars')
         ordering = ['event', 'latitude', 'longitude']
@@ -275,11 +277,17 @@ class PeriodicTask(models.Model):
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
         if not self.interval and not self.crontab and not self.solar:
-            raise ValidationError(
-                {'interval': ['One of interval, crontab, or solar must be set.']})
+            raise ValidationError({
+                'interval': [
+                    'One of interval, crontab, or solar must be set.'
+                ]
+            })
         if self.interval and self.crontab and self.solar:
-            raise ValidationError(
-                {'crontab': ['Only one of interval, crontab, or solar must be set']})
+            raise ValidationError({
+                'crontab': [
+                    'Only one of interval, crontab, or solar must be set'
+                ]
+            })
 
     def save(self, *args, **kwargs):
         self.exchange = self.exchange or None
