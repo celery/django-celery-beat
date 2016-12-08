@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.forms.widgets import Select
+from django.template.defaultfilters import pluralize
 from django.utils.translation import ugettext_lazy as _
 
 from celery import current_app
@@ -144,20 +145,28 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
-        if rows_updated == 1:
-            message_bit = '1 task was'
-        else:
-            message_bit = '%s tasks were' % rows_updated
-        self.message_user(request, _('%s successfully enabled' % message_bit))
+        PeriodicTasks.changed()
+        self.message_user(
+            request,
+            _('{0} task{1} {2} successfully enabled').format(
+                rows_updated,
+                pluralize(rows_updated),
+                pluralize(rows_updated, _('was,were')),
+            ),
+        )
     enable_tasks.short_description = _('Enable selected tasks')
 
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False)
-        if rows_updated == 1:
-            message_bit = '1 task was'
-        else:
-            message_bit = '%s tasks were' % rows_updated
-        self.message_user(request, _('%s successfully disabled' % message_bit))
+        PeriodicTasks.changed()
+        self.message_user(
+            request,
+            _('{0} task{1} {2} successfully disabled').format(
+                rows_updated,
+                pluralize(rows_updated),
+                pluralize(rows_updated, _('was,were')),
+            ),
+        )
     disable_tasks.short_description = _('Disable selected tasks')
 
 
