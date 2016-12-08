@@ -12,7 +12,10 @@ from celery import current_app
 from celery.utils import cached_property
 from kombu.utils.json import loads
 
-from .models import PeriodicTask, IntervalSchedule, CrontabSchedule
+from .models import (
+    PeriodicTask, PeriodicTasks,
+    IntervalSchedule, CrontabSchedule,
+)
 from .utils import is_database_scheduler
 
 try:
