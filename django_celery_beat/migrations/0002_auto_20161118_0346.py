@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(
                     auto_created=True, primary_key=True,
-                    serialize=False, absverbose_name='ID')),
+                    serialize=False, verbose_name='ID')),
                 ('event', models.CharField(
                     choices=[('dusk_nautical', 'dusk_nautical'),
                              ('dawn_astronomical', 'dawn_astronomical'),
