@@ -47,7 +47,7 @@ class SolarSchedule(models.Model):
         _('latitude'), max_digits=9, decimal_places=6
     )
     longitude = models.DecimalField(
-        _('latitude'), max_digits=9, decimal_places=6
+        _('longitude'), max_digits=9, decimal_places=6
     )
 
     class Meta:
