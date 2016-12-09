@@ -15,6 +15,7 @@ from kombu.utils.json import loads
 from .models import (
     PeriodicTask, PeriodicTasks,
     IntervalSchedule, CrontabSchedule,
+    SolarSchedule
 )
 from .utils import is_database_scheduler
 

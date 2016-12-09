@@ -55,7 +55,8 @@ class SolarSchedule(models.Model):
 
         verbose_name = _('solar event')
         verbose_name_plural = _('solar events')
-        ordering = ['event', 'latitude', 'longitude']
+        ordering = ('event', 'latitude', 'longitude')
+        unique_together = ('event', 'latitude', 'longitude')
 
     @property
     def schedule(self):
