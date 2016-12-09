@@ -53,8 +53,8 @@ class SolarSchedule(models.Model):
     class Meta:
         """Table information."""
 
-        verbose_name = _('solar')
-        verbose_name_plural = _('solars')
+        verbose_name = _('solar event')
+        verbose_name_plural = _('solar events')
         ordering = ['event', 'latitude', 'longitude']
 
     @property
