@@ -151,8 +151,11 @@ class PeriodicTasks(models.Model):
     @classmethod
     def changed(cls, instance, **kwargs):
         if not instance.no_changes:
-            cls.objects.update_or_create(ident=1,
-                                         defaults={'last_update': now()})
+            cls.update_changed()
+
+    @classmethod
+    def update_changed(cls, **kwargs):
+        cls.objects.update_or_create(ident=1, defaults={'last_update': now()})
 
     @classmethod
     def last_change(cls):
@@ -257,3 +260,11 @@ class PeriodicTask(models.Model):
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
 signals.pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
+signals.pre_delete.connect(
+    PeriodicTasks.update_changed, sender=IntervalSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=IntervalSchedule)
+signals.post_delete.connect(
+    PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=CrontabSchedule)
