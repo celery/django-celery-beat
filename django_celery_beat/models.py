@@ -329,3 +329,7 @@ signals.post_delete.connect(
     PeriodicTasks.update_changed, sender=CrontabSchedule)
 signals.post_save.connect(
     PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_delete.connect(
+    PeriodicTasks.update_changed, sender=SolarSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=SolarSchedule)
