@@ -244,14 +244,14 @@ class PeriodicTask(models.Model):
         help_text=_('JSON encoded keyword arguments'),
     )
     queue = models.CharField(
-        _('queue'), max_length=200, blank=True, null=True, default=None,
+        _('queue'), max_length=200, blank=True, default=None,
         help_text=_('Queue defined in CELERY_TASK_QUEUES'),
     )
     exchange = models.CharField(
-        _('exchange'), max_length=200, blank=True, null=True, default=None,
+        _('exchange'), max_length=200, blank=True, default=None,
     )
     routing_key = models.CharField(
-        _('routing key'), max_length=200, blank=True, null=True, default=None,
+        _('routing key'), max_length=200, blank=True, default=None,
     )
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
