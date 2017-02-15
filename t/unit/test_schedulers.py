@@ -213,6 +213,58 @@ class test_DatabaseScheduler(SchedulerCase):
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
 
+    def test_periodic_task_disabled_and_enabled(self):
+        # Get the entry for m2
+        e1 = self.s.schedule[self.m2.name]
+
+        # Increment the entry (but make sure it doesn't sync)
+        self.s._last_sync = monotonic()
+        e2 = self.s.schedule[e1.name] = self.s.reserve(e1)
+        assert self.s.flushed == 1
+
+        # Fetch the raw object from db, change the args
+        # and save the changes.
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.enabled = False
+        m2.save()
+
+        # get_schedule should now see the schedule has changed.
+        # and remove entry for m2
+        assert self.m2.name not in self.s.schedule
+        assert self.s.flushed == 2
+
+        m2.enabled = True
+        m2.save()
+
+        # get_schedule should now see the schedule has changed.
+        # and add entry for m2
+        assert self.m2.name in self.s.schedule
+        assert self.s.flushed == 3
+
+    def test_periodic_task_disabled_while_reserved(self):
+        # Get the entry for m2
+        e1 = self.s.schedule[self.m2.name]
+
+        # Increment the entry (but make sure it doesn't sync)
+        self.s._last_sync = monotonic()
+        e2 = self.s.schedule[e1.name] = self.s.reserve(e1)
+        assert self.s.flushed == 1
+
+        # Fetch the raw object from db, change the args
+        # and save the changes.
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.enabled = False
+        m2.save()
+
+        # reserve is called because the task gets called from
+        # tick after the database change is made
+        self.s.reserve(e2)
+
+        # get_schedule should now see the schedule has changed.
+        # and remove entry for m2
+        assert self.m2.name not in self.s.schedule
+        assert self.s.flushed == 2
+
     def test_sync_not_dirty(self):
         self.s._dirty.clear()
         self.s.sync()
