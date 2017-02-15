@@ -247,11 +247,14 @@ class DatabaseScheduler(Scheduler):
 
     def update_from_dict(self, mapping):
         s = {}
-        for name, entry in items(mapping):
+        for name, entry_fields in items(mapping):
             try:
-                s[name] = self.Entry.from_entry(name, app=self.app, **entry)
+                entry = self.Entry.from_entry(name, app=self.app, **entry_fields)
+                if entry.model.enabled:
+                    s[name] = entry
+
             except Exception as exc:
-                logger.error(ADD_ENTRY_ERROR, name, exc, entry)
+                logger.error(ADD_ENTRY_ERROR, name, exc, entry_fields)
         self.schedule.update(s)
 
     def install_default_entries(self, data):
