@@ -222,7 +222,7 @@ class DatabaseScheduler(Scheduler):
         return False
 
     def reserve(self, entry):
-        new_entry = Scheduler.reserve(self, entry)
+        new_entry = next(entry)
         # Need to store entry by name, because the entry may change
         # in the mean time.
         self._dirty.add(new_entry.name)
