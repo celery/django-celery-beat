@@ -118,6 +118,7 @@ class test_ModelEntry(SchedulerCase):
         assert e3.last_run_at > e2.last_run_at
         assert e3.total_run_count == 1
 
+
 @pytest.mark.django_db()
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):
     Scheduler = TrackingScheduler
@@ -157,6 +158,7 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert len(sched) == 1
         assert 'celery.backend_cleanup' in sched
         assert self.entry_name not in sched
+
 
 @pytest.mark.django_db()
 class test_DatabaseScheduler(SchedulerCase):
@@ -275,7 +277,7 @@ class test_DatabaseScheduler(SchedulerCase):
 
         # Increment the entry (but make sure it doesn't sync)
         self.s._last_sync = monotonic()
-        e2 = self.s.schedule[e1.name] = self.s.reserve(e1)
+        self.s.schedule[e1.name] = self.s.reserve(e1)
         assert self.s.flushed == 1
 
         # Fetch the raw object from db, change the args
