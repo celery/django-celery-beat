@@ -64,6 +64,17 @@ class SchedulerCase:
         crontab.save()
         return self.create_model(crontab=crontab, **kwargs)
 
+    def create_conf_entry(self):
+        name = 'thefoo{0}'.format(next(_ids))
+        return name, dict(
+            task='djcelery.unittest.add{0}'.format(next(_ids)),
+            schedule=timedelta(0, 600),
+            args=(),
+            relative=False,
+            kwargs={},
+            options={'queue': 'extra_queue'}
+        )
+
     def create_model(self, Model=PeriodicTask, **kwargs):
         entry = dict(
             name='thefoo{0}'.format(next(_ids)),
@@ -109,6 +120,47 @@ class test_ModelEntry(SchedulerCase):
 
 
 @pytest.mark.django_db()
+class test_DatabaseSchedulerFromAppConf(SchedulerCase):
+    Scheduler = TrackingScheduler
+
+    @pytest.mark.django_db()
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+
+        self.entry_name, entry = self.create_conf_entry()
+        self.app.conf.beat_schedule = {self.entry_name: entry}
+        self.m1 = PeriodicTask(name=self.entry_name)
+
+    def test_constructor(self):
+        s = self.Scheduler(app=self.app)
+
+        assert isinstance(s._dirty, set)
+        assert s._last_sync is None
+        assert s.sync_every
+
+    def test_periodic_task_model_enabled_schedule(self):
+        s = self.Scheduler(app=self.app)
+        sched = s.schedule
+        assert len(sched) == 2
+        assert 'celery.backend_cleanup' in sched
+        assert self.entry_name in sched
+        for n, e in sched.items():
+            assert isinstance(e, s.Entry)
+
+    def test_periodic_task_model_disabled_schedule(self):
+        self.m1.enabled = False
+        self.m1.save()
+
+        s = self.Scheduler(app=self.app)
+        sched = s.schedule
+        assert sched
+        assert len(sched) == 1
+        assert 'celery.backend_cleanup' in sched
+        assert self.entry_name not in sched
+
+
+@pytest.mark.django_db()
 class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
@@ -130,6 +182,12 @@ class test_DatabaseScheduler(SchedulerCase):
             crontab(minute='2,4,5'))
         self.m3.save()
         self.m3.refresh_from_db()
+
+        # disabled, should not be in schedule
+        m4 = self.create_model_interval(
+            schedule(timedelta(seconds=1)))
+        m4.enabled = False
+        m4.save()
 
         self.s = self.Scheduler(app=self.app)
 
@@ -212,6 +270,58 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 2
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
+
+    def test_periodic_task_disabled_and_enabled(self):
+        # Get the entry for m2
+        e1 = self.s.schedule[self.m2.name]
+
+        # Increment the entry (but make sure it doesn't sync)
+        self.s._last_sync = monotonic()
+        self.s.schedule[e1.name] = self.s.reserve(e1)
+        assert self.s.flushed == 1
+
+        # Fetch the raw object from db, change the args
+        # and save the changes.
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.enabled = False
+        m2.save()
+
+        # get_schedule should now see the schedule has changed.
+        # and remove entry for m2
+        assert self.m2.name not in self.s.schedule
+        assert self.s.flushed == 2
+
+        m2.enabled = True
+        m2.save()
+
+        # get_schedule should now see the schedule has changed.
+        # and add entry for m2
+        assert self.m2.name in self.s.schedule
+        assert self.s.flushed == 3
+
+    def test_periodic_task_disabled_while_reserved(self):
+        # Get the entry for m2
+        e1 = self.s.schedule[self.m2.name]
+
+        # Increment the entry (but make sure it doesn't sync)
+        self.s._last_sync = monotonic()
+        e2 = self.s.schedule[e1.name] = self.s.reserve(e1)
+        assert self.s.flushed == 1
+
+        # Fetch the raw object from db, change the args
+        # and save the changes.
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.enabled = False
+        m2.save()
+
+        # reserve is called because the task gets called from
+        # tick after the database change is made
+        self.s.reserve(e2)
+
+        # get_schedule should now see the schedule has changed.
+        # and remove entry for m2
+        assert self.m2.name not in self.s.schedule
+        assert self.s.flushed == 2
 
     def test_sync_not_dirty(self):
         self.s._dirty.clear()
