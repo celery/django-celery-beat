@@ -128,11 +128,11 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
         ('Arguments', {
             'fields': ('args', 'kwargs'),
-            'classes': ('extrapretty', 'wide', 'collapse'),
+            'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
         ('Execution Options', {
             'fields': ('expires', 'queue', 'exchange', 'routing_key'),
-            'classes': ('extrapretty', 'wide', 'collapse'),
+            'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
     )
 
@@ -149,7 +149,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
-        PeriodicTasks.changed()
+        PeriodicTasks.update_changed()
         self.message_user(
             request,
             _('{0} task{1} {2} successfully enabled').format(
@@ -162,7 +162,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False)
-        PeriodicTasks.changed()
+        PeriodicTasks.update_changed()
         self.message_user(
             request,
             _('{0} task{1} {2} successfully disabled').format(
