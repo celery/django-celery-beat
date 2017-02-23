@@ -42,7 +42,7 @@ Important Warning about Time Zones
     To fix that you would have to reset the "last run time" for each periodic
     task::
 
-        >>> from django_celery_beat import PeriodicTask, PeriodicTasks
+        >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
         >>> PeriodicTask.objects.all().update(last_run_at=None)
         >>> PeriodicTasks.changed()
 
