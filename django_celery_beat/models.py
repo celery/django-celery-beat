@@ -286,11 +286,14 @@ class PeriodicTask(models.Model):
                     'One of interval, crontab, or solar must be set.'
                 ]
             })
-        if self.interval and self.crontab and self.solar:
+        err_msg = 'Only one of interval, crontab, or solar must be set'
+        if (self.interval and self.crontab) or (self.crontab and self.solar):
             raise ValidationError({
-                'crontab': [
-                    'Only one of interval, crontab, or solar must be set'
-                ]
+                'crontab': [err_msg]
+            })
+        if self.interval or self.solar:
+            raise ValidationError({
+                'solar': [err_msg]
             })
 
     def save(self, *args, **kwargs):
