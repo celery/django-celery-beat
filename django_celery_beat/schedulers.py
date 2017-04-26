@@ -11,6 +11,7 @@ from celery.beat import Scheduler, ScheduleEntry
 from celery.five import values, items
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
+from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
 from django.db import transaction
@@ -98,6 +99,28 @@ class ModelEntry(ScheduleEntry):
     def is_due(self):
         if not self.model.enabled:
             return False, 5.0   # 5 second delay for re-enable.
+
+        # START DATE: only run after the `start_date`, if one exists.
+        if self.model.start_date is not None:
+            if maybe_make_aware(self._default_now()) < self.model.start_date:
+                # The datetime is before the start date - don't run.
+                return False, 5.0  # 5 second delay for re-check
+            else:
+                # The datetime is after the start date
+                if self.last_run_at is None:
+                    # Task has never run before - run it now
+                    return True, 5.0
+                elif maybe_make_aware(self.last_run_at) < self.model.start_date:
+                    # Task last run before start_date (user updated task schedule) - run it now
+                    return True, 5.0
+
+        # ONE OFF TASK: Disable one off tasks after they've ran once
+        if self.model.one_off and self.model.enabled and self.model.total_run_count > 0:
+            self.model.enabled = False
+            self.model.total_run_count = 0  # Reset
+            self.model.save()
+            return False, None  # Don't recheck
+
         return self.schedule.is_due(self.last_run_at)
 
     def _default_now(self):

@@ -260,6 +260,12 @@ class PeriodicTask(models.Model):
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
     )
+    one_off = models.BooleanField(
+        _('one-off task'), default=False,
+    )
+    start_date = models.DateTimeField(
+        _('start_date'), blank=True, null=True,
+    )
     enabled = models.BooleanField(
         _('enabled'), default=True,
     )
