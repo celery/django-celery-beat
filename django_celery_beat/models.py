@@ -224,16 +224,16 @@ class PeriodicTask(models.Model):
     )
     task = models.CharField(_('task name'), max_length=200)
     interval = models.ForeignKey(
-        IntervalSchedule,
+        IntervalSchedule, on_delete=models.CASCADE,
         null=True, blank=True, verbose_name=_('interval'),
     )
     crontab = models.ForeignKey(
-        CrontabSchedule, null=True, blank=True, verbose_name=_('crontab'),
-        help_text=_('Use one of interval/crontab'),
+        CrontabSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name=_('crontab'), help_text=_('Use one of interval/crontab'),
     )
     solar = models.ForeignKey(
-        SolarSchedule, null=True, blank=True, verbose_name=_('solar'),
-        help_text=_('Use a solar schedule')
+        SolarSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name=_('solar'), help_text=_('Use a solar schedule')
     )
     args = models.TextField(
         _('Arguments'), blank=True, default='[]',
