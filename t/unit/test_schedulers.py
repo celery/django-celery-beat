@@ -106,6 +106,8 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['routing_key'] == 'cpu'
 
         right_now = self.app.now()
+        # Entry.last_run_at returns naive tz, so make this naive for comparison
+        right_now = right_now.replace(tzinfo=None)
         m2 = self.create_model_interval(
             schedule(timedelta(seconds=10)),
             last_run_at=right_now,
