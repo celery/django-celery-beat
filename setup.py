@@ -16,7 +16,8 @@ except (AttributeError, ImportError):
     def _pyimp():
         return 'Python'
 
-NAME = 'django_celery_beat'
+NAME = 'django-celery-beat'
+PACKAGE = 'django_celery_beat'
 
 E_UNSUPPORTED_PYTHON = '%s 1.0 requires %%s %%s or later!' % (NAME,)
 
@@ -75,7 +76,7 @@ def add_doc(m):
 pats = {re_meta: add_default,
         re_doc: add_doc}
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, NAME, '__init__.py')) as meta_fh:
+with open(os.path.join(here, PACKAGE, '__init__.py')) as meta_fh:
     meta = {}
     for line in meta_fh:
         if line.strip() == '# -eof meta-':
