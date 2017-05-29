@@ -115,7 +115,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     form = PeriodicTaskForm
     model = PeriodicTask
-    list_display = ('__str__', 'enabled')
+    list_display = ('__str__', 'enabled', 'interval', 'start_date', 'one_off')
     actions = ('enable_tasks', 'disable_tasks')
     fieldsets = (
         (None, {
@@ -123,7 +123,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'classes': ('extrapretty', 'wide'),
         }),
         ('Schedule', {
-            'fields': ('interval', 'crontab', 'solar'),
+            'fields': ('interval', 'crontab', 'solar', 'start_date', 'one_off'),
             'classes': ('extrapretty', 'wide', ),
         }),
         ('Arguments', {
