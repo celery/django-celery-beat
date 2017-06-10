@@ -176,8 +176,12 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def run_tasks(self, request, queryset):
         self.celery_app.loader.import_default_modules()
-        tasks = [(self.celery_app.tasks.get(task.task), loads(task.args), loads(task.kwargs)) for task in queryset]
-        task_ids = list(map(lambda task: task[0].delay(*task[1], **task[2]), tasks))
+        tasks = [(self.celery_app.tasks.get(task.task),
+                  loads(task.args),
+                  loads(task.kwargs))
+                 for task in queryset]
+        task_ids = list(map(lambda task: task[0].delay(*task[1], **task[2]),
+                            tasks))
         tasks_run = len(task_ids)
         self.message_user(
             request,
