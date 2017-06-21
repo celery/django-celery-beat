@@ -27,6 +27,7 @@ env:
     - TOXENV=pydocstyle
     - TOXENV=cov
 install: travis_retry pip install -U tox
+services: rabbitmq
 script: tox -v -- -v
 after_success:
   - .tox/$TRAVIS_PYTHON_VERSION/bin/coverage xml
