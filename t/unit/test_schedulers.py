@@ -465,11 +465,13 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         self.request = self.patch_request(self.request_factory.get('/'))
         ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
         assert len(self.request._messages._queued_messages) == 1
-        assert self.request._messages._queued_messages[0].message == '1 task was successfully run'
+        queued_message = self.request._messages._queued_messages[0].message
+        assert queued_message == '1 task was successfully run'
 
     def test_run_tasks(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
         ma.run_tasks(self.request, PeriodicTask.objects.all())
         assert len(self.request._messages._queued_messages) == 1
-        assert self.request._messages._queued_messages[0].message == '2 tasks were successfully run'
+        queued_message = self.request._messages._queued_messages[0].message
+        assert queued_message == '2 tasks were successfully run'
