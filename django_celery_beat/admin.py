@@ -180,8 +180,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                   loads(task.args),
                   loads(task.kwargs))
                  for task in queryset]
-        task_ids = list(map(lambda task: task[0].delay(*task[1], **task[2]),
-                            tasks))
+        task_ids = [task.delay(*args, **kwargs) for task, args, kwargs in tasks]
         tasks_run = len(task_ids)
         self.message_user(
             request,
