@@ -317,6 +317,8 @@ class PeriodicTask(models.Model):
             return self.interval.schedule
         if self.crontab:
             return self.crontab.schedule
+        if self.solar:
+            return self.solar.schedule
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
