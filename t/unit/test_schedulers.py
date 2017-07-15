@@ -5,10 +5,15 @@ import pytest
 from datetime import datetime, timedelta
 from itertools import count
 
+from django.contrib.admin.sites import AdminSite
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import RequestFactory
+
 from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab
 
 from django_celery_beat import schedulers
+from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import (
     PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
 )
@@ -425,3 +430,48 @@ class test_model_PeriodicTasks(SchedulerCase):
         y = PeriodicTasks.last_change()
         assert y
         assert y > x
+
+
+@pytest.mark.django_db()
+class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
+    @pytest.mark.django_db()
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.site = AdminSite()
+        self.request_factory = RequestFactory()
+
+        entry_name, entry = self.create_conf_entry()
+        self.app.conf.beat_schedule = {entry_name: entry}
+        self.m1 = PeriodicTask(name=entry_name)
+        self.m1.task = 'celery.backend_cleanup'
+        self.m1.save()
+
+        entry_name, entry = self.create_conf_entry()
+        self.app.conf.beat_schedule = {entry_name: entry}
+        self.m2 = PeriodicTask(name=entry_name)
+        self.m2.task = 'celery.backend_cleanup'
+        self.m2.save()
+
+    def patch_request(self, request):
+        """patch request to allow for django messages storage"""
+        setattr(request, 'session', 'session')
+        messages = FallbackStorage(request)
+        setattr(request, '_messages', messages)
+        return request
+
+    def test_run_task(self):
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
+        assert len(self.request._messages._queued_messages) == 1
+        queued_message = self.request._messages._queued_messages[0].message
+        assert queued_message == '1 task was successfully run'
+
+    def test_run_tasks(self):
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.run_tasks(self.request, PeriodicTask.objects.all())
+        assert len(self.request._messages._queued_messages) == 1
+        queued_message = self.request._messages._queued_messages[0].message
+        assert queued_message == '2 tasks were successfully run'

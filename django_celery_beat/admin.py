@@ -111,12 +111,13 @@ class PeriodicTaskForm(forms.ModelForm):
 
 
 class PeriodicTaskAdmin(admin.ModelAdmin):
-    """Admin-interface for peridic tasks."""
+    """Admin-interface for periodic tasks."""
 
     form = PeriodicTaskForm
     model = PeriodicTask
+    celery_app = current_app
     list_display = ('__str__', 'enabled')
-    actions = ('enable_tasks', 'disable_tasks')
+    actions = ('enable_tasks', 'disable_tasks', 'run_tasks')
     fieldsets = (
         (None, {
             'fields': ('name', 'regtask', 'task', 'enabled'),
@@ -172,6 +173,25 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             ),
         )
     disable_tasks.short_description = _('Disable selected tasks')
+
+    def run_tasks(self, request, queryset):
+        self.celery_app.loader.import_default_modules()
+        tasks = [(self.celery_app.tasks.get(task.task),
+                  loads(task.args),
+                  loads(task.kwargs))
+                 for task in queryset]
+        task_ids = [task.delay(*args, **kwargs)
+                    for task, args, kwargs in tasks]
+        tasks_run = len(task_ids)
+        self.message_user(
+            request,
+            _('{0} task{1} {2} successfully run').format(
+                tasks_run,
+                pluralize(tasks_run),
+                pluralize(tasks_run, _('was,were')),
+            ),
+        )
+    run_tasks.short_description = _('Run selected tasks')
 
 
 admin.site.register(IntervalSchedule)

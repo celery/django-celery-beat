@@ -4,6 +4,15 @@
  Change history
 ================
 
+.. _version-1.1.0:
+
+1.1.0
+=====
+:release-date: TODO
+:release-by: TODO
+
+- Adds "run now" admin action for tasks.
+
 .. _version-1.0.1:
 
 1.0.1
