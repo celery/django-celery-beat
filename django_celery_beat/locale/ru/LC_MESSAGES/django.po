@@ -1,0 +1,184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-07-21 12:02+0000\n"
+"PO-Revision-Date: 2017-07-21 17:04+0300\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.11\n"
+
+#: django_celery_beat/admin.py:65
+msgid "Task (registered)"
+msgstr "Зарегистрированное задание"
+
+#: django_celery_beat/admin.py:69
+msgid "Task (custom)"
+msgstr "Пользовательское задание"
+
+#: django_celery_beat/admin.py:86
+msgid "Need name of task"
+msgstr "Заданию нужно имя"
+
+#: django_celery_beat/admin.py:97
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "Не удалось распарсить JSON: %s"
+
+#: django_celery_beat/apps.py:15
+msgid "Beat"
+msgstr "Менеджер фоновых заданий"
+
+#: django_celery_beat/models.py:24
+msgid "Days"
+msgstr "Дни"
+
+#: django_celery_beat/models.py:25
+msgid "Hours"
+msgstr "Часы"
+
+#: django_celery_beat/models.py:26
+msgid "Minutes"
+msgstr "Минуты"
+
+#: django_celery_beat/models.py:27
+msgid "Seconds"
+msgstr "Секунды"
+
+#: django_celery_beat/models.py:28
+msgid "Microseconds"
+msgstr "Микросекунды"
+
+#: django_celery_beat/models.py:49
+msgid "every"
+msgstr "каждые"
+
+#: django_celery_beat/models.py:51
+msgid "period"
+msgstr "период"
+
+#: django_celery_beat/models.py:57 django_celery_beat/models.py:176
+msgid "interval"
+msgstr "интервал"
+
+#: django_celery_beat/models.py:58
+msgid "intervals"
+msgstr "интервалы"
+
+#: django_celery_beat/models.py:78
+#, python-brace-format
+msgid "every {0.period_singular}"
+msgstr "каждые {0.period_singular}"
+
+#: django_celery_beat/models.py:79
+#, python-brace-format
+msgid "every {0.every} {0.period}"
+msgstr "каждые {0.every} {0.period}"
+
+#: django_celery_beat/models.py:90
+msgid "minute"
+msgstr "минута"
+
+#: django_celery_beat/models.py:91
+msgid "hour"
+msgstr "час"
+
+#: django_celery_beat/models.py:93
+msgid "day of week"
+msgstr "день недели"
+
+#: django_celery_beat/models.py:96
+msgid "day of month"
+msgstr "день месяца"
+
+#: django_celery_beat/models.py:99
+msgid "month of year"
+msgstr "месяц в году"
+
+#: django_celery_beat/models.py:105 django_celery_beat/models.py:179
+msgid "crontab"
+msgstr "расписание"
+
+#: django_celery_beat/models.py:106
+msgid "crontabs"
+msgstr "расписания"
+
+#: django_celery_beat/models.py:170
+msgid "name"
+msgstr "название"
+
+#: django_celery_beat/models.py:171
+msgid "Useful description"
+msgstr "Полезное описание"
+
+#: django_celery_beat/models.py:173
+msgid "task name"
+msgstr "название задания"
+
+#: django_celery_beat/models.py:180
+msgid "Use one of interval/crontab"
+msgstr "Используйте интервал или расписание"
+
+#: django_celery_beat/models.py:183
+msgid "Arguments"
+msgstr "Аргументы"
+
+#: django_celery_beat/models.py:184
+msgid "JSON encoded positional arguments"
+msgstr "Позиционные аргументы, закодированные в JSON"
+
+#: django_celery_beat/models.py:187
+msgid "Keyword arguments"
+msgstr "Именованные аргументы"
+
+#: django_celery_beat/models.py:188
+msgid "JSON encoded keyword arguments"
+msgstr "Именованные аргументы, закодированные в JSON"
+
+#: django_celery_beat/models.py:191
+msgid "queue"
+msgstr "очередь"
+
+#: django_celery_beat/models.py:192
+msgid "Queue defined in CELERY_TASK_QUEUES"
+msgstr "Очередь, определенная в CELERY_TASK_QUEUES"
+
+#: django_celery_beat/models.py:195
+msgid "exchange"
+msgstr "обмен"
+
+#: django_celery_beat/models.py:198
+msgid "routing key"
+msgstr "Ключ роутинга"
+
+#: django_celery_beat/models.py:201
+msgid "expires"
+msgstr "истекает"
+
+#: django_celery_beat/models.py:204
+msgid "enabled"
+msgstr "включен"
+
+#: django_celery_beat/models.py:214
+msgid "description"
+msgstr "описание"
+
+#: django_celery_beat/models.py:222
+msgid "periodic task"
+msgstr "периодическое задание"
+
+#: django_celery_beat/models.py:223
+msgid "periodic tasks"
+msgstr "периодические задания"
