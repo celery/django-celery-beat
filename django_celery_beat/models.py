@@ -12,7 +12,7 @@ from celery import schedules
 from celery.five import python_2_unicode_compatible
 
 from . import managers
-from .utils import now
+from .utils import now, make_aware
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -60,7 +60,10 @@ class SolarSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.solar(self.event, self.latitude, self.longitude)
+        return schedules.solar(self.event, 
+                               self.latitude, 
+                               self.longitude, 
+                               nowfun=lambda: make_aware(now()))
 
     @classmethod
     def from_schedule(cls, schedule):
@@ -171,7 +174,8 @@ class CrontabSchedule(models.Model):
                                  hour=self.hour,
                                  day_of_week=self.day_of_week,
                                  day_of_month=self.day_of_month,
-                                 month_of_year=self.month_of_year)
+                                 month_of_year=self.month_of_year,
+                                 nowfun=lambda: make_aware(now()))
 
     @classmethod
     def from_schedule(cls, schedule):
@@ -317,6 +321,8 @@ class PeriodicTask(models.Model):
             return self.interval.schedule
         if self.crontab:
             return self.crontab.schedule
+        if self.solar:
+            return self.solar.schedule
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
