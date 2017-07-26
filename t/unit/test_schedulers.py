@@ -17,6 +17,7 @@ from django_celery_beat.utils import make_aware
 
 _ids = count(0)
 
+
 @pytest.fixture(autouse=True)
 def no_multiprocessing_finalizers(patching):
     patching('multiprocessing.util.Finalize')
@@ -388,11 +389,12 @@ class test_models(SchedulerCase):
         assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name)
 
     def test_PeriodicTask_unicode_solar(self):
-        p = self.create_model_solar(solar('solar_noon', 48.06, 12.86), name='solar_event')
+        p = self.create_model_solar(
+            solar('solar_noon', 48.06, 12.86), name='solar_event'
+        )
         assert text_t(p) == 'solar_event: {0} ({1}, {2})'.format(
             'solar_noon', '48.06', '12.86'
         )
-
 
     def test_PeriodicTask_schedule_property(self):
         p1 = self.create_model_interval(schedule(timedelta(seconds=10)))
@@ -434,13 +436,14 @@ class test_models(SchedulerCase):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt = datetime(day=25, month=7, year=2017, hour=12, minute=0)
         dt_lastrun = make_aware(dt)
-        
-        assert s.schedule != None
+
+        assert s.schedule is not None
 
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue == False # False means scheduler needs to keep checking.
-        assert (nextcheck > 0) and (isdue == False) or \
-            (nextcheck == s.max_interval ) and (isdue == True)
+        assert isdue is False  # False means scheduler needs to keep checking.
+        assert (nextcheck > 0) and (isdue is False) or \
+            (nextcheck == s.max_interval) and (isdue is True)
+
 
 @pytest.mark.django_db()
 class test_model_PeriodicTasks(SchedulerCase):
