@@ -444,7 +444,7 @@ class test_models(SchedulerCase):
 
         assert s.schedule is not None
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue is False  # False means task is not due, but keep checking.
+        assert isdue is False  # False means task isn't due, but keep checking.
         assert (nextcheck > 0) and (isdue is False) or \
             (nextcheck == s.max_interval) and (isdue is True)
 
