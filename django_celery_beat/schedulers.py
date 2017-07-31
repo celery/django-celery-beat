@@ -13,8 +13,6 @@ from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
-from datetime import timezone
-
 from django.db import transaction
 from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
