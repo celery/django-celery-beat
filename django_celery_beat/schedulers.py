@@ -13,6 +13,8 @@ from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
+from datetime import timezone
+
 from django.db import transaction
 from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
@@ -85,10 +87,7 @@ class ModelEntry(ScheduleEntry):
 
         if not model.last_run_at:
             model.last_run_at = self._default_now()
-        orig = self.last_run_at = model.last_run_at
-        if not is_naive(self.last_run_at):
-            self.last_run_at = self.last_run_at.replace(tzinfo=None)
-        assert orig.hour == self.last_run_at.hour  # timezone sanity
+        self.last_run_at = make_aware(model.last_run_at)
 
     def _disable(self, model):
         model.no_changes = True
