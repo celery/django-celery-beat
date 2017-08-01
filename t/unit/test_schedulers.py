@@ -118,11 +118,11 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['routing_key'] == 'cpu'
 
         right_now = self.app.now()
-        
         m2 = self.create_model_interval(
             schedule(timedelta(seconds=10)),
             last_run_at=right_now,
         )
+
         assert m2.last_run_at
         e2 = self.Entry(m2, app=self.app)
         assert e2.last_run_at is right_now
