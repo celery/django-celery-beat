@@ -123,15 +123,15 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'fields': ('name', 'regtask', 'task', 'enabled'),
             'classes': ('extrapretty', 'wide'),
         }),
-        ('Schedule', {
+        (_('Schedule'), {
             'fields': ('interval', 'crontab', 'solar'),
             'classes': ('extrapretty', 'wide', ),
         }),
-        ('Arguments', {
+        (_('Arguments'), {
             'fields': ('args', 'kwargs'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
-        ('Execution Options', {
+        (_('Execution Options'), {
             'fields': ('expires', 'queue', 'exchange', 'routing_key'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),

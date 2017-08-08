@@ -1,0 +1,274 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-08-08 10:58+0300\n"
+"PO-Revision-Date: 2017-08-08 11:17+0300\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.11\n"
+
+#: admin.py:70
+msgid "Task (registered)"
+msgstr "Зарегистрированное задание"
+
+#: admin.py:74
+msgid "Task (custom)"
+msgstr "Пользовательское задание"
+
+#: admin.py:91
+msgid "Need name of task"
+msgstr "Заданию нужно имя"
+
+#: admin.py:102
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "Не удалось распарсить JSON: %s"
+
+#: admin.py:126
+msgid "Schedule"
+msgstr "Расписание"
+
+#: admin.py:130 models.py:243
+msgid "Arguments"
+msgstr "Аргументы"
+
+#: admin.py:134
+msgid "Execution Options"
+msgstr "Настройки выполнения"
+
+#: admin.py:156
+#, python-brace-format
+msgid "{0} task{1} {2} successfully enabled"
+msgstr "{0} задание{1} {2} успешно включено"
+
+#: admin.py:159 admin.py:172 admin.py:191
+msgid "was,were"
+msgstr "было,были"
+
+#: admin.py:162
+msgid "Enable selected tasks"
+msgstr "Включить выбранные задания"
+
+#: admin.py:169
+#, python-brace-format
+msgid "{0} task{1} {2} successfully disabled"
+msgstr "{0} задание{1} {2} успешно отключено"
+
+#: admin.py:175
+msgid "Disable selected tasks"
+msgstr "Отключить выбранные задания"
+
+#: admin.py:188
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} задание{1} {2} успешно выполнено"
+
+#: admin.py:194
+msgid "Run selected tasks"
+msgstr "Запустить выбранные задания"
+
+#: apps.py:15
+msgid "Periodic Tasks"
+msgstr "периодические задания"
+
+#: models.py:24
+msgid "Days"
+msgstr "Дни"
+
+#: models.py:25
+msgid "Hours"
+msgstr "Часы"
+
+#: models.py:26
+msgid "Minutes"
+msgstr "Минуты"
+
+#: models.py:27
+msgid "Seconds"
+msgstr "Секунды"
+
+#: models.py:28
+msgid "Microseconds"
+msgstr "Микросекунды"
+
+#: models.py:44
+msgid "event"
+msgstr "событие"
+
+#: models.py:47
+msgid "latitude"
+msgstr "широта"
+
+#: models.py:50
+msgid "longitude"
+msgstr "долгота"
+
+#: models.py:56
+msgid "solar event"
+msgstr "солнечное событие"
+
+#: models.py:57
+msgid "solar events"
+msgstr "солнечные события"
+
+#: models.py:101
+msgid "every"
+msgstr "каждый(ые)"
+
+#: models.py:103
+msgid "period"
+msgstr "период"
+
+#: models.py:109 models.py:232
+msgid "interval"
+msgstr "интервал"
+
+#: models.py:110
+msgid "intervals"
+msgstr "интервалы"
+
+#: models.py:130
+#, python-brace-format
+msgid "every {0.period_singular}"
+msgstr "каждый(ые) {0.period_singular}"
+
+#: models.py:131
+#, python-brace-format
+msgid "every {0.every} {0.period}"
+msgstr "каждый(ые) {0.every} {0.period}"
+
+#: models.py:142
+msgid "minute"
+msgstr "минута"
+
+#: models.py:143
+msgid "hour"
+msgstr "час"
+
+#: models.py:145
+msgid "day of week"
+msgstr "день недели"
+
+#: models.py:148
+msgid "day of month"
+msgstr "день месяца"
+
+#: models.py:151
+msgid "month of year"
+msgstr "месяц в году"
+
+#: models.py:157 models.py:236
+msgid "crontab"
+msgstr "расписание"
+
+#: models.py:158
+msgid "crontabs"
+msgstr "расписания"
+
+#: models.py:226
+msgid "name"
+msgstr "название"
+
+#: models.py:227
+msgid "Useful description"
+msgstr "Понятное описание"
+
+#: models.py:229
+msgid "task name"
+msgstr "название задания"
+
+#: models.py:236
+msgid "Use one of interval/crontab"
+msgstr "Используйте интервал или расписание"
+
+#: models.py:240
+msgid "solar"
+msgstr "солнечное событие"
+
+#: models.py:240
+msgid "Use a solar schedule"
+msgstr "Задайте солнечное событие"
+
+#: models.py:244
+msgid "JSON encoded positional arguments"
+msgstr "Позиционные аргументы, закодированные в JSON"
+
+#: models.py:247
+msgid "Keyword arguments"
+msgstr "Именованные аргументы"
+
+#: models.py:248
+msgid "JSON encoded keyword arguments"
+msgstr "Именованные аргументы, закодированные в JSON"
+
+#: models.py:251
+msgid "queue"
+msgstr "очередь"
+
+#: models.py:252
+msgid "Queue defined in CELERY_TASK_QUEUES"
+msgstr "Очередь, определенная в CELERY_TASK_QUEUES"
+
+#: models.py:255
+msgid "exchange"
+msgstr "обмен"
+
+#: models.py:258
+msgid "routing key"
+msgstr "ключ роутинга"
+
+#: models.py:261
+msgid "expires"
+msgstr "истекает"
+
+#: models.py:264
+msgid "enabled"
+msgstr "включен"
+
+#: models.py:274
+msgid "description"
+msgstr "описание"
+
+#: models.py:282
+msgid "periodic task"
+msgstr "периодическое задание"
+
+#: models.py:283
+msgid "periodic tasks"
+msgstr "периодические задания"
+
+#: templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr "Начало"
+
+#: templates/admin/djcelery/change_list.html:13
+msgid "Periodic tasks won't be dispatched unless you set the"
+msgstr ""
+"Периодические задания не будут отправлены на выполнение до тех пор, пока вы "
+"не установите"
+
+#: templates/admin/djcelery/change_list.html:14
+msgid "<code>CELERYBEAT_SCHEDULER</code> setting to"
+msgstr "переменной <code>CELERYBEAT_SCHEDULER</code> значение"
+
+#: templates/admin/djcelery/change_list.html:15
+msgid "<code>djcelery.schedulers.DatabaseScheduler</code>,"
+msgstr "<code>djcelery.schedulers.DatabaseScheduler</code>,"
+
+#: templates/admin/djcelery/change_list.html:16
+msgid "or specify it using the <code>-S</code> option to celerybeat"
+msgstr ""
+"или зададите это значение, используя аргумент <code>-S</code> celerybeat\\'а"
