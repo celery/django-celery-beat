@@ -229,6 +229,17 @@ pip command::
 
     $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
 
+Issues with mysql
+-----------------
+ If you want to run ``django-celery-beat`` with MySQL, you might run into some issues.
+
+ One such issue is when you try to run ``python manage.py migrate django_celery_beat``, you might get the following error::
+     django.db.utils.OperationalError: (1071, 'Specified key was too long; max key length is 767 bytes')
+ To get around this issue, you can set::
+     DJANGO_CELERY_BEAT_NAME_MAX_LENGTH=191
+ (or any other value if any other db other than MySQL is causing similar issues.)
+ max_length of **191** seems to work for MySQL.
+
 
 TZ Awareness:
 -------------

@@ -259,8 +259,14 @@ class PeriodicTask(models.Model):
     """Model representing a periodic task."""
 
     name = models.CharField(
-        _('name'), max_length=200, unique=True,
-        help_text=_('Useful description'),
+        _('name'),
+        max_length=getattr(
+            settings,
+            'DJANGO_CELERY_BEAT_NAME_MAX_LENGTH',
+            200
+        ),
+        unique=True,
+        help_text=_('Useful description')
     )
     task = models.CharField(_('task name'), max_length=200)
     interval = models.ForeignKey(
