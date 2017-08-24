@@ -6,10 +6,10 @@ from datetime import timedelta
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models
 from django.db.models import signals
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from celery import schedules
-from celery.five import python_2_unicode_compatible
 
 from . import managers
 from .utils import now, make_aware
@@ -28,7 +28,10 @@ PERIOD_CHOICES = (
     (MICROSECONDS, _('Microseconds')),
 )
 
-SOLAR_SCHEDULES = [(x, _(x)) for x in schedules.solar._all_events]
+try:
+    SOLAR_SCHEDULES = [(x, _(x)) for x in schedules.solar._all_events]
+except ImportError:
+   SOLAR_SCHEUDLES = []
 
 
 def cronexp(field):
@@ -60,9 +63,9 @@ class SolarSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.solar(self.event, 
-                               self.latitude, 
-                               self.longitude, 
+        return schedules.solar(self.event,
+                               self.latitude,
+                               self.longitude,
                                nowfun=lambda: make_aware(now()))
 
     @classmethod
