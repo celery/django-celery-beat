@@ -60,9 +60,9 @@ class SolarSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.solar(self.event, 
-                               self.latitude, 
-                               self.longitude, 
+        return schedules.solar(self.event,
+                               self.latitude,
+                               self.longitude,
                                nowfun=lambda: make_aware(now()))
 
     @classmethod
@@ -263,8 +263,8 @@ class PeriodicTask(models.Model):
     one_off = models.BooleanField(
         _('one-off task'), default=False,
     )
-    start_date = models.DateTimeField(
-        _('start_date'), blank=True, null=True,
+    start_time = models.DateTimeField(
+        _('start_time'), blank=True, null=True,
     )
     enabled = models.BooleanField(
         _('enabled'), default=True,

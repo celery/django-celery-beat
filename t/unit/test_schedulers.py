@@ -132,6 +132,49 @@ class test_ModelEntry(SchedulerCase):
         assert e3.last_run_at > e2.last_run_at
         assert e3.total_run_count == 1
 
+    def test_task_with_start_time(self):
+        interval = 10
+        right_now = self.app.now()
+        one_interval_ago = right_now - timedelta(seconds=interval)
+        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                       start_time=right_now,
+                                       last_run_at=one_interval_ago)
+        e = self.Entry(m, app=self.app)
+        isdue, delay = e.is_due()
+        assert isdue
+        assert delay == interval
+
+        tomorrow = right_now + timedelta(days=1)
+        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                        start_time=tomorrow,
+                                        last_run_at=one_interval_ago)
+        e2 = self.Entry(m2, app=self.app)
+        isdue, delay = e2.is_due()
+        assert not isdue
+        assert delay == interval
+
+    def test_one_off_task(self):
+        interval = 10
+        right_now = self.app.now()
+        one_interval_ago = right_now - timedelta(seconds=interval)
+        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                       one_off=True,
+                                       last_run_at=one_interval_ago,
+                                       total_run_count=0)
+        e = self.Entry(m, app=self.app)
+        isdue, delay = e.is_due()
+        assert isdue
+        assert delay == interval
+
+        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                        one_off=True,
+                                        last_run_at=one_interval_ago,
+                                        total_run_count=1)
+        e2 = self.Entry(m2, app=self.app)
+        isdue, delay = e2.is_due()
+        assert not isdue
+        assert delay is None
+
 
 @pytest.mark.django_db()
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):

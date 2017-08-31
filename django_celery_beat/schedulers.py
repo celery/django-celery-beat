@@ -100,22 +100,16 @@ class ModelEntry(ScheduleEntry):
         if not self.model.enabled:
             return False, 5.0   # 5 second delay for re-enable.
 
-        # START DATE: only run after the `start_date`, if one exists.
-        if self.model.start_date is not None:
-            if maybe_make_aware(self._default_now()) < self.model.start_date:
+        # START DATE: only run after the `start_time`, if one exists.
+        if self.model.start_time is not None:
+            if maybe_make_aware(self._default_now()) < self.model.start_time:
                 # The datetime is before the start date - don't run.
-                return False, 5.0  # 5 second delay for re-check
-            else:
-                # The datetime is after the start date
-                if self.last_run_at is None:
-                    # Task has never run before - run it now
-                    return True, 5.0
-                elif maybe_make_aware(self.last_run_at) < self.model.start_date:
-                    # Task last run before start_date (user updated task schedule) - run it now
-                    return True, 5.0
+                _, delay = self.schedule.is_due(self.last_run_at)
+                return False, delay  # use original delay for re-check
 
         # ONE OFF TASK: Disable one off tasks after they've ran once
-        if self.model.one_off and self.model.enabled and self.model.total_run_count > 0:
+        if self.model.one_off and self.model.enabled \
+                and self.model.total_run_count > 0:
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.save()
