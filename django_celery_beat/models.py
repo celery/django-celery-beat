@@ -49,6 +49,7 @@ class SolarSchedule(models.Model):
     longitude = models.DecimalField(
         _('longitude'), max_digits=9, decimal_places=6
     )
+    nowfun = None
 
     class Meta:
         """Table information."""
@@ -63,7 +64,8 @@ class SolarSchedule(models.Model):
         return schedules.solar(self.event,
                                self.latitude,
                                self.longitude,
-                               nowfun=lambda: make_aware(now()))
+                               nowfun=self.nowfun or
+                               (lambda: make_aware(now())))
 
     @classmethod
     def from_schedule(cls, schedule):

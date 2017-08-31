@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import ephem
 import pytest
 
 from datetime import datetime, timedelta
@@ -481,16 +482,34 @@ class test_models(SchedulerCase):
         assert s.schedule.month_of_year == {1, 7}
 
     def test_SolarSchedule_schedule(self):
-        s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
+        lat = 48.06
+        lon = 12.86
+        s = SolarSchedule(event='solar_noon', latitude=lat, longitude=lon)
         dt = datetime(day=25, month=7, year=2017, hour=12, minute=0)
         dt_lastrun = make_aware(dt)
+        dt2 = datetime(day=25, month=7, year=2017, hour=13, minute=0)
+        dt3 = datetime(day=26, month=7, year=2017, hour=12, minute=0)
 
         assert s.schedule is not None
 
+        cal = ephem.Observer()
+        cal.lat = str(lat)
+        cal.lon = str(lon)
+        cal.elev = 0
+        cal.horizon = 0
+        cal.pressure = 0
+
+        s.nowfun = lambda: make_aware(dt2)
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue is False  # False means scheduler needs to keep checking.
-        assert (nextcheck > 0) and (isdue is False) or \
-            (nextcheck == s.max_interval) and (isdue is True)
+        assert isdue is False
+        next_transit = cal.next_transit(ephem.Sun(), start=dt)
+        assert nextcheck == (next_transit.datetime() - dt2).total_seconds()
+
+        s.nowfun = lambda: make_aware(dt3)
+        isdue, nextcheck = s.schedule.is_due(dt_lastrun)
+        assert isdue
+        next_transit = cal.next_transit(ephem.Sun(), start=dt3)
+        assert nextcheck == (next_transit.datetime() - dt3).total_seconds()
 
 
 @pytest.mark.django_db()
