@@ -8,10 +8,22 @@
 
 1.1.0
 =====
-:release-date: TODO
-:release-by: TODO
+:release-date: 2017-10-31 2:30 p.m. UTC+3:00
+:release-by: Omer Katz
 
+- Adds default_app_config (Issue celery/celery#3567)
 - Adds "run now" admin action for tasks.
+- Adds admin actions to toggle tasks.
+- Add solar schedules (Issue #8)
+- Notify beat of changes when Interval/Crontab models change. (Issue celery/celery#3683)
+- Fix PeriodicTask.enable sync issues
+- Notify beat of changes when Solar model changes.
+- Resolve CSS class conflict with django-adminlte2 package.
+- We now support Django 1.11
+- Deletes are now performed cascadingly.
+- Return schedule for solar periodic tasks so that Celery Beat does not crash when one is scheduled.
+- Adding nowfun to solar and crontab schedulers so that the Django timezone is used.
+
 
 .. _version-1.0.1:
 
