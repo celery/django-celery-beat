@@ -118,12 +118,11 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['routing_key'] == 'cpu'
 
         right_now = self.app.now()
-        # Entry.last_run_at returns naive tz, so make this naive for comparison
-        right_now = right_now.replace(tzinfo=None)
         m2 = self.create_model_interval(
             schedule(timedelta(seconds=10)),
             last_run_at=right_now,
         )
+
         assert m2.last_run_at
         e2 = self.Entry(m2, app=self.app)
         assert e2.last_run_at is right_now
@@ -439,15 +438,24 @@ class test_models(SchedulerCase):
 
     def test_SolarSchedule_schedule(self):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
-        dt = datetime(day=25, month=7, year=2017, hour=12, minute=0)
+        dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
         dt_lastrun = make_aware(dt)
 
         assert s.schedule is not None
-
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue is False  # False means scheduler needs to keep checking.
+        assert isdue is False  # False means task isn't due, but keep checking.
         assert (nextcheck > 0) and (isdue is False) or \
             (nextcheck == s.max_interval) and (isdue is True)
+
+        s2 = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
+        dt2 = datetime(day=26, month=7, year=2000, hour=1, minute=0)
+        dt2_lastrun = make_aware(dt2)
+
+        assert s2.schedule is not None
+        isdue2, nextcheck2 = s2.schedule.is_due(dt2_lastrun)
+        assert isdue2 is True  # True means task is due and should run.
+        assert (nextcheck2 > 0) and (isdue2 is True) or \
+            (nextcheck2 == s2.max_interval) and (isdue2 is False)
 
 
 @pytest.mark.django_db()

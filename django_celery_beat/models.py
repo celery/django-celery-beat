@@ -60,9 +60,9 @@ class SolarSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.solar(self.event, 
-                               self.latitude, 
-                               self.longitude, 
+        return schedules.solar(self.event,
+                               self.latitude,
+                               self.longitude,
                                nowfun=lambda: make_aware(now()))
 
     @classmethod
@@ -112,7 +112,10 @@ class IntervalSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.schedule(timedelta(**{self.period: self.every}))
+        return schedules.schedule(
+            timedelta(**{self.period: self.every}),
+            nowfun=lambda: make_aware(now())
+        )
 
     @classmethod
     def from_schedule(cls, schedule, period=SECONDS):
