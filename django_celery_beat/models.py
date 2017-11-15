@@ -260,6 +260,10 @@ class PeriodicTask(models.Model):
     routing_key = models.CharField(
         _('routing key'), max_length=200, blank=True, null=True, default=None,
     )
+    headers = models.TextField(
+        _('Message headers'), blank=True, null=True, default='{}',
+        help_text=_('JSON encoded message headers'),
+    )
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
     )
@@ -304,6 +308,7 @@ class PeriodicTask(models.Model):
         self.exchange = self.exchange or None
         self.routing_key = self.routing_key or None
         self.queue = self.queue or None
+        self.headers = self.headers or None
         if not self.enabled:
             self.last_run_at = None
         super(PeriodicTask, self).save(*args, **kwargs)

@@ -79,6 +79,7 @@ class ModelEntry(ScheduleEntry):
             'exchange': model.exchange,
             'routing_key': model.routing_key,
             'expires': model.expires,
+            'headers': model.headers,
         }
         self.total_run_count = model.total_run_count
         self.model = model
@@ -151,11 +152,12 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
-                        **kwargs):
+                        headers=None, **kwargs):
         return {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
+            'headers': headers,
         }
 
     def __repr__(self):
