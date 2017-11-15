@@ -157,7 +157,7 @@ class ModelEntry(ScheduleEntry):
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
-            'headers': headers,
+            'headers': dumps(headers or {}),
         }
 
     def __repr__(self):
