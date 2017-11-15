@@ -79,7 +79,7 @@ class ModelEntry(ScheduleEntry):
             'exchange': model.exchange,
             'routing_key': model.routing_key,
             'expires': model.expires,
-            'headers': model.headers,
+            'headers': loads(model.headers or '{}'),
         }
         self.total_run_count = model.total_run_count
         self.model = model
