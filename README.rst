@@ -169,8 +169,10 @@ of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify::
     ...     day_of_week='*',
     ...     day_of_month='*',
     ...     month_of_year='*',
+    ...     timezone=pytz.timezone('Canada/Pacific')
     ... )
 
+The crontab schedule is linked to a specific timezone using the 'timezone' input parameter.
 
 Then to create a periodic task using this schedule, use the same approach as
 the interval-based periodic task earlier in this document, but instead
