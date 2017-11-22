@@ -184,7 +184,6 @@ class CrontabSchedule(models.Model):
                                  day_of_week=self.day_of_week,
                                  day_of_month=self.day_of_month,
                                  month_of_year=self.month_of_year,
-                                 nowfun=lambda: make_aware(now()),
                                  tz= self.timezone)
 
     @classmethod
