@@ -1,6 +1,8 @@
 """Beat Scheduler Implementation."""
 from __future__ import absolute_import, unicode_literals
 
+import logging
+
 from multiprocessing.util import Finalize
 
 from celery import current_app
@@ -11,14 +13,10 @@ from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
-from django.db import transaction
 from django import db
-from django.db.utils import DatabaseError
+from django.db import transaction
+from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
-from psycopg2 import InterfaceError
-from django.db.utils import InterfaceError as IEUtils
-
-import logging
 
 from .models import (
     PeriodicTask, PeriodicTasks,
@@ -210,27 +208,25 @@ class DatabaseScheduler(Scheduler):
             # committed (Issue #41).
             try:
                 transaction.commit()
-            except transaction.TransactionManagementError as tex:
+            except transaction.TransactionManagementError:
                 pass  # not in transaction management.
 
             last, ts = self._last_timestamp, self.Changes.last_change()
-        except (DatabaseError, InterfaceError, IEUtils) as exc:
-            logger.error(f'Database gave error: {exc}')
+        except (DatabaseError, InterfaceError) as exc:
+            logger.error('Database gave error: %r', exc)
 
             try:
-                logger.debug("Closing old connection..")
+                logger.debug('Closing old connections...')
                 db.close_old_connections()
             except Exception as dex:
                 logger.exception(dex)
 
             return False
-
         try:
             if ts and ts > (last if last else ts):
                 return True
         finally:
             self._last_timestamp = ts
-
         return False
 
     def reserve(self, entry):
@@ -243,7 +239,6 @@ class DatabaseScheduler(Scheduler):
     def sync(self):
         info('Writing entries...')
         _tried = set()
-
         try:
             with transaction.atomic():
                 while self._dirty:
@@ -254,10 +249,10 @@ class DatabaseScheduler(Scheduler):
                     except (KeyError, ObjectDoesNotExist) as ex:
                         logger.exception(ex)
 
-        except (DatabaseError, InterfaceError, IEUtils) as exc:
+        except (DatabaseError, InterfaceError) as exc:
             # retry later
             self._dirty |= _tried
-            logger.error(f"Database error while sync: {exc}")
+            logger.exception('Database error while sync: %r', exc)
 
     def update_from_dict(self, mapping):
         s = {}
@@ -289,9 +284,11 @@ class DatabaseScheduler(Scheduler):
     def schedule(self):
         update = False
         if not self._initial_read:
+            debug('DatabaseScheduler: initial read')
             update = True
             self._initial_read = True
         elif self.schedule_changed():
+            info('DatabaseScheduler: Schedule changed.')
             update = True
 
         if update:
@@ -300,8 +297,7 @@ class DatabaseScheduler(Scheduler):
             # the schedule changed, invalidate the heap in Scheduler.tick
             self._heap = None
             if logger.isEnabledFor(logging.DEBUG):
-                info('Current schedule:\n%s', '\n'.join(
+                debug('Current schedule:\n%s', '\n'.join(
                     repr(entry) for entry in values(self._schedule)),
                 )
-
         return self._schedule
