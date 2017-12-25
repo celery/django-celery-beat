@@ -13,8 +13,8 @@ from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
-from django.db import transaction
 from django.db.utils import DatabaseError, InterfaceError
+from django.db import transaction, close_old_connections
 from django.core.exceptions import ObjectDoesNotExist
 
 from .models import (
@@ -232,6 +232,7 @@ class DatabaseScheduler(Scheduler):
         info('Writing entries...')
         _tried = set()
         try:
+            close_old_connections()
             with transaction.atomic():
                 while self._dirty:
                     try:
