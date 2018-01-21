@@ -233,10 +233,12 @@ class PeriodicTask(models.Model):
     interval = models.ForeignKey(
         IntervalSchedule, on_delete=models.CASCADE,
         null=True, blank=True, verbose_name=_('interval'),
+	on_delete=models.CASCADE
     )
     crontab = models.ForeignKey(
         CrontabSchedule, on_delete=models.CASCADE, null=True, blank=True,
         verbose_name=_('crontab'), help_text=_('Use one of interval/crontab'),
+	 on_delete=models.CASCADE
     )
     solar = models.ForeignKey(
         SolarSchedule, on_delete=models.CASCADE, null=True, blank=True,
