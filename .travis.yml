@@ -2,32 +2,26 @@ language: python
 sudo: false
 cache: false
 python:
-    - '3.5'
-os:
-    - linux
+  - 2.7
+  - 3.4
+  - 3.5
+  - pypy
 env:
-  global:
-    PYTHONUNBUFFERED=yes
-  matrix:
-    - TOXENV=2.7-django1.10
-    - TOXENV=2.7-django1.9
-    - TOXENV=2.7-django1.8
-    - TOXENV=pypy-django1.10
-    - TOXENV=pypy-django1.9
-    - TOXENV=pypy-django1.8
-    - TOXENV=3.4-django1.10
-    - TOXENV=3.4-django1.9
-    - TOXENV=3.4-django1.8
-    - TOXENV=3.5-django1.10
-    - TOXENV=3.5-django1.9
-    - TOXENV=3.5-django1.8
-    - TOXENV=flake8
-    - TOXENV=flakeplus
-    - TOXENV=apicheck
-    - TOXENV=linkcheck
-    - TOXENV=pydocstyle
-    - TOXENV=cov
-install: travis_retry pip install -U tox
+  - DJANGO=1.8
+  - DJANGO=1.9
+  - DJANGO=1.10
+  - DJANGO=1.11
+os:
+  - linux
+matrix:
+  include:
+    - { python: 2.7, env: TOXENV=flake8 }
+    - { python: 2.7, env: TOXENV=flakeplus }
+    - { python: 2.7, env: TOXENV=pydocstyle }
+    - { python: 3.5, env: TOXENV=apicheck }
+    - { python: 3.5, env: TOXENV=linkcheck }
+    - { python: 3.5, env: TOXENV=cov }
+install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v
 after_success:
