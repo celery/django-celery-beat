@@ -53,6 +53,7 @@ class ModelEntry(ScheduleEntry):
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
     def __init__(self, model, app=None):
+        """Initialize the model entry."""
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
@@ -177,6 +178,7 @@ class DatabaseScheduler(Scheduler):
     _initial_read = False
 
     def __init__(self, *args, **kwargs):
+        """Initialize the database scheduler."""
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
         self._finalize = Finalize(self, self.sync, exitpriority=5)
