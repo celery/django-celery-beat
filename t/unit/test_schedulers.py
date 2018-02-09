@@ -449,11 +449,13 @@ class test_models(SchedulerCase):
         assert s.schedule.day_of_week == set(range(7))
         assert s.schedule.day_of_month == set(range(1, 32))
         assert s.schedule.month_of_year == set(range(1, 13))
-        assert len(str(s.schedule.minute)) <= s._meta.get_field('minute').max_length
-        assert len(str(s.schedule.hour)) <= s._meta.get_field('hour').max_length
-        assert len(str(s.schedule.day_of_week)) <= s._meta.get_field('day_of_week').max_length
-        assert len(str(s.schedule.day_of_month)) <= s._meta.get_field('day_of_month').max_length
-        assert len(str(s.schedule.month_of_year)) <= s._meta.get_field('month_of_year').max_length
+        fields = [
+            'minute', 'hour', 'day_of_week', 'day_of_month', 'month_of_year'
+        ]
+        for field in fields:
+            str_length = len(str(getattr(s.schedule, field)))
+            field_length = s._meta.get_field(field).max_length
+            assert str_length <= field_length
 
     def test_SolarSchedule_schedule(self):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
