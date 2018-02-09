@@ -142,13 +142,20 @@ class IntervalSchedule(models.Model):
 class CrontabSchedule(models.Model):
     """Crontab-like schedule."""
 
-    minute = models.CharField(_('minute'), max_length=64, default='*')
-    hour = models.CharField(_('hour'), max_length=64, default='*')
+    #
+    # The worst case scenario for day of month is a list of all 31 day numbers
+    # '[1, 2, ..., 31]' which has a length of 115. Likewise, minute can be
+    # 0..59 and hour can be 0..23. Ensure we can accomodate these by allowing
+    # 4 chars for each value (what we save on 0-9 accomodates the []).
+    # We leave the other fields at their historical length.
+    #
+    minute = models.CharField(_('minute'), max_length=60 * 4, default='*')
+    hour = models.CharField(_('hour'), max_length=24 * 4, default='*')
     day_of_week = models.CharField(
         _('day of week'), max_length=64, default='*',
     )
     day_of_month = models.CharField(
-        _('day of month'), max_length=64, default='*',
+        _('day of month'), max_length=31 * 4, default='*',
     )
     month_of_year = models.CharField(
         _('month of year'), max_length=64, default='*',

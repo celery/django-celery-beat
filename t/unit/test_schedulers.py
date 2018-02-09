@@ -436,6 +436,25 @@ class test_models(SchedulerCase):
         assert s.schedule.day_of_month == {1, 16}
         assert s.schedule.month_of_year == {1, 7}
 
+    def test_CrontabSchedule_long_schedule(self):
+        s = CrontabSchedule(
+            minute=str(list(range(60)))[1:-1],
+            hour=str(list(range(24)))[1:-1],
+            day_of_week=str(list(range(7)))[1:-1],
+            day_of_month=str(list(range(1, 32)))[1:-1],
+            month_of_year=str(list(range(1, 13)))[1:-1]
+        )
+        assert s.schedule.minute == set(range(60))
+        assert s.schedule.hour == set(range(24))
+        assert s.schedule.day_of_week == set(range(7))
+        assert s.schedule.day_of_month == set(range(1, 32))
+        assert s.schedule.month_of_year == set(range(1, 13))
+        assert len(str(s.schedule.minute)) <= s._meta.get_field('minute').max_length
+        assert len(str(s.schedule.hour)) <= s._meta.get_field('hour').max_length
+        assert len(str(s.schedule.day_of_week)) <= s._meta.get_field('day_of_week').max_length
+        assert len(str(s.schedule.day_of_month)) <= s._meta.get_field('day_of_month').max_length
+        assert len(str(s.schedule.month_of_year)) <= s._meta.get_field('month_of_year').max_length
+
     def test_SolarSchedule_schedule(self):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
