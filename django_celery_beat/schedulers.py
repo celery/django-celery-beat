@@ -189,7 +189,8 @@ class DatabaseScheduler(Scheduler):
 
     def setup_schedule(self):
         self.install_default_entries(self.schedule)
-        self.update_from_dict(self.app.conf.beat_schedule)
+        self.update_from_dict(self.app.conf.beat_schedule,
+                              origin_key='beat_schedule')
 
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
@@ -248,18 +249,36 @@ class DatabaseScheduler(Scheduler):
             self._dirty |= _tried
             logger.exception('Database error while sync: %r', exc)
 
-    def update_from_dict(self, mapping):
+    def update_from_dict(self, mapping, origin_key=None):
         s = {}
         for name, entry_fields in items(mapping):
             try:
                 entry = self.Entry.from_entry(name,
                                               app=self.app,
+                                              origin_key=origin_key,
                                               **entry_fields)
                 if entry.model.enabled:
                     s[name] = entry
 
             except Exception as exc:
                 logger.error(ADD_ENTRY_ERROR, name, exc, entry_fields)
+        if origin_key:
+            # delete database-persisted periodic tasks that
+            # are no longer declared in source code
+            existing_task_instances = PeriodicTask.objects.filter(
+                origin_key=origin_key
+            )
+            existing_tasks = set(
+                map(lambda x: x.name, existing_task_instances)
+            )
+            tasks_to_purge = existing_tasks - set(mapping.keys())
+            if tasks_to_purge:
+                PeriodicTask.objects.filter(
+                    origin_key=origin_key,
+                    name__in=list(tasks_to_purge)
+                ).delete()
+                logger.warn("Purged periodic tasks [origin_key=%s]: %s",
+                            origin_key, ', '.join(list(tasks_to_purge)))
         self.schedule.update(s)
 
     def install_default_entries(self, data):
@@ -272,7 +291,7 @@ class DatabaseScheduler(Scheduler):
                     'options': {'expires': 12 * 3600},
                 },
             )
-        self.update_from_dict(entries)
+        self.update_from_dict(entries, origin_key='default_entries')
 
     @property
     def schedule(self):
