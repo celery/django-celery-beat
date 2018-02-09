@@ -267,6 +267,9 @@ class PeriodicTask(models.Model):
     routing_key = models.CharField(
         _('routing key'), max_length=200, blank=True, null=True, default=None,
     )
+    origin_key = models.CharField(
+        _('origin key'), max_length=200, blank=True, null=True, default=None,
+    )
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
     )
