@@ -142,12 +142,19 @@ class ModelEntry(ScheduleEntry):
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
         model_schedule, model_field = cls.to_model_schedule(schedule)
+        schedules = {
+            'interval': None,
+            'crontab': None,
+            'solar': None
+        }
+        schedules[model_field] = model_schedule
+
+        entry.update(**schedules)
         entry.update(
-            {model_field: model_schedule},
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
-            **cls._unpack_options(**options or {})
         )
+        entry.update(**cls._unpack_options(**options or {}))
         return entry
 
     @classmethod
