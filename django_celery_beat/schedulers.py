@@ -13,7 +13,7 @@ from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
-from django.db import transaction
+from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -53,6 +53,7 @@ class ModelEntry(ScheduleEntry):
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
     def __init__(self, model, app=None):
+        """Initialize the model entry."""
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
@@ -179,6 +180,7 @@ class DatabaseScheduler(Scheduler):
     _initial_read = False
 
     def __init__(self, *args, **kwargs):
+        """Initialize the database scheduler."""
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
         self._finalize = Finalize(self, self.sync, exitpriority=5)
@@ -234,6 +236,7 @@ class DatabaseScheduler(Scheduler):
         info('Writing entries...')
         _tried = set()
         try:
+            close_old_connections()
             with transaction.atomic():
                 while self._dirty:
                     try:
