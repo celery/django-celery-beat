@@ -372,14 +372,14 @@ class test_models(SchedulerCase):
             minute=3,
             hour=3,
             day_of_week=None,
-        )) == '3 3 * * * (m/h/d/dM/MY)'
+        )) == '3 3 * * * (m/h/d/dM/MY) UTC'
         assert text_t(CrontabSchedule(
             minute=3,
             hour=3,
             day_of_week='tue',
             day_of_month='*/2',
             month_of_year='4,6',
-        )) == '3 3 tue */2 4,6 (m/h/d/dM/MY)'
+        )) == '3 3 tue */2 4,6 (m/h/d/dM/MY) UTC'
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
@@ -390,7 +390,7 @@ class test_models(SchedulerCase):
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name)
+        assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY) UTC'.format(p.name)
 
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(

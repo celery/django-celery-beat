@@ -96,3 +96,4 @@ class TzAwareCrontab(schedules.crontab):
                     other.minute == self.minute and
                     other.tz == self.tz)
         return NotImplemented
+        
