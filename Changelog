@@ -4,6 +4,22 @@
  Change history
 ================
 
+.. _version-1.1.1:
+
+1.1.1
+=====
+:release-date: 2018-2-18 2:30 p.m. UTC+3:00
+:release-by: Omer Katz
+
+- Fix interval schedules by providing nowfun.
+- Removing code that forced last_run_at to be timezone naive for no reason, made timezone aware. Fixes crontab schedules after celery/celery#4173.
+- Entry.last_run_at is no-longer timezone naive.
+- Use a localized PyTZ timezone object for now() otherwise conversions fail scheduling breaks resulting in constant running of tasks or possibly not running ever.
+- Fix endless migrations creation for solar schedules events.
+- Prevent MySQL has gone away errors.
+- Added support for Django 2.0.
+- Adjust CrontabSchedule's minutes, hour & day_of_month fields max length
+
 .. _version-1.1.0:
 
 1.1.0
