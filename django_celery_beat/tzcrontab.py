@@ -27,34 +27,11 @@ class TzAwareCrontab(schedules.crontab):
 
 
     def is_due(self, last_run_at):
-        """Calculate when the next run will take place."""        
-        # Return tuple of ``(is_due, next_time_to_check)``.
+        """Calculate when the next run will take place.
 
-        # The last_run_at argument needs to be timezone aware.
+        Return tuple of ``(is_due, next_time_to_check)''. The last_run_at argument needs to be timezone aware.
 
-        # Notes
-        #     - next time to check is in seconds.
-        #     - ``(True, 20)``, means the task should be run now, and the next
-        #         time to check is in 20 seconds.
-        #     - ``(False, 12.3)``, means the task is not due, but that the
-        #       scheduler should check again in 12.3 seconds.
-        # The next time to check is used to save energy/CPU cycles,
-        # it does not need to be accurate but will influence the precision
-        # of your schedule.  You must also keep in mind
-        # the value of :setting:`beat_max_loop_interval`,
-        # that decides the maximum number of seconds the scheduler can
-        # sleep between re-checking the periodic task intervals.  So if you
-        # have a task that changes schedule at run-time then your next_run_at
-        # check will decide how long it will take before a change to the
-        # schedule takes effect.  The max loop interval takes precedence
-        # over the next check at value returned.
-        # .. admonition:: Scheduler max interval variance
-        #     The default max loop interval may vary for different schedulers.
-        #     For the default scheduler the value is 5 minutes, but for example
-        #     the :pypi:`django-celery-beat` database scheduler the value
-        #     is 5 seconds.
-        #
-        
+        """        
         # convert last_run_at to the schedule timezone
         last_run_at = last_run_at.astimezone(self.tz)
 
