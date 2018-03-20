@@ -176,22 +176,20 @@ class CrontabSchedule(models.Model):
 
     def __str__(self):
         return '{0} {1} {2} {3} {4} (m/h/d/dM/MY) {5}'.format(
-            cronexp(self.minute),
-            cronexp(self.hour),
-            cronexp(self.day_of_week),
-            cronexp(self.day_of_month),
-            cronexp(self.month_of_year),
-            str(self.timezone)
+            cronexp(self.minute), cronexp(self.hour),
+            cronexp(self.day_of_week), cronexp(self.day_of_month),
+            cronexp(self.month_of_year), str(self.timezone)
         )
 
     @property
     def schedule(self):
-        return TzAwareCrontab(minute=self.minute,
-                                 hour=self.hour,
-                                 day_of_week=self.day_of_week,
-                                 day_of_month=self.day_of_month,
-                                 month_of_year=self.month_of_year,
-                                 tz= self.timezone)
+        return TzAwareCrontab(
+            minute=self.minute,
+            hour=self.hour, day_of_week=self.day_of_week,
+            day_of_month=self.day_of_month,
+            month_of_year=self.month_of_year,
+            tz=self.timezone
+        )
 
     @classmethod
     def from_schedule(cls, schedule):
