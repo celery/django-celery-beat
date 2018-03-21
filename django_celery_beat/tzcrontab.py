@@ -38,7 +38,7 @@ class TzAwareCrontab(schedules.crontab):
     def is_due(self, last_run_at):
         """Calculate when the next run will take place.
 
-        Return tuple of ``(is_due, next_time_to_check)''.
+        Return tuple of (is_due, next_time_to_check).
         The last_run_at argument needs to be timezone aware.
 
         """
