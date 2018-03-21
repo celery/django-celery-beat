@@ -390,7 +390,8 @@ class test_models(SchedulerCase):
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY) UTC'.format(p.name)
+        assert text_t(p) == """{0}: * 4,5 4,5 * *
+         (m/h/d/dM/MY) UTC""".format(p.name)
 
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(
