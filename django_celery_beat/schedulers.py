@@ -14,7 +14,7 @@ from celery.utils.log import get_logger
 from kombu.utils.json import dumps, loads
 
 from django.db import transaction, close_old_connections
-from django.db.utils import DatabaseError
+from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
 
 from .models import (
@@ -243,7 +243,7 @@ class DatabaseScheduler(Scheduler):
                         self.schedule[name].save()
                     except (KeyError, ObjectDoesNotExist):
                         pass
-        except DatabaseError as exc:
+        except (DatabaseError, InterfaceError) as exc:
             # retry later
             self._dirty |= _tried
             logger.exception('Database error while sync: %r', exc)
