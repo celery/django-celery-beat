@@ -182,8 +182,11 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                   task.queue)
                  for task in queryset]
 
-        task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue) if queue and len(queue) else task.apply_async(args=args, kwargs=kwargs)
+        task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue)
+                    if queue and len(queue)
+                    else task.apply_async(args=args, kwargs=kwargs)
                     for task, args, kwargs, queue in tasks]
+        
         tasks_run = len(task_ids)
         self.message_user(
             request,
