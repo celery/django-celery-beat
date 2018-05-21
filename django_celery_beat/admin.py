@@ -120,7 +120,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     actions = ('enable_tasks', 'disable_tasks', 'run_tasks')
     fieldsets = (
         (None, {
-            'fields': ('name', 'regtask', 'task', 'enabled'),
+            'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
             'classes': ('extrapretty', 'wide'),
         }),
         ('Schedule', {

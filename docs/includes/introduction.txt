@@ -1,4 +1,4 @@
-:Version: 1.0.1
+:Version: 1.1.1
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -153,7 +153,8 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year`, so if you want the equivalent
-of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify::
+of a ``30 * * * *`` (execute at 30 minutes past the hour every hour) crontab 
+entry you specify::
 
     >>> from django_celery_beat.models import CrontabSchedule, PeriodicTask
     >>> schedule, _ = CrontabSchedule.objects.get_or_create(

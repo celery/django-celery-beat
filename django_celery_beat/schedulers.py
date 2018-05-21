@@ -14,8 +14,8 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
-from django.db import transaction
-from django.db.utils import DatabaseError
+from django.db import transaction, close_old_connections
+from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
 
 from .models import (
@@ -54,6 +54,7 @@ class ModelEntry(ScheduleEntry):
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
     def __init__(self, model, app=None):
+        """Initialize the model entry."""
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
@@ -86,10 +87,7 @@ class ModelEntry(ScheduleEntry):
 
         if not model.last_run_at:
             model.last_run_at = self._default_now()
-        orig = self.last_run_at = model.last_run_at
-        if not is_naive(self.last_run_at):
-            self.last_run_at = self.last_run_at.replace(tzinfo=None)
-        assert orig.hour == self.last_run_at.hour  # timezone sanity
+        self.last_run_at = make_aware(model.last_run_at)
 
     def _disable(self, model):
         model.no_changes = True
@@ -118,7 +116,11 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def _default_now(self):
-        return self.app.now()
+        now = self.app.now()
+        # The PyTZ datetime must be localised for the Django-Celery-Beat
+        # scheduler to work. Keep in mind that timezone arithmatic
+        # with a localized timezone may be inaccurate.
+        return now.tzinfo.localize(now.replace(tzinfo=None))
 
     def __next__(self):
         self.model.last_run_at = self.app.now()
@@ -133,7 +135,6 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
-        obj.last_run_at = make_aware(obj.last_run_at)
         obj.save()
 
     @classmethod
@@ -194,6 +195,7 @@ class DatabaseScheduler(Scheduler):
     _initial_read = False
 
     def __init__(self, *args, **kwargs):
+        """Initialize the database scheduler."""
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
         self._finalize = Finalize(self, self.sync, exitpriority=5)
@@ -249,6 +251,7 @@ class DatabaseScheduler(Scheduler):
         info('Writing entries...')
         _tried = set()
         try:
+            close_old_connections()
             with transaction.atomic():
                 while self._dirty:
                     try:
@@ -257,7 +260,7 @@ class DatabaseScheduler(Scheduler):
                         self.schedule[name].save()
                     except (KeyError, ObjectDoesNotExist):
                         pass
-        except DatabaseError as exc:
+        except (DatabaseError, InterfaceError) as exc:
             # retry later
             self._dirty |= _tried
             logger.exception('Database error while sync: %r', exc)

@@ -119,12 +119,11 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['routing_key'] == 'cpu'
 
         right_now = self.app.now()
-        # Entry.last_run_at returns naive tz, so make this naive for comparison
-        right_now = right_now.replace(tzinfo=None)
         m2 = self.create_model_interval(
             schedule(timedelta(seconds=10)),
             last_run_at=right_now,
         )
+
         assert m2.last_run_at
         e2 = self.Entry(m2, app=self.app)
         assert e2.last_run_at is right_now
@@ -417,14 +416,14 @@ class test_models(SchedulerCase):
             minute=3,
             hour=3,
             day_of_week=None,
-        )) == '3 3 * * * (m/h/d/dM/MY)'
+        )) == '3 3 * * * (m/h/d/dM/MY) UTC'
         assert text_t(CrontabSchedule(
             minute=3,
             hour=3,
             day_of_week='tue',
             day_of_month='*/2',
             month_of_year='4,6',
-        )) == '3 3 tue */2 4,6 (m/h/d/dM/MY)'
+        )) == '3 3 tue */2 4,6 (m/h/d/dM/MY) UTC'
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
@@ -435,7 +434,9 @@ class test_models(SchedulerCase):
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert text_t(p) == '{0}: * 4,5 4,5 * * (m/h/d/dM/MY)'.format(p.name)
+        assert text_t(p) == """{0}: * 4,5 4,5 * * (m/h/d/dM/MY) UTC""".format(
+            p.name
+        )
 
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(
@@ -481,35 +482,49 @@ class test_models(SchedulerCase):
         assert s.schedule.day_of_month == {1, 16}
         assert s.schedule.month_of_year == {1, 7}
 
+    def test_CrontabSchedule_long_schedule(self):
+        s = CrontabSchedule(
+            minute=str(list(range(60)))[1:-1],
+            hour=str(list(range(24)))[1:-1],
+            day_of_week=str(list(range(7)))[1:-1],
+            day_of_month=str(list(range(1, 32)))[1:-1],
+            month_of_year=str(list(range(1, 13)))[1:-1]
+        )
+        assert s.schedule.minute == set(range(60))
+        assert s.schedule.hour == set(range(24))
+        assert s.schedule.day_of_week == set(range(7))
+        assert s.schedule.day_of_month == set(range(1, 32))
+        assert s.schedule.month_of_year == set(range(1, 13))
+        fields = [
+            'minute', 'hour', 'day_of_week', 'day_of_month', 'month_of_year'
+        ]
+        for field in fields:
+            str_length = len(str(getattr(s.schedule, field)))
+            field_length = s._meta.get_field(field).max_length
+            assert str_length <= field_length
+
     def test_SolarSchedule_schedule(self):
-        lat = 48.06
-        lon = 12.86
-        s = SolarSchedule(event='solar_noon', latitude=lat, longitude=lon)
-        dt = datetime(day=25, month=7, year=2017, hour=12, minute=0)
+        s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
+        dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
         dt_lastrun = make_aware(dt)
         dt2 = datetime(day=25, month=7, year=2017, hour=13, minute=0)
         dt3 = datetime(day=26, month=7, year=2017, hour=12, minute=0)
 
         assert s.schedule is not None
-
-        cal = ephem.Observer()
-        cal.lat = str(lat)
-        cal.lon = str(lon)
-        cal.elev = 0
-        cal.horizon = 0
-        cal.pressure = 0
-
-        s.nowfun = lambda: make_aware(dt2)
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue is False
-        next_transit = cal.next_transit(ephem.Sun(), start=dt)
-        assert nextcheck == (next_transit.datetime() - dt2).total_seconds()
+        assert isdue is False  # False means task isn't due, but keep checking.
+        assert (nextcheck > 0) and (isdue is False) or \
+            (nextcheck == s.max_interval) and (isdue is True)
 
-        s.nowfun = lambda: make_aware(dt3)
-        isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue
-        next_transit = cal.next_transit(ephem.Sun(), start=dt3)
-        assert nextcheck == (next_transit.datetime() - dt3).total_seconds()
+        s2 = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
+        dt2 = datetime(day=26, month=7, year=2000, hour=1, minute=0)
+        dt2_lastrun = make_aware(dt2)
+
+        assert s2.schedule is not None
+        isdue2, nextcheck2 = s2.schedule.is_due(dt2_lastrun)
+        assert isdue2 is True  # True means task is due and should run.
+        assert (nextcheck2 > 0) and (isdue2 is True) or \
+            (nextcheck2 == s2.max_interval) and (isdue2 is False)
 
 
 @pytest.mark.django_db()
