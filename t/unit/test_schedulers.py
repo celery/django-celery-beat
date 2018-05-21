@@ -1,6 +1,5 @@
 from __future__ import absolute_import, unicode_literals
 
-import ephem
 import pytest
 
 from datetime import datetime, timedelta
@@ -507,8 +506,6 @@ class test_models(SchedulerCase):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
         dt_lastrun = make_aware(dt)
-        dt2 = datetime(day=25, month=7, year=2017, hour=13, minute=0)
-        dt3 = datetime(day=26, month=7, year=2017, hour=12, minute=0)
 
         assert s.schedule is not None
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
