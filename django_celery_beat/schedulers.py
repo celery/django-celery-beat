@@ -11,6 +11,7 @@ from celery.beat import Scheduler, ScheduleEntry
 from celery.five import values, items
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
+from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
 from django.db import transaction, close_old_connections
@@ -96,6 +97,22 @@ class ModelEntry(ScheduleEntry):
     def is_due(self):
         if not self.model.enabled:
             return False, 5.0   # 5 second delay for re-enable.
+
+        # START DATE: only run after the `start_time`, if one exists.
+        if self.model.start_time is not None:
+            if maybe_make_aware(self._default_now()) < self.model.start_time:
+                # The datetime is before the start date - don't run.
+                _, delay = self.schedule.is_due(self.last_run_at)
+                return False, delay  # use original delay for re-check
+
+        # ONE OFF TASK: Disable one off tasks after they've ran once
+        if self.model.one_off and self.model.enabled \
+                and self.model.total_run_count > 0:
+            self.model.enabled = False
+            self.model.total_run_count = 0  # Reset
+            self.model.save()
+            return False, None  # Don't recheck
+
         return self.schedule.is_due(self.last_run_at)
 
     def _default_now(self):
