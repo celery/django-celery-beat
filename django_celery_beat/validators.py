@@ -1,8 +1,17 @@
+import contextlib
 import io
-from contextlib import redirect_stderr
+import sys
 
 from crontab import CronTab
 from django.core.exceptions import ValidationError
+
+
+@contextlib.contextmanager
+def redirect_stderr(target):
+    original = sys.stderr
+    sys.stderr = target
+    yield
+    sys.stderr = original
 
 
 def validate_crontab(value, index):
