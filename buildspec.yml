@@ -2,19 +2,19 @@ version: 0.2
 
 env:
   variables:
-    PIP_REPO: 'pip.singleplatform.co'
-    SKIP_GENERATE_AUTHORS: 1
-    SKIP_WRITE_GIT_CHANGELOG: 1
+    PIP_REPO: 'pip.test.singleplatform.co'
 
 phases:
   install:
     commands:
-      - pip install --upgrade pip
       - pip config set global.index-url https://$PIP_REPO/simple
-      - pip install --upgrade wheel setuptools piprepo
+      - pip config set global.trusted-host $PIP_REPO
   build:
     commands:
-      - python setup.py check sdist bdist_wheel
+      - python setup.py check
+      # python setup.py test
+      - python setup.py sdist
+      - python setup.py bdist_wheel
   post_build:
     commands:
       - piprepo sync dist s3://$PIP_REPO
