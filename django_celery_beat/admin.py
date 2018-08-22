@@ -151,9 +151,10 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         return qs.select_related('interval', 'crontab', 'solar')
 
     def _message_user_about_update(self, request, rows_updated, verb):
-        """
-        Send message about action to user.
+        """Send message about action to user.
+
         `verb` should shortly describe what have changed (e.g. 'enabled').
+
         """
         self.message_user(
             request,
