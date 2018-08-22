@@ -177,14 +177,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         self._message_user_about_update(request, rows_updated, 'disabled')
     disable_tasks.short_description = _('Disable selected tasks')
 
-    def _get_toggle_queryset(self, queryset):
+    def _toggle_tasks_activity(self, queryset):
         return queryset.update(enabled=Case(
             When(enabled=True, then=Value(False)),
             default=Value(True),
         ))
 
     def toggle_tasks(self, request, queryset):
-        rows_updated = self._get_toggle_queryset(queryset)
+        rows_updated = self._toggle_tasks_activity(queryset)
         PeriodicTasks.update_changed()
         self._message_user_about_update(request, rows_updated, 'toggled')
     toggle_tasks.short_description = _('Toggle activity of selected tasks')
