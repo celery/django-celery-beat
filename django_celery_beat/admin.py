@@ -150,46 +150,43 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         qs = super(PeriodicTaskAdmin, self).get_queryset(request)
         return qs.select_related('interval', 'crontab', 'solar')
 
-    def enable_tasks(self, request, queryset):
-        rows_updated = queryset.update(enabled=True)
-        PeriodicTasks.update_changed()
+    def _message_user_about_update(self, request, rows_updated, verb):
+        """
+        Send message about action to user.
+        `verb` should shortly describe what have changed (e.g. 'enabled').
+        """
         self.message_user(
             request,
-            _('{0} task{1} {2} successfully enabled').format(
+            _('{0} task{1} {2} successfully {3}').format(
                 rows_updated,
                 pluralize(rows_updated),
                 pluralize(rows_updated, _('was,were')),
+                verb,
             ),
         )
+
+    def enable_tasks(self, request, queryset):
+        rows_updated = queryset.update(enabled=True)
+        PeriodicTasks.update_changed()
+        self._message_user_about_update(request, rows_updated, 'enabled')
     enable_tasks.short_description = _('Enable selected tasks')
 
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False)
         PeriodicTasks.update_changed()
-        self.message_user(
-            request,
-            _('{0} task{1} {2} successfully disabled').format(
-                rows_updated,
-                pluralize(rows_updated),
-                pluralize(rows_updated, _('was,were')),
-            ),
-        )
+        self._message_user_about_update(request, rows_updated, 'disabled')
     disable_tasks.short_description = _('Disable selected tasks')
 
-    def toggle_tasks(self, request, queryset):
-        rows_updated = queryset.update(enabled=Case(
+    def _get_toggle_queryset(self, queryset):
+        return queryset.update(enabled=Case(
             When(enabled=True, then=Value(False)),
             default=Value(True),
         ))
+
+    def toggle_tasks(self, request, queryset):
+        rows_updated = self._get_toggle_queryset(queryset)
         PeriodicTasks.update_changed()
-        self.message_user(
-            request,
-            _('{0} task{1} {2} successfully toggled').format(
-                rows_updated,
-                pluralize(rows_updated),
-                pluralize(rows_updated, _('was,were')),
-            ),
-        )
+        self._message_user_about_update(request, rows_updated, 'toggled')
     toggle_tasks.short_description = _('Toggle activity of selected tasks')
 
     def run_tasks(self, request, queryset):
