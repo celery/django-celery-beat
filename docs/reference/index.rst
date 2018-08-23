@@ -17,3 +17,4 @@
     django-celery-beat.schedulers
     django-celery-beat.admin
     django-celery-beat.utils
+    django-celery-beat.validators
