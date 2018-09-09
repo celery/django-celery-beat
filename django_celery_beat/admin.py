@@ -3,8 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
-from django.db.models import When, Value, Case
+from django.contrib import admin, messages
 from django.forms.widgets import Select
 from django.template.defaultfilters import pluralize
 from django.utils.translation import ugettext_lazy as _
@@ -117,17 +116,16 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     form = PeriodicTaskForm
     model = PeriodicTask
     celery_app = current_app
-    list_display = ('__str__', 'enabled', 'interval', 'start_time', 'one_off')
-    actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
+    list_display = ('__str__', 'enabled')
+    actions = ('enable_tasks', 'disable_tasks', 'run_tasks')
     fieldsets = (
         (None, {
-            'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
+            'fields': ('name', 'regtask', 'task', 'enabled'),
             'classes': ('extrapretty', 'wide'),
         }),
         ('Schedule', {
-            'fields': ('interval', 'crontab', 'solar',
-                       'start_time', 'one_off'),
-            'classes': ('extrapretty', 'wide'),
+            'fields': ('interval', 'crontab', 'solar'),
+            'classes': ('extrapretty', 'wide', ),
         }),
         ('Arguments', {
             'fields': ('args', 'kwargs'),
@@ -150,45 +148,31 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         qs = super(PeriodicTaskAdmin, self).get_queryset(request)
         return qs.select_related('interval', 'crontab', 'solar')
 
-    def _message_user_about_update(self, request, rows_updated, verb):
-        """Send message about action to user.
-
-        `verb` should shortly describe what have changed (e.g. 'enabled').
-
-        """
-        self.message_user(
-            request,
-            _('{0} task{1} {2} successfully {3}').format(
-                rows_updated,
-                pluralize(rows_updated),
-                pluralize(rows_updated, _('was,were')),
-                verb,
-            ),
-        )
-
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'enabled')
+        self.message_user(
+            request,
+            _('{0} task{1} {2} successfully enabled').format(
+                rows_updated,
+                pluralize(rows_updated),
+                pluralize(rows_updated, _('was,were')),
+            ),
+        )
     enable_tasks.short_description = _('Enable selected tasks')
 
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'disabled')
+        self.message_user(
+            request,
+            _('{0} task{1} {2} successfully disabled').format(
+                rows_updated,
+                pluralize(rows_updated),
+                pluralize(rows_updated, _('was,were')),
+            ),
+        )
     disable_tasks.short_description = _('Disable selected tasks')
-
-    def _toggle_tasks_activity(self, queryset):
-        return queryset.update(enabled=Case(
-            When(enabled=True, then=Value(False)),
-            default=Value(True),
-        ))
-
-    def toggle_tasks(self, request, queryset):
-        rows_updated = self._toggle_tasks_activity(queryset)
-        PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'toggled')
-    toggle_tasks.short_description = _('Toggle activity of selected tasks')
 
     def run_tasks(self, request, queryset):
         self.celery_app.loader.import_default_modules()
@@ -196,6 +180,22 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                   loads(task.args),
                   loads(task.kwargs))
                  for task in queryset]
+
+        if any(t[0] is None for t in tasks):
+            for i, t in enumerate(tasks):
+                if t[0] is None:
+                    break
+
+            # variable "i" will be set because list "tasks" is not empty
+            not_found_task_name = queryset[i].task
+
+            self.message_user(
+                request,
+                _('task "{0}" not found'.format(not_found_task_name)),
+                level=messages.ERROR,
+            )
+            return
+
         task_ids = [task.delay(*args, **kwargs)
                     for task, args, kwargs in tasks]
         tasks_run = len(task_ids)
