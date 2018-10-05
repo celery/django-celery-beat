@@ -400,6 +400,12 @@ class test_DatabaseScheduler(SchedulerCase):
         with pytest.raises(RuntimeError):
             self.s.sync()
 
+    def test_update_scheduler_heap_invalidation(self, monkeypatch):
+        # mock "schedule_changed" to always trigger update for
+        # all calls to schedule, as a change may occur at any moment
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        self.s.tick()
+
 
 @pytest.mark.django_db()
 class test_models(SchedulerCase):
