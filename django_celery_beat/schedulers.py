@@ -192,7 +192,7 @@ class DatabaseScheduler(Scheduler):
 
     _schedule = None
     _last_timestamp = None
-    _initial_read = False
+    _initial_read = True
 
     def __init__(self, *args, **kwargs):
         """Initialize the database scheduler."""
@@ -294,11 +294,11 @@ class DatabaseScheduler(Scheduler):
 
     @property
     def schedule(self):
-        update = False
-        if not self._initial_read:
+        initial = update = False
+        if self._initial_read:
             debug('DatabaseScheduler: initial read')
-            update = True
-            self._initial_read = True
+            initial = update = True
+            self._initial_read = False
         elif self.schedule_changed():
             info('DatabaseScheduler: Schedule changed.')
             update = True
@@ -307,7 +307,8 @@ class DatabaseScheduler(Scheduler):
             self.sync()
             self._schedule = self.all_as_schedule()
             # the schedule changed, invalidate the heap in Scheduler.tick
-            self._heap = None
+            if not initial:
+                self._heap = []
             if logger.isEnabledFor(logging.DEBUG):
                 debug('Current schedule:\n%s', '\n'.join(
                     repr(entry) for entry in values(self._schedule)),
