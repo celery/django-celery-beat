@@ -76,12 +76,13 @@ class ModelEntry(ScheduleEntry):
             )
             self._disable(model)
 
-        self.options = {
-            'queue': model.queue,
-            'exchange': model.exchange,
-            'routing_key': model.routing_key,
-            'expires': model.expires,
-        }
+        self.options = {}
+        for option in ['queue', 'exchange', 'routing_key', 'expires']:
+            value = getattr(model, option)
+            if value is None:
+                continue
+            self.options[option] = value
+
         self.total_run_count = model.total_run_count
         self.model = model
 
