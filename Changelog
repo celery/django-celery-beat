@@ -4,6 +4,25 @@
  Change history
 ================
 
+.. _version-1.2.0:
+
+1.2.0
+=====
+:release-date: 2018-10-08 16:00 p.m. UTC+3:00
+:release-by: Omer Katz
+
+- Allow timezone-aware Cron schedules.
+- Retry later in case of InterfaceError in sync.
+- Show Periodic Task Description in panel admin.
+- Fix CrontabSchedule example.
+- Support Periodic Tasks with a start date and one-off tasks.
+- Fixes a problem with beat not reconnecting to MySQL (server restart, network problem, etc.) when checking if schedule has changed.
+- Add toggle admin action which allows to activate disabled tasks or deactivate enabled tasks.
+- Add fields validation for CrontabSchedule.
+- Drop support for Django<1.11.
+- Fix task heap invalidation bug which prevented scheduled tasks from running when syncing tasks from the database.
+- Raise a ValidationError when more than one type (solar, crontab or interval) of schedule is provided.
+
 .. _version-1.1.1:
 
 1.1.1
