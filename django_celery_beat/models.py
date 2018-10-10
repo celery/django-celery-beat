@@ -325,7 +325,7 @@ class PeriodicTask(models.Model):
             raise ValidationError({
                 'crontab': [err_msg]
             })
-        if self.interval or self.solar:
+        if self.interval and self.solar:
             raise ValidationError({
                 'solar': [err_msg]
             })
