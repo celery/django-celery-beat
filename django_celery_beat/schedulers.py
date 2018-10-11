@@ -252,20 +252,20 @@ class DatabaseScheduler(Scheduler):
     def sync(self):
         info('Writing entries...')
         _tried = set()
+        _failed = set()
         try:
             close_old_connections()
 
             while self._dirty:
-                # with transaction.atomic():
                 name = self._dirty.pop()
-                _tried.add(name)
                 try:
                     self.schedule[name].save()
+                    _tried.add(name)
                 except (KeyError, ObjectDoesNotExist) as exc:
-                    pass
+                    _failed.add(name)
         except (DatabaseError, InterfaceError) as exc:
-            # retry later
-            self._dirty |= _tried
+            # retry later, only for the failed ones
+            self._dirty |= _failed
             logger.exception('Database error while sync: %r', exc)
 
     def update_from_dict(self, mapping):
