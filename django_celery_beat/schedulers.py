@@ -256,9 +256,13 @@ class DatabaseScheduler(Scheduler):
             close_old_connections()
 
             while self._dirty:
+                # with transaction.atomic():
                 name = self._dirty.pop()
                 _tried.add(name)
-                self.schedule[name].save()
+                try:
+                    self.schedule[name].save()
+                except (KeyError, ObjectDoesNotExist) as exc:
+                    pass
         except (DatabaseError, InterfaceError) as exc:
             # retry later
             self._dirty |= _tried
