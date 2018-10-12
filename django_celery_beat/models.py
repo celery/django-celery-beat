@@ -321,7 +321,7 @@ class PeriodicTask(models.Model):
                                    for schedule_type in schedule_info
                                    if schedule_info[schedule_type]]
 
-        if not any(selected_schedule_types):
+        if len(selected_schedule_types) == 0:
             raise ValidationError({
                 'interval': [
                     'One of interval, crontab, or solar must be set.'
