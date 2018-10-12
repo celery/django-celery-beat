@@ -317,9 +317,8 @@ class PeriodicTask(models.Model):
         schedule_info = {'interval': self.interval,
                          'crontab': self.crontab,
                          'solar': self.solar}
-        selected_schedule_types = [schedule_type
-                                   for schedule_type in schedule_info
-                                   if schedule_info[schedule_type]]
+        schedule_types = ['interval', 'crontab', 'solar']
+        selected_schedule_types = [s for s in schedule_types if getattr(self, s)]
 
         if len(selected_schedule_types) == 0:
             raise ValidationError({
