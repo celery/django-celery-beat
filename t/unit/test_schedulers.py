@@ -415,6 +415,13 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s.tick()
         assert len(self.s._heap) == expected_heap_size
 
+    def test_scheduler_schedules_equality_on_change(self, monkeypatch):
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: False)
+        assert self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
 
 @pytest.mark.django_db()
 class test_models(SchedulerCase):
