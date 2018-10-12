@@ -3,7 +3,8 @@ from __future__ import absolute_import, unicode_literals
 from django.test import TestCase
 
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, CrontabSchedule, IntervalSchedule
+from django.core.exceptions import ValidationError
 
 
 class ActionsTests(TestCase):
@@ -51,3 +52,24 @@ class ActionsTests(TestCase):
         self.assertTrue(e1)
         self.assertTrue(e2)
         self.assertTrue(e3)
+
+    def test_validate_unique_raise_cases(self):
+        periodic_task = PeriodicTask()
+        crontab_schedule = CrontabSchedule()
+        interval_schedule = IntervalSchedule()
+
+        with self.assertRaises(ValidationError):
+            periodic_task.validate_unique()
+
+        periodic_task.crontab = crontab_schedule
+        ret_value = periodic_task.validate_unique()
+        self.assertIsNone(ret_value, 'validate_unique should return None')
+
+        periodic_task.interval = interval_schedule
+        with self.assertRaises(ValidationError):
+            periodic_task.validate_unique()
+
+
+
+
+
