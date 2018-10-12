@@ -406,7 +406,7 @@ class test_DatabaseScheduler(SchedulerCase):
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         self.s.tick()
 
-    def test_update_scheduler_heap_invalidation_not_to_break_heap(self, monkeypatch):
+    def test_heap_size_is_constant(self, monkeypatch):
         # heap size is constant unless the schedule changes
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         expected_heap_size = len(self.s.schedule.values())
