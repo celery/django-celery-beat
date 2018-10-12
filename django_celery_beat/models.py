@@ -314,9 +314,12 @@ class PeriodicTask(models.Model):
 
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
-        schedule_types = [self.interval, self.crontab, self.solar]
+        schedule_info = {'interval': self.interval,
+                         'crontab': self.crontab,
+                         'solar': self.solar}
         selected_schedule_types = [schedule_type
-                                   for schedule_type in schedule_types if schedule_type]
+                                   for schedule_type in schedule_info
+                                   if schedule_info[schedule_type]]
 
         if not any(selected_schedule_types):
             raise ValidationError({
