@@ -3,7 +3,10 @@ from __future__ import absolute_import, unicode_literals
 from django.test import TestCase
 
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import PeriodicTask, CrontabSchedule, IntervalSchedule
+from django_celery_beat.models import \
+    PeriodicTask, \
+    CrontabSchedule, \
+    IntervalSchedule
 from django.core.exceptions import ValidationError
 
 
