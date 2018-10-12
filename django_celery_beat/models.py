@@ -314,21 +314,26 @@ class PeriodicTask(models.Model):
 
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
-        if not self.interval and not self.crontab and not self.solar:
+        schedule_info = {'interval': self.interval,
+                         'crontab': self.crontab,
+                         'solar': self.solar}
+        selected_schedule_types = [schedule_type
+                                   for schedule_type in schedule_info
+                                   if schedule_info[schedule_type]]
+
+        if len(selected_schedule_types) == 0:
             raise ValidationError({
                 'interval': [
                     'One of interval, crontab, or solar must be set.'
                 ]
             })
         err_msg = 'Only one of interval, crontab, or solar must be set'
-        if (self.interval and self.crontab) or (self.crontab and self.solar):
-            raise ValidationError({
-                'crontab': [err_msg]
-            })
-        if self.interval or self.solar:
-            raise ValidationError({
-                'solar': [err_msg]
-            })
+
+        if len(selected_schedule_types) > 1:
+            error_info = {}
+            for selected_schedule_type in selected_schedule_types:
+                error_info[selected_schedule_type] = [err_msg]
+            raise ValidationError(error_info)
 
     def save(self, *args, **kwargs):
         self.exchange = self.exchange or None
