@@ -316,7 +316,8 @@ class PeriodicTask(models.Model):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
 
         schedule_types = ['interval', 'crontab', 'solar']
-        selected_schedule_types = [s for s in schedule_types if getattr(self, s)]
+        selected_schedule_types = [s for s in schedule_types
+                                   if getattr(self, s)]
 
         if len(selected_schedule_types) == 0:
             raise ValidationError({
