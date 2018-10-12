@@ -63,13 +63,9 @@ class ActionsTests(TestCase):
 
         periodic_task.crontab = crontab_schedule
         ret_value = periodic_task.validate_unique()
-        self.assertIsNone(ret_value, 'validate_unique should return None')
+        self.assertIsNone(ret_value,
+                          'validate_unique should return None')
 
         periodic_task.interval = interval_schedule
         with self.assertRaises(ValidationError):
             periodic_task.validate_unique()
-
-
-
-
-
