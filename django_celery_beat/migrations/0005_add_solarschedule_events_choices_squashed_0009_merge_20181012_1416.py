@@ -9,12 +9,11 @@ import timezone_field.fields
 class Migration(migrations.Migration):
     replaces = [
         ('django_celery_beat', '0005_add_solarschedule_events_choices'),
+        ('django_celery_beat', '0006_auto_20180210_1226'),
         ('django_celery_beat', '0006_auto_20180322_0932'),
         ('django_celery_beat', '0007_auto_20180521_0826'),
         ('django_celery_beat', '0008_auto_20180914_1922'),
-        ('django_celery_beat', '0006_auto_20180210_1226'),
-        ('django_celery_beat', '0007_auto_20181012_1414'),
-        ('django_celery_beat', '0009_merge_20181012_1416')]
+    ]
 
     dependencies = [
         ('django_celery_beat', '0004_auto_20170221_0000'),
