@@ -40,7 +40,7 @@ Cannot add entry %r to database schedule: %r. Contents: %r
 """
 
 logger = get_logger(__name__)
-debug, info = logger.debug, logger.info
+debug, info, warning = logger.debug, logger.info, logger.warning
 
 
 class ModelEntry(ScheduleEntry):
@@ -234,9 +234,16 @@ class DatabaseScheduler(Scheduler):
                 pass  # not in transaction management.
 
             last, ts = self._last_timestamp, self.Changes.last_change()
-        except (DatabaseError, InterfaceError) as exc:
+        except DatabaseError as exc:
             logger.exception('Database gave error: %r', exc)
             return False
+        except InterfaceError:
+            warning(
+                'DatabaseScheduler: InterfaceError in schedule_changed(), '
+                'waiting to retry in next call...'
+            )
+            return False
+
         try:
             if ts and ts > (last if last else ts):
                 return True
@@ -265,10 +272,16 @@ class DatabaseScheduler(Scheduler):
                     _tried.add(name)
                 except (KeyError, ObjectDoesNotExist) as exc:
                     _failed.add(name)
-        except (DatabaseError, InterfaceError) as exc:
+        except DatabaseError as exc:
+            logger.exception('Database error while sync: %r', exc)
+        except InterfaceError:
+            warning(
+                'DatabaseScheduler: InterfaceError in sync(), '
+                'waiting to retry in next call...'
+            )
+        finally:
             # retry later, only for the failed ones
             self._dirty |= _failed
-            logger.exception('Database error while sync: %r', exc)
 
     def update_from_dict(self, mapping):
         s = {}
