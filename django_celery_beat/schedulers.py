@@ -221,8 +221,9 @@ class DatabaseScheduler(Scheduler):
         return s
 
     def schedule_changed(self):
-        close_old_connections()
         try:
+            close_old_connections()
+
             # If MySQL is running with transaction isolation level
             # REPEATABLE-READ (default), then we won't see changes done by
             # other transactions until the current transaction is
@@ -233,7 +234,7 @@ class DatabaseScheduler(Scheduler):
                 pass  # not in transaction management.
 
             last, ts = self._last_timestamp, self.Changes.last_change()
-        except DatabaseError as exc:
+        except (DatabaseError, InterfaceError) as exc:
             logger.exception('Database gave error: %r', exc)
             return False
         try:
