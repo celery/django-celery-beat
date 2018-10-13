@@ -400,6 +400,28 @@ class test_DatabaseScheduler(SchedulerCase):
         with pytest.raises(RuntimeError):
             self.s.sync()
 
+    def test_update_scheduler_heap_invalidation(self, monkeypatch):
+        # mock "schedule_changed" to always trigger update for
+        # all calls to schedule, as a change may occur at any moment
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        self.s.tick()
+
+    def test_heap_size_is_constant(self, monkeypatch):
+        # heap size is constant unless the schedule changes
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        expected_heap_size = len(self.s.schedule.values())
+        self.s.tick()
+        assert len(self.s._heap) == expected_heap_size
+        self.s.tick()
+        assert len(self.s._heap) == expected_heap_size
+
+    def test_scheduler_schedules_equality_on_change(self, monkeypatch):
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: False)
+        assert self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
 
 @pytest.mark.django_db()
 class test_models(SchedulerCase):

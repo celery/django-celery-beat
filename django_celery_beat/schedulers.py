@@ -192,7 +192,8 @@ class DatabaseScheduler(Scheduler):
 
     _schedule = None
     _last_timestamp = None
-    _initial_read = False
+    _initial_read = True
+    _heap_invalidated = False
 
     def __init__(self, *args, **kwargs):
         """Initialize the database scheduler."""
@@ -291,6 +292,12 @@ class DatabaseScheduler(Scheduler):
             )
         self.update_from_dict(entries)
 
+    def schedules_equal(self, *args, **kwargs):
+        if self._heap_invalidated:
+            self._heap_invalidated = False
+            return False
+        return super(DatabaseScheduler, self).schedules_equal(*args, **kwargs)
+
     @property
     def schedule(self):
         update = False
@@ -306,7 +313,9 @@ class DatabaseScheduler(Scheduler):
             self.sync()
             self._schedule = self.all_as_schedule()
             # the schedule changed, invalidate the heap in Scheduler.tick
-            self._heap = None
+            if not initial:
+                self._heap = []
+                self._heap_invalidated = True
             if logger.isEnabledFor(logging.DEBUG):
                 debug('Current schedule:\n%s', '\n'.join(
                     repr(entry) for entry in values(self._schedule)),
