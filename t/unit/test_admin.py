@@ -1,9 +1,15 @@
 from __future__ import absolute_import, unicode_literals
 
+from itertools import combinations
 from django.test import TestCase
 
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import \
+    PeriodicTask, \
+    CrontabSchedule, \
+    IntervalSchedule, \
+    SolarSchedule
+from django.core.exceptions import ValidationError
 
 
 class ActionsTests(TestCase):
@@ -51,3 +57,22 @@ class ActionsTests(TestCase):
         self.assertTrue(e1)
         self.assertTrue(e2)
         self.assertTrue(e3)
+
+    def test_validate_unique_raises_if_schedule_not_set(self):
+        with self.assertRaises(ValidationError):
+            PeriodicTask().validate_unique()
+
+    def test_validate_unique_raises_for_multiple_schedules(self):
+        schedules = [
+            ('crontab', CrontabSchedule()),
+            ('interval', IntervalSchedule()),
+            ('solar', SolarSchedule()),
+        ]
+        for options in combinations(schedules, 2):
+            with self.assertRaises(ValidationError):
+                PeriodicTask(**dict(options)).validate_unique()
+
+    def test_validate_unique_not_raises(self):
+        PeriodicTask(crontab=CrontabSchedule()).validate_unique()
+        PeriodicTask(interval=IntervalSchedule()).validate_unique()
+        PeriodicTask(solar=SolarSchedule()).validate_unique()
