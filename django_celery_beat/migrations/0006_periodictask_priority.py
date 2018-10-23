@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('django_celery_beat', '0005_add_solarschedule_events_choices_squashed_0009_merge_20181012_1416'),
     ]
@@ -15,6 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='periodictask',
             name='priority',
-            field=models.PositiveIntegerField(blank=True, default=0, null=True, validators=[django.core.validators.MaxValueValidator(255)], verbose_name='priority'),
+            field=models.PositiveIntegerField(
+                blank=True,
+                default=None,
+                null=True,
+                validators=[django.core.validators.MaxValueValidator(255)],
+                verbose_name='priority'),
         ),
     ]
