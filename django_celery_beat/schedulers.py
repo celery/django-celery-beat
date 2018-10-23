@@ -77,7 +77,7 @@ class ModelEntry(ScheduleEntry):
             self._disable(model)
 
         self.options = {}
-        for option in ['queue', 'exchange', 'routing_key', 'expires']:
+        for option in ['queue', 'exchange', 'routing_key', 'expires', 'priority']:
             value = getattr(model, option)
             if value is None:
                 continue
@@ -169,12 +169,13 @@ class ModelEntry(ScheduleEntry):
         return entry
 
     @classmethod
-    def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
+    def _unpack_options(cls, queue=None, exchange=None, routing_key=None, priority=None,
                         **kwargs):
         return {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
+            'priority': priority
         }
 
     def __repr__(self):
