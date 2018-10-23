@@ -283,7 +283,8 @@ class PeriodicTask(models.Model):
         _('routing key'), max_length=200, blank=True, null=True, default=None,
     )
     priority = models.PositiveIntegerField(
-        _('priority'), default=0, validators=[MaxValueValidator(255)], blank=True, null=True
+        _('priority'), default=0, validators=[MaxValueValidator(255)],
+        blank=True, null=True
     )
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
