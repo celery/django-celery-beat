@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('django_celery_beat', '0005_add_solarschedule_events_choices_squashed_0009_merge_20181012_1416'),
+        ('django_celery_beat', '0005_add_solarschedule_events_choices_squashed_0009_merge_20181012_1416'), # noqa
     ]
 
     operations = [
