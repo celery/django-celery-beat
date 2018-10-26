@@ -427,10 +427,10 @@ class test_DatabaseScheduler(SchedulerCase):
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
-        assert (text_t(IntervalSchedule(every=1, period='seconds')) ==
-                'every second')
-        assert (text_t(IntervalSchedule(every=10, period='seconds')) ==
-                'every 10 seconds')
+        assert (text_t(IntervalSchedule(every=1, period='seconds'))
+                == 'every second')
+        assert (text_t(IntervalSchedule(every=10, period='seconds'))
+                == 'every 10 seconds')
 
     def test_CrontabSchedule_unicode(self):
         assert text_t(CrontabSchedule(

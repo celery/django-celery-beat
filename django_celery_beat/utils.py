@@ -39,6 +39,6 @@ def is_database_scheduler(scheduler):
     from kombu.utils import symbol_by_name
     from .schedulers import DatabaseScheduler
     return (
-        scheduler == 'django' or
-        issubclass(symbol_by_name(scheduler), DatabaseScheduler)
+        scheduler == 'django'
+        or issubclass(symbol_by_name(scheduler), DatabaseScheduler)
     )
