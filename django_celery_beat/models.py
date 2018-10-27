@@ -7,6 +7,7 @@ import timezone_field
 from celery import schedules
 from celery.five import python_2_unicode_compatible
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import signals
 from django.utils.translation import ugettext_lazy as _
@@ -280,6 +281,10 @@ class PeriodicTask(models.Model):
     )
     routing_key = models.CharField(
         _('routing key'), max_length=200, blank=True, null=True, default=None,
+    )
+    priority = models.PositiveIntegerField(
+        _('priority'), default=None, validators=[MaxValueValidator(255)],
+        blank=True, null=True
     )
     expires = models.DateTimeField(
         _('expires'), blank=True, null=True,
