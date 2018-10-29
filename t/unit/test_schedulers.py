@@ -427,14 +427,14 @@ class test_DatabaseScheduler(SchedulerCase):
         interval = 10
 
         s1 = schedule(timedelta(seconds=interval))
-        m1 = self.create_model_interval(s1, enabled=False)  # return False, 5.0 in is_due
-        m1.last_run_at = self.app.now() - timedelta(seconds=interval+2)
+        m1 = self.create_model_interval(s1, enabled=False)
+        m1.last_run_at = self.app.now() - timedelta(seconds=interval + 2)
         m1.save()
         m1.refresh_from_db()
 
         s2 = schedule(timedelta(seconds=interval))
         m2 = self.create_model_interval(s2, enabled=True)
-        m2.last_run_at = self.app.now() - timedelta(seconds=interval+1)
+        m2.last_run_at = self.app.now() - timedelta(seconds=interval + 1)
         m2.save()
         m2.refresh_from_db()
 
