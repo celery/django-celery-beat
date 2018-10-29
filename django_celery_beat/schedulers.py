@@ -97,14 +97,16 @@ class ModelEntry(ScheduleEntry):
 
     def is_due(self):
         if not self.model.enabled:
-            return schedules.schedstate(False, 5.0)   # 5 second delay for re-enable.
+            # 5 second delay for re-enable.
+            return schedules.schedstate(False, 5.0)
 
         # START DATE: only run after the `start_time`, if one exists.
         if self.model.start_time is not None:
             if maybe_make_aware(self._default_now()) < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 _, delay = self.schedule.is_due(self.last_run_at)
-                return schedules.schedstate(False, delay)  # use original delay for re-check
+                # use original delay for re-check
+                return schedules.schedstate(False, delay)
 
         # ONE OFF TASK: Disable one off tasks after they've ran once
         if self.model.one_off and self.model.enabled \
