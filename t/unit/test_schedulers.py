@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import time
 import pytest
 
 from datetime import datetime, timedelta
@@ -421,6 +422,40 @@ class test_DatabaseScheduler(SchedulerCase):
 
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
+    def test_heap_always_return_the_first_item(self):
+        interval = 10
+
+        s1 = schedule(timedelta(seconds=interval))
+        m1 = self.create_model_interval(s1, enabled=False)  # return False, 5.0 in is_due
+        m1.last_run_at = self.app.now() - timedelta(seconds=interval+2)
+        m1.save()
+        m1.refresh_from_db()
+
+        s2 = schedule(timedelta(seconds=interval))
+        m2 = self.create_model_interval(s2, enabled=True)
+        m2.last_run_at = self.app.now() - timedelta(seconds=interval+1)
+        m2.save()
+        m2.refresh_from_db()
+
+        e1 = EntryTrackSave(m1, self.app)
+        # because the disabled task e1 runs first, e2 will never be executed
+        e2 = EntryTrackSave(m2, self.app)
+
+        s = self.Scheduler(app=self.app)
+        s.schedule.clear()
+        s.schedule[e1.name] = e1
+        s.schedule[e2.name] = e2
+
+        tried = set()
+        for _ in range(len(s.schedule) * 8):
+            tick_interval = s.tick()
+            if tick_interval and tick_interval > 0.0:
+                tried.add(s._heap[0].entry.name)
+                time.sleep(tick_interval)
+                if s.should_sync():
+                    s.sync()
+        assert len(tried) == 1 and tried == set([e1.name])
 
 
 @pytest.mark.django_db()
