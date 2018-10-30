@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_celery_beat.models
 
 
 class Migration(migrations.Migration):
@@ -50,3 +51,14 @@ class Migration(migrations.Migration):
                 to='django_celery_beat.SolarSchedule', verbose_name='solar'),
         ),
     ]
+    custom_operations = [
+        migrations.AddIndex(
+            model_name='periodictask',
+            index=django_celery_beat.models.CeleryMySQLIndex(
+                fields=['name'],
+                name='django_cele_name_9c39ec_idx'
+            )
+        )
+    ]
+
+    operations = operations + custom_operations

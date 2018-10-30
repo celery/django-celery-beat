@@ -11,6 +11,7 @@ from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import signals
+from django.db.models.indexes import Index
 from django.utils.translation import ugettext_lazy as _
 
 from . import managers, validators
@@ -38,6 +39,23 @@ SOLAR_SCHEDULES = [(x, _(x)) for x in sorted(schedules.solar._all_events)]
 def cronexp(field):
     """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
+
+
+class CeleryMySQLIndex(Index):
+    def create_sql(self, model, schema_editor, using=''):
+        sql_create_index = 'CREATE INDEX %(name)s ON %(table)s (%(columns)s(%(size)d))%(extra)s'
+        sql_parameters = self.get_sql_create_template_values(
+            model,
+            schema_editor,
+            using
+        )
+        sql_parameters['size'] = getattr(
+            settings,
+            'DJANGO_CELERY_BEAT_NAME_MAX_LENGTH',
+            200
+        )
+        sql = sql_create_index % sql_parameters
+        return sql
 
 
 @python_2_unicode_compatible
@@ -323,6 +341,7 @@ class PeriodicTask(models.Model):
 
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
+        indexes = [CeleryMySQLIndex(fields=['name'])]
 
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
