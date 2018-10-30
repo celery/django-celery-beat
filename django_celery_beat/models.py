@@ -6,6 +6,7 @@ from datetime import timedelta
 import timezone_field
 from celery import schedules
 from celery.five import python_2_unicode_compatible
+from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
@@ -248,8 +249,14 @@ class PeriodicTask(models.Model):
     """Model representing a periodic task."""
 
     name = models.CharField(
-        _('name'), max_length=191, unique=True,
-        help_text=_('Useful description'),
+        _('name'),
+        max_length=getattr(
+            settings,
+            'DJANGO_CELERY_BEAT_NAME_MAX_LENGTH',
+            200
+        ),
+        unique=True,
+        help_text=_('Useful description')
     )
     task = models.CharField(_('task name'), max_length=200)
     interval = models.ForeignKey(
