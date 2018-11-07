@@ -119,6 +119,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     celery_app = current_app
     list_display = ('__str__', 'enabled', 'interval', 'start_time', 'one_off')
     actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
+    search_fields = ('name',)
     fieldsets = (
         (None, {
             'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
