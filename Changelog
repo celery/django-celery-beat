@@ -4,6 +4,21 @@
  Change history
 ================
 
+.. _version-1.2.1:
+
+1.2.1
+=====
+:release-date: 2018-10-08 17:30 p.m. UTC+2:00
+:release-by: Omer Katz
+
+- Fix transaction handling while syncing the schedule.
+- Fix schedule type validation logic.
+- Scheduler no longer forgets the tasks after first schedule change.
+- Fix race condition for schedule_changed() resulting in erroneously closed connections.
+- Add support for task priorities when using RabbitMQ or Redis as broker.
+- Disabled tasks are now correctly deleted from the schedule.
+- Added name as search filter.
+
 .. _version-1.2.0:
 
 1.2.0
