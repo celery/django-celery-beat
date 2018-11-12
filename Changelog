@@ -8,7 +8,7 @@
 
 1.3.0
 =====
-:release-date: 2018-10-08 17:30 p.m. UTC+2:00
+:release-date: 2018-11-12 17:30 p.m. UTC+2:00
 :release-by: Omer Katz
 
 - Fix transaction handling while syncing the schedule.
