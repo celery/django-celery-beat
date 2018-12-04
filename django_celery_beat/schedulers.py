@@ -1,6 +1,7 @@
 """Beat Scheduler Implementation."""
 from __future__ import absolute_import, unicode_literals
 
+import datetime
 import logging
 
 from multiprocessing.util import Finalize
@@ -14,6 +15,7 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
+from django.conf import settings
 from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
@@ -89,7 +91,13 @@ class ModelEntry(ScheduleEntry):
 
         if not model.last_run_at:
             model.last_run_at = self._default_now()
-        self.last_run_at = make_aware(model.last_run_at)
+
+        last_run_at = model.last_run_at
+
+        if settings.DJANGO_CELERY_BEAT_TZ_AWARE:
+            last_run_at = make_aware(last_run_at)
+
+        self.last_run_at = last_run_at
 
     def _disable(self, model):
         model.no_changes = True
@@ -125,7 +133,9 @@ class ModelEntry(ScheduleEntry):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
         # scheduler to work. Keep in mind that timezone arithmatic
         # with a localized timezone may be inaccurate.
-        return now.tzinfo.localize(now.replace(tzinfo=None))
+        if settings.DJANGO_CELERY_BEAT_TZ_AWARE:
+            now = now.tzinfo.localize(now.replace(tzinfo=None))
+        return now
 
     def __next__(self):
         self.model.last_run_at = self.app.now()
@@ -140,6 +150,10 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
+
+        if not settings.DJANGO_CELERY_BEAT_TZ_AWARE:
+            obj.last_run_at = datetime.datetime.now()
+
         obj.save()
 
     @classmethod
