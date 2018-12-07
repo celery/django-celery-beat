@@ -218,7 +218,7 @@ class CrontabSchedule(models.Model):
             day_of_month=self.day_of_month,
             month_of_year=self.month_of_year,
         )
-        if settings.DJANGO_CELERY_BEAT_TZ_AWARE:
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
             crontab = TzAwareCrontab(
                 minute=self.minute,
                 hour=self.hour,
