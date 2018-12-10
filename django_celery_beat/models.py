@@ -111,52 +111,55 @@ class SolarSchedule(models.Model):
 
 class TZNaiveSchedule(schedules.schedule):
 
-    def remaining_estimate(self, last_run_at):
-        return remaining(
-            last_run_at,
-            self.run_every,
-            self.now(),
-            self.relative
-        )
+    def maybe_make_aware(self, dt):
+        return dt
 
-    def is_due(self, last_run_at):
-        """Return tuple of ``(is_due, next_time_to_check)``.
+    # def remaining_estimate(self, last_run_at):
+    #     return remaining(
+    #         last_run_at,
+    #         self.run_every,
+    #         self.now(),
+    #         self.relative
+    #     )
 
-        Notes:
-            - next time to check is in seconds.
+    # def is_due(self, last_run_at):
+    #     """Return tuple of ``(is_due, next_time_to_check)``.
 
-            - ``(True, 20)``, means the task should be run now, and the next
-                time to check is in 20 seconds.
+    #     Notes:
+    #         - next time to check is in seconds.
 
-            - ``(False, 12.3)``, means the task is not due, but that the
-            scheduler should check again in 12.3 seconds.
+    #         - ``(True, 20)``, means the task should be run now, and the next
+    #             time to check is in 20 seconds.
 
-        This is like `schedules.schedule` except it does not turn `last_run_at`
-        into a tzaware object.
+    #         - ``(False, 12.3)``, means the task is not due, but that the
+    #         scheduler should check again in 12.3 seconds.
 
-        The next time to check is used to save energy/CPU cycles,
-        it does not need to be accurate but will influence the precision
-        of your schedule.  You must also keep in mind
-        the value of :setting:`beat_max_loop_interval`,
-        that decides the maximum number of seconds the scheduler can
-        sleep between re-checking the periodic task intervals.  So if you
-        have a task that changes schedule at run-time then your next_run_at
-        check will decide how long it will take before a change to the
-        schedule takes effect.  The max loop interval takes precedence
-        over the next check at value returned.
+    #     This is like `schedules.schedule` except it does not turn `last_run_at`
+    #     into a tzaware object.
 
-        .. admonition:: Scheduler max interval variance
+    #     The next time to check is used to save energy/CPU cycles,
+    #     it does not need to be accurate but will influence the precision
+    #     of your schedule.  You must also keep in mind
+    #     the value of :setting:`beat_max_loop_interval`,
+    #     that decides the maximum number of seconds the scheduler can
+    #     sleep between re-checking the periodic task intervals.  So if you
+    #     have a task that changes schedule at run-time then your next_run_at
+    #     check will decide how long it will take before a change to the
+    #     schedule takes effect.  The max loop interval takes precedence
+    #     over the next check at value returned.
 
-            The default max loop interval may vary for different schedulers.
-            For the default scheduler the value is 5 minutes, but for example
-            the :pypi:`django-celery-beat` database scheduler the value
-            is 5 seconds.
-        """
-        rem_delta = self.remaining_estimate(last_run_at)
-        remaining_s = max(rem_delta.total_seconds(), 0)
-        if remaining_s == 0:
-            return schedules.schedstate(is_due=True, next=self.seconds)
-        return schedules.schedstate(is_due=False, next=remaining_s)
+    #     .. admonition:: Scheduler max interval variance
+
+    #         The default max loop interval may vary for different schedulers.
+    #         For the default scheduler the value is 5 minutes, but for example
+    #         the :pypi:`django-celery-beat` database scheduler the value
+    #         is 5 seconds.
+    #     """
+    #     rem_delta = self.remaining_estimate(last_run_at)
+    #     remaining_s = max(rem_delta.total_seconds(), 0)
+    #     if remaining_s == 0:
+    #         return schedules.schedstate(is_due=True, next=self.seconds)
+    #     return schedules.schedstate(is_due=False, next=remaining_s)
 
 
 @python_2_unicode_compatible
