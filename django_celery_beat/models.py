@@ -147,7 +147,7 @@ class IntervalSchedule(models.Model):
         _schedule = TZNaiveSchedule(
             timedelta(**{self.period: self.every}),
         )
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE'):
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
             _schedule = schedules.schedule(
                 timedelta(**{self.period: self.every}),
                 nowfun=lambda: make_aware(now())
