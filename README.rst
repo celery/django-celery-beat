@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 1.3.0
+:Version: 1.4.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -228,6 +228,13 @@ You can install the latest snapshot of django-celery-beat using the following
 pip command::
 
     $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+
+
+TZ Awareness:
+-------------
+
+If you have a project that is time zone naive, you can set `DJANGO_CELERY_BEAT_TZ_AWARE=False` in your settings file.
+
 
 .. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
     :alt: Build status

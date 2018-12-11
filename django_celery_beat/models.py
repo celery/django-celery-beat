@@ -6,6 +6,7 @@ from datetime import timedelta
 import timezone_field
 from celery import schedules
 from celery.five import python_2_unicode_compatible
+from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models
@@ -192,13 +193,23 @@ class CrontabSchedule(models.Model):
 
     @property
     def schedule(self):
-        return TzAwareCrontab(
+        crontab = schedules.crontab(
             minute=self.minute,
-            hour=self.hour, day_of_week=self.day_of_week,
+            hour=self.hour,
+            day_of_week=self.day_of_week,
             day_of_month=self.day_of_month,
             month_of_year=self.month_of_year,
-            tz=self.timezone
         )
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+            crontab = TzAwareCrontab(
+                minute=self.minute,
+                hour=self.hour,
+                day_of_week=self.day_of_week,
+                day_of_month=self.day_of_month,
+                month_of_year=self.month_of_year,
+                tz=self.timezone
+            )
+        return crontab
 
     @classmethod
     def from_schedule(cls, schedule):
