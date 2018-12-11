@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 import datetime
 import logging
+import math
 
 from multiprocessing.util import Finalize
 
@@ -111,10 +112,13 @@ class ModelEntry(ScheduleEntry):
 
         # START DATE: only run after the `start_time`, if one exists.
         if self.model.start_time is not None:
-            if maybe_make_aware(self._default_now()) < self.model.start_time:
+            now = maybe_make_aware(self._default_now())
+            if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
-                _, delay = self.schedule.is_due(self.last_run_at)
-                # use original delay for re-check
+                # send a delay to retry on start_time
+                delay = math.ceil(
+                    (self.model.start_time - now).total_seconds()
+                )
                 return schedules.schedstate(False, delay)
 
         # ONE OFF TASK: Disable one off tasks after they've ran once

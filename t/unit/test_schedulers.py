@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import math
 import time
 import pytest
 
@@ -151,7 +152,7 @@ class test_ModelEntry(SchedulerCase):
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
-        assert delay == interval
+        assert delay == math.ceil((tomorrow - right_now).total_seconds())
 
     def test_one_off_task(self):
         interval = 10
