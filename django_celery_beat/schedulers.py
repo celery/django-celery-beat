@@ -112,7 +112,10 @@ class ModelEntry(ScheduleEntry):
 
         # START DATE: only run after the `start_time`, if one exists.
         if self.model.start_time is not None:
-            now = maybe_make_aware(self._default_now())
+            now = self._default_now()
+            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+                now = maybe_make_aware(self._default_now())
+
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
@@ -133,12 +136,14 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def _default_now(self):
-        now = self.app.now()
         # The PyTZ datetime must be localised for the Django-Celery-Beat
         # scheduler to work. Keep in mind that timezone arithmatic
         # with a localized timezone may be inaccurate.
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+            now = self.app.now()
             now = now.tzinfo.localize(now.replace(tzinfo=None))
+        else:
+            now = datetime.datetime.now()
         return now
 
     def __next__(self):
