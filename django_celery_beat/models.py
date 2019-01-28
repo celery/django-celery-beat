@@ -108,6 +108,15 @@ class SolarSchedule(models.Model):
         )
 
 
+class TZNaiveSchedule(schedules.schedule):
+
+    def maybe_make_aware(self, dt):
+        """
+        Overriding the base method, to be a no-op and returning the dt as is.
+        """
+        return dt
+
+
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
     """Schedule executing every n seconds."""
@@ -134,10 +143,15 @@ class IntervalSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.schedule(
+        _schedule = TZNaiveSchedule(
             timedelta(**{self.period: self.every}),
-            nowfun=lambda: make_aware(now())
         )
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+            _schedule = schedules.schedule(
+                timedelta(**{self.period: self.every}),
+                nowfun=lambda: make_aware(now())
+            )
+        return _schedule
 
     @classmethod
     def from_schedule(cls, schedule, period=SECONDS):
