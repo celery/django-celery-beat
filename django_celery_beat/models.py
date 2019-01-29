@@ -117,6 +117,15 @@ class TZNaiveSchedule(schedules.schedule):
         return dt
 
 
+class TZNaiveCronSchedule(schedules.crontab):
+
+    def maybe_make_aware(self, dt):
+        """
+        Overriding the base method, to be a no-op and returning the dt as is.
+        """
+        return dt
+
+
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
     """Schedule executing every n seconds."""
@@ -225,7 +234,7 @@ class CrontabSchedule(models.Model):
 
     @property
     def schedule(self):
-        crontab = schedules.crontab(
+        crontab = TZNaiveCronSchedule(
             minute=self.minute,
             hour=self.hour,
             day_of_week=self.day_of_week,
