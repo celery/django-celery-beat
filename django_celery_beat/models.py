@@ -119,7 +119,7 @@ class TZNaiveSchedule(schedules.schedule):
 
 
 def maybe_make_naive(dt):
-    if dt.tzinfo:
+    if dt and dt.tzinfo:
         dt = dt.replace(tzinfo=None)
     return dt
 
