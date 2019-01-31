@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from datetime import timedelta
+import dateutil
 
 import timezone_field
 from celery import schedules
@@ -117,13 +118,19 @@ class TZNaiveSchedule(schedules.schedule):
         return dt
 
 
+def maybe_make_naive(dt):
+    if dt and dt.tzinfo:
+        dt = dt.replace(tzinfo=None)
+    return dt
+
+
 class TZNaiveCronSchedule(schedules.crontab):
 
     def maybe_make_aware(self, dt):
         """
         Overriding the base method, to be a no-op and returning the dt as is.
         """
-        return dt
+        return maybe_make_naive(dt)
 
 
 @python_2_unicode_compatible
