@@ -120,7 +120,7 @@ class TZNaiveSchedule(schedules.schedule):
 
 def maybe_make_naive(dt):
     if dt.tzinfo:
-        dt = dateutil.parser.parse(dt.now().isoformat())
+        dt = dt.replace(tzinfo=None)
     return dt
 
 
