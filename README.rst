@@ -1,7 +1,3 @@
-.. image:: https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoidzdEazRRM013c2hLcUZ3WDd3STMvY01QSnA0OUgzZGpUMlU1aXAxZFdCYVE5d1JOY1Jnc1BnYjhSazJKMHBNaTM1SXNpYU5ORU9xU2ZzQjJRRzJaLzdBPSIsIml2UGFyYW1ldGVyU3BlYyI6Imh2bVlocU1FWmpIOFJBRUQiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master
-   :target: https://console.aws.amazon.com/codebuild/home?region=us-east-1#/projects/vendored_django-celery-beat/view
-   :alt: Build Status
-
 =====================================================================
  Database-backed Periodic Tasks
 =====================================================================
