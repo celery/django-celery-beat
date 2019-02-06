@@ -7,6 +7,7 @@ pipeline {
           branch 'master'
           branch 'production'
           branch 'release_candidate'
+          buildingTag()
         }
       }
       parallel {
