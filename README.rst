@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 1.1.1
+:Version: 1.4.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -169,8 +169,10 @@ of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify::
     ...     day_of_week='*',
     ...     day_of_month='*',
     ...     month_of_year='*',
+    ...     timezone=pytz.timezone('Canada/Pacific')
     ... )
 
+The crontab schedule is linked to a specific timezone using the 'timezone' input parameter.
 
 Then to create a periodic task using this schedule, use the same approach as
 the interval-based periodic task earlier in this document, but instead
@@ -226,6 +228,13 @@ You can install the latest snapshot of django-celery-beat using the following
 pip command::
 
     $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+
+
+TZ Awareness:
+-------------
+
+If you have a project that is time zone naive, you can set `DJANGO_CELERY_BEAT_TZ_AWARE=False` in your settings file.
+
 
 .. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
     :alt: Build status
