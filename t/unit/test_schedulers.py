@@ -97,6 +97,8 @@ class SchedulerCase:
             kwargs='{"callback": "foo"}',
             queue='xaz',
             routing_key='cpu',
+            priority=1,
+            headers='{"_schema_name": "foobar"}',
             exchange='foo',
         )
         return Model(**dict(entry, **kwargs))
@@ -118,6 +120,8 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['queue'] == 'xaz'
         assert e.options['exchange'] == 'foo'
         assert e.options['routing_key'] == 'cpu'
+        assert e.options['priority'] == 1
+        assert e.options['headers'] == '{"_schema_name": "foobar"}'
 
         right_now = self.app.now()
         m2 = self.create_model_interval(
