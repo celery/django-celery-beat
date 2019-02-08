@@ -138,7 +138,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
         ('Execution Options', {
             'fields': ('expires', 'queue', 'exchange', 'routing_key',
-                'headers'),
+                'priority', 'headers'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
     )
