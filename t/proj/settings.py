@@ -123,5 +123,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-DJANGO_CELERY_BEAT_NAME_MAX_LENGTH = 191
 DJANGO_CELERY_BEAT_TZ_AWARE = True
