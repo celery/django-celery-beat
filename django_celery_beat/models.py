@@ -43,7 +43,11 @@ def cronexp(field):
 
 
 class CeleryMySQLIndex(Index):
-    def create_sql(self, model, schema_editor, using=''):
+
+    def _is_mysql_backend(self, connection):
+        return connection.vendor.startswith('mysql')
+
+    def _create_sql(self, model, schema_editor, using=''):
         sql_create_index = 'CREATE INDEX %(name)s ON %(table)s (%(columns)s(%(size)d))%(extra)s'
         sql_parameters = self.get_sql_create_template_values(
             model,
@@ -57,6 +61,12 @@ class CeleryMySQLIndex(Index):
         )
         sql = sql_create_index % sql_parameters
         return sql
+
+    def create_sql(self, model, schema_editor, using=''):
+        if self._is_mysql_backend(schema_editor.connection):
+            return self._create_sql(model, schema_editor, using=using)
+        else:
+            return super(CeleryMySQLIndex, self).create_sql(model, schema_editor, using=using)
 
 
 @python_2_unicode_compatible
