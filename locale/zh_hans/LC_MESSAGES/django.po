@@ -1,0 +1,256 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-22 17:32+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: x_zhuo <EMAIL@ADDRESS>\n"
+"Language-Team: x_zhuo <LL@li.org>\n"
+"Language: zh-hans \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\django_celery_beat\admin.py:71
+msgid "Task (registered)"
+msgstr "任务 (已注册的)"
+
+#: .\django_celery_beat\admin.py:75
+msgid "Task (custom)"
+msgstr "任务 (自定义)"
+
+#: .\django_celery_beat\admin.py:92
+msgid "Need name of task"
+msgstr "任务需要一个名称"
+
+#: .\django_celery_beat\admin.py:103
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "无法解析 JSON: %s"
+
+#: .\django_celery_beat\admin.py:164
+#, python-brace-format
+msgid "{0} task{1} {2} successfully {3}"
+msgstr "{0} 任务{1} {2} 成功 {3}"
+
+#: .\django_celery_beat\admin.py:167 .\django_celery_beat\admin.py:210
+msgid "was,were"
+msgstr "将"
+
+#: .\django_celery_beat\admin.py:176
+msgid "Enable selected tasks"
+msgstr "启用选中的任务"
+
+#: .\django_celery_beat\admin.py:182
+msgid "Disable selected tasks"
+msgstr "禁用选中的任务"
+
+#: .\django_celery_beat\admin.py:194
+msgid "Toggle activity of selected tasks"
+msgstr "切换选中的任务"
+
+#: .\django_celery_beat\admin.py:207
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} 任务{1} {2} 启动成功"
+
+#: .\django_celery_beat\admin.py:213
+msgid "Run selected tasks"
+msgstr "运行选中的任务"
+
+#: .\django_celery_beat\apps.py:15
+msgid "Periodic Tasks"
+msgstr "周期性任务"
+
+#: .\django_celery_beat\models.py:28
+msgid "Days"
+msgstr "天"
+
+#: .\django_celery_beat\models.py:29
+msgid "Hours"
+msgstr "小时"
+
+#: .\django_celery_beat\models.py:30
+msgid "Minutes"
+msgstr "分钟"
+
+#: .\django_celery_beat\models.py:31
+msgid "Seconds"
+msgstr "秒"
+
+#: .\django_celery_beat\models.py:32
+msgid "Microseconds"
+msgstr "毫秒"
+
+#: .\django_celery_beat\models.py:48
+msgid "event"
+msgstr "事件"
+
+#: .\django_celery_beat\models.py:51
+msgid "latitude"
+msgstr "纬度"
+
+#: .\django_celery_beat\models.py:54
+msgid "longitude"
+msgstr "经度"
+
+#: .\django_celery_beat\models.py:60
+msgid "solar event"
+msgstr "日程事件"
+
+#: .\django_celery_beat\models.py:61
+msgid "solar events"
+msgstr "日程事件"
+
+#: .\django_celery_beat\models.py:105
+msgid "every"
+msgstr "每"
+
+#: .\django_celery_beat\models.py:107
+msgid "period"
+msgstr "周期"
+
+#: .\django_celery_beat\models.py:113 .\django_celery_beat\models.py:268
+msgid "interval"
+msgstr "间隔"
+
+#: .\django_celery_beat\models.py:114
+msgid "intervals"
+msgstr "间隔"
+
+#: .\django_celery_beat\models.py:137
+#, python-brace-format
+msgid "every {0.period_singular}"
+msgstr "每 {0.period_singular}"
+
+#: .\django_celery_beat\models.py:138
+#, python-brace-format
+msgid "every {0.every} {0.period}"
+msgstr "每 {0.every} {0.period}"
+
+#: .\django_celery_beat\models.py:157
+msgid "minute"
+msgstr "分钟"
+
+#: .\django_celery_beat\models.py:161
+msgid "hour"
+msgstr "小时"
+
+#: .\django_celery_beat\models.py:165
+msgid "day of week"
+msgstr "一星期的第几天"
+
+#: .\django_celery_beat\models.py:169
+msgid "day of month"
+msgstr "一个月的第几天"
+
+#: .\django_celery_beat\models.py:173
+msgid "month of year"
+msgstr "一年的第几个月"
+
+#: .\django_celery_beat\models.py:182 .\django_celery_beat\models.py:272
+msgid "crontab"
+msgstr "计划任务"
+
+#: .\django_celery_beat\models.py:183
+msgid "crontabs"
+msgstr "计划任务"
+
+#: .\django_celery_beat\models.py:262
+msgid "name"
+msgstr "名称"
+
+#: .\django_celery_beat\models.py:263
+msgid "Useful description"
+msgstr "有用的描述"
+
+#: .\django_celery_beat\models.py:265
+msgid "task name"
+msgstr "任务名称"
+
+#: .\django_celery_beat\models.py:272
+msgid "Use one of interval/crontab"
+msgstr "使用间隔/计划任务"
+
+#: .\django_celery_beat\models.py:276
+msgid "solar"
+msgstr "太阳"
+
+#: .\django_celery_beat\models.py:276
+msgid "Use a solar schedule"
+msgstr "使用日程计划"
+
+#: .\django_celery_beat\models.py:279
+msgid "Arguments"
+msgstr "参数"
+
+#: .\django_celery_beat\models.py:280
+msgid "JSON encoded positional arguments"
+msgstr "JSON编码的位置参数"
+
+#: .\django_celery_beat\models.py:283
+msgid "Keyword arguments"
+msgstr "关键字参数"
+
+#: .\django_celery_beat\models.py:284
+msgid "JSON encoded keyword arguments"
+msgstr "JSON编码的关键字参数"
+
+#: .\django_celery_beat\models.py:287
+msgid "queue"
+msgstr "队列"
+
+#: .\django_celery_beat\models.py:288
+msgid "Queue defined in CELERY_TASK_QUEUES"
+msgstr "在 CELERY_TASK_QUEUES 定义的队列"
+
+#: .\django_celery_beat\models.py:291
+msgid "exchange"
+msgstr "交换机"
+
+#: .\django_celery_beat\models.py:294
+msgid "routing key"
+msgstr "路由键"
+
+#: .\django_celery_beat\models.py:297
+msgid "priority"
+msgstr "优先级"
+
+#: .\django_celery_beat\models.py:301
+msgid "expires"
+msgstr "超时"
+
+#: .\django_celery_beat\models.py:304
+msgid "one-off task"
+msgstr "一次任务"
+
+#: .\django_celery_beat\models.py:307
+msgid "start_time"
+msgstr "开始时间"
+
+#: .\django_celery_beat\models.py:310
+msgid "enabled"
+msgstr "已启用"
+
+#: .\django_celery_beat\models.py:320
+msgid "description"
+msgstr "描述"
+
+#: .\django_celery_beat\models.py:328
+msgid "periodic task"
+msgstr "周期性任务"
+
+#: .\django_celery_beat\models.py:329
+msgid "periodic tasks"
+msgstr "周期性任务"
+
+#: .\django_celery_beat\templates\admin\djcelery\change_list.html:6
+msgid "Home"
+msgstr "主页"
