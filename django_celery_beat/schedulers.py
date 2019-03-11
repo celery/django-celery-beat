@@ -147,7 +147,7 @@ class ModelEntry(ScheduleEntry):
         return now
 
     def __next__(self):
-        self.model.last_run_at = self.app.now()
+        self.model.last_run_at = self._default_now()
         self.model.total_run_count += 1
         self.model.no_changes = True
         return self.__class__(self.model)
