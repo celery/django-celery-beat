@@ -86,6 +86,7 @@ class ModelEntry(ScheduleEntry):
             if value is None:
                 continue
             self.options[option] = value
+        self.options['headers'] = loads(model.headers or '{}')
 
         self.total_run_count = model.total_run_count
         self.model = model
@@ -197,12 +198,13 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
-                        priority=None, **kwargs):
+                        priority=None, headers=None, **kwargs):
         return {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
-            'priority': priority
+            'priority': priority,
+            'headers': dumps(headers or {}),
         }
 
     def __repr__(self):
