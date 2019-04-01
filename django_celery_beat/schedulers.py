@@ -94,12 +94,7 @@ class ModelEntry(ScheduleEntry):
         if not model.last_run_at:
             model.last_run_at = self._default_now()
 
-        last_run_at = model.last_run_at
-
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            last_run_at = make_aware(last_run_at)
-
-        self.last_run_at = last_run_at
+        self.last_run_at = model.last_run_at
 
     def _disable(self, model):
         model.no_changes = True
@@ -134,7 +129,7 @@ class ModelEntry(ScheduleEntry):
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
 
-        return self.schedule.is_due(self.last_run_at)
+        return self.schedule.is_due(make_aware(self.last_run_at))
 
     def _default_now(self):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
