@@ -2,13 +2,14 @@ language: python
 sudo: false
 cache: false
 python:
-  - 2.7
-  - 3.4
+  - 3.6
   - 3.5
   - pypy
 env:
   - DJANGO=1.11
   - DJANGO=2.0
+  - DJANGO=2.1
+  - DJANGO=2.2
 os:
   - linux
 matrix:
@@ -16,6 +17,7 @@ matrix:
     - { python: 2.7, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
     - { python: 2.7, env: TOXENV=pydocstyle }
+    - { python: 2.7, env: DJANGO=1.11 }
     - { python: 3.5, env: TOXENV=apicheck }
     - { python: 3.5, env: TOXENV=linkcheck }
     - { python: 3.5, env: TOXENV=cov }
