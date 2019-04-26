@@ -673,4 +673,3 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         assert len(self.request._messages._queued_messages) == 1
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '2 tasks were successfully run'
-

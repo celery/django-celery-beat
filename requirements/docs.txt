@@ -1,2 +1,5 @@
+Django>=1.11
 https://github.com/celery/sphinx_celery/archive/master.zip
-Django>=1.10
+https://github.com/celery/kombu/zipball/master#egg=kombu
+https://github.com/celery/celery/zipball/master#egg=celery
+

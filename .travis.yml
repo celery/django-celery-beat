@@ -5,6 +5,8 @@ python:
   - 2.7
   - 3.5
   - 3.7
+      dist: xenial
+      sudo: true
   - pypy
 env:
   - DJANGO=1.11
