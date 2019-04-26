@@ -16,9 +16,9 @@ matrix:
     - {python: 3.7, env: DJANGO=1.11, dist: xenial, sudo: true}
     - {python: 3.7, env: DJANGO=2.0, dist: xenial, sudo: true}
     - {python: 3.7, env: DJANGO=2.2, dist: xenial, sudo: true}
-    - { python: 2.7, env: TOXENV=flake8 }
+    - { python: 3.5, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
-    - { python: 2.7, env: TOXENV=pydocstyle }
+    - { python: 3.5, env: TOXENV=pydocstyle }
     - { python: 3.5, env: TOXENV=apicheck }
     - { python: 3.5, env: TOXENV=linkcheck }
     - { python: 3.5, env: TOXENV=cov }
