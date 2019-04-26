@@ -3,12 +3,13 @@ sudo: false
 cache: false
 python:
   - 2.7
-  - 3.4
   - 3.5
+  - 3.7
   - pypy
 env:
   - DJANGO=1.11
   - DJANGO=2.0
+  - DJANGO=2.2
 os:
   - linux
 matrix:
@@ -21,7 +22,9 @@ matrix:
     - { python: 3.5, env: TOXENV=cov }
   exclude:
     - { python: 2.7, env: DJANGO=2.0 }
+    - { python: 2.7, env: DJANGO=2.2 }
     - { python: pypy, env: DJANGO=2.0 }
+    - { python: pypy, env: DJANGO=2.2 }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v

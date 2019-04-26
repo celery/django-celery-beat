@@ -652,6 +652,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         setattr(request, '_messages', messages)
         return request
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_task(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
@@ -660,6 +663,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '1 task was successfully run'
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_tasks(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
@@ -667,3 +673,4 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         assert len(self.request._messages._queued_messages) == 1
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '2 tasks were successfully run'
+
