@@ -295,7 +295,7 @@ class DatabaseScheduler(Scheduler):
                 try:
                     self.schedule[name].save()
                     _tried.add(name)
-                except (KeyError, ObjectDoesNotExist) as exc:
+                except (KeyError, ObjectDoesNotExist):
                     _failed.add(name)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)
