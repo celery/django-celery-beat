@@ -3,25 +3,32 @@ sudo: false
 cache: false
 python:
   - 2.7
-  - 3.4
   - 3.5
   - pypy
 env:
   - DJANGO=1.11
   - DJANGO=2.0
+  - DJANGO=2.2
 os:
   - linux
 matrix:
   include:
-    - { python: 2.7, env: TOXENV=flake8 }
+    - {python: 3.7, env: DJANGO=1.11 TOXENV=python37, dist: xenial, sudo: true}
+    - {python: 3.7, env: DJANGO=2.0 TOXENV=python37, dist: xenial, sudo: true}
+    - {python: 3.7, env: DJANGO=2.2 TOXENV=python37, dist: xenial, sudo: true}
+    - { python: 3.5, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
-    - { python: 2.7, env: TOXENV=pydocstyle }
-    - { python: 3.5, env: TOXENV=apicheck }
-    - { python: 3.5, env: TOXENV=linkcheck }
+    - { python: 3.5, env: TOXENV=pydocstyle }
     - { python: 3.5, env: TOXENV=cov }
+    # disabled temporarily due to upstream bug
+    # https://github.com/celery/sphinx_celery/issues/9
+    # - { python: 3.5, env: TOXENV=apicheck }
+    # - { python: 3.5, env: TOXENV=linkcheck }
   exclude:
     - { python: 2.7, env: DJANGO=2.0 }
+    - { python: 2.7, env: DJANGO=2.2 }
     - { python: pypy, env: DJANGO=2.0 }
+    - { python: pypy, env: DJANGO=2.2 }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v
