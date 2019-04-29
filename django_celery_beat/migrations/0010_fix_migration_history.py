@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         # were deleted, so we must also delete them from the history.
         # this is necessary because the squashed file was somehow screwing up
         # this history even for new installs.
-        migrations.RunSQL(
+        migrations.RunSQL([(
             """
             delete from django_migrations where app='django_celery_beat' and (
             name = '0005_add_solarschedule_events_choices'
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             or name = '0007_auto_20180521_0826'
             or name = '0008_auto_20180914_1922'
             )
-            """,
+            """, None)],
             reverse_sql=migrations.RunSQL.noop
         ),
     ]
