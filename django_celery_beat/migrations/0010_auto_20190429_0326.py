@@ -16,7 +16,7 @@ import timezone_field.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('django_celery_beat', '0010_fix_migration_history'),
+        ('django_celery_beat', '0009_periodictask_headers'),
     ]
 
     operations = [
