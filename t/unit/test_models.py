@@ -3,7 +3,6 @@ import os
 
 from django.test import TestCase
 from django.apps import apps
-from django.core.management import call_command
 from django.db.migrations.state import ProjectState
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
@@ -13,16 +12,6 @@ from django_celery_beat import migrations as beat_migrations
 
 
 class MigrationTests(TestCase):
-    def test_backward_migrations(self):
-        """Test that migrating backward and forward again works.
-
-        Ensures that django migrations can go backward and forward
-        without errors.
-        """
-        call_command('migrate', 'django_celery_beat')
-        call_command('migrate', 'django_celery_beat', '0001')
-        call_command('migrate', 'django_celery_beat')
-
     def test_no_duplicate_migration_numbers(self):
         """Verify no duplicate migration numbers.
 
