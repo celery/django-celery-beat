@@ -104,7 +104,7 @@ class SolarSchedule(models.Model):
 
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
-    """Schedule executing on a regular interval
+    """Schedule executing on a regular interval.
 
     Example: execute every 2 days
     every=2, period=DAYS
