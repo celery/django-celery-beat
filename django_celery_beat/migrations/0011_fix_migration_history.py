@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         # the squashed file was convertd to a normal migration and the py files
         # were deleted, so we must also delete them from the history.
         # this is necessary because the squashed file was somehow screwing up
-        # this history for version 1.3.0 installs that were upgraded. 
+        # this history for version 1.3.0 installs that were upgraded.
         migrations.RunSQL([(
             """
             delete from django_migrations where app='django_celery_beat' and (
