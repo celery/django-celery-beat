@@ -8,7 +8,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('django_celery_beat', '0006_periodictask_priority'),
-        ('django_celery_beat', '0008_auto_20180914_1922'),
     ]
 
     operations = [
