@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('django_celery_beat', '0009_periodictask_headers'),
+        ('django_celery_beat', '0010_auto_20190429_0326'),
     ]
 
     operations = [
