@@ -4,7 +4,7 @@
 # this file is auto-generated so don't do flake8 on it
 # flake8: noqa
 
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import django.core.validators
 from django.db import migrations, models
