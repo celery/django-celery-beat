@@ -1,4 +1,4 @@
-Django==1.11
+Django>=1.11.20, <3.0 
 https://github.com/celery/sphinx_celery/archive/master.zip
 https://github.com/celery/kombu/zipball/master#egg=kombu
 https://github.com/celery/celery/zipball/master#egg=celery
