@@ -24,6 +24,7 @@ matrix:
   exclude:
     - { python: 2.7, env: DJANGO=2.0 }
     - { python: pypy, env: DJANGO=2.0 }
+    - { python: 3.6, env: DJANGO=1.11 }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v
