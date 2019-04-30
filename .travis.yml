@@ -2,29 +2,50 @@ language: python
 sudo: false
 cache: false
 python:
+<<<<<<< HEAD
   - 3.6
+=======
+  - 2.7
+>>>>>>> 35353f9a8c18cdfe788f71eb85a562006e97ff5a
   - 3.5
   - pypy
 env:
   - DJANGO=1.11
   - DJANGO=2.0
+<<<<<<< HEAD
   - DJANGO=2.1
+=======
+>>>>>>> 35353f9a8c18cdfe788f71eb85a562006e97ff5a
   - DJANGO=2.2
 os:
   - linux
 matrix:
   include:
-    - { python: 2.7, env: TOXENV=flake8 }
+    - {python: 3.7, env: TOXENV=python37, dist: xenial, sudo: true}
+    - { python: 3.5, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
+<<<<<<< HEAD
     - { python: 2.7, env: TOXENV=pydocstyle }
     - { python: 2.7, env: DJANGO=1.11 }
     - { python: 3.5, env: TOXENV=apicheck }
     - { python: 3.5, env: TOXENV=linkcheck }
+=======
+    - { python: 3.5, env: TOXENV=pydocstyle }
+>>>>>>> 35353f9a8c18cdfe788f71eb85a562006e97ff5a
     - { python: 3.5, env: TOXENV=cov }
+    # disabled temporarily due to upstream bug
+    # https://github.com/celery/sphinx_celery/issues/9
+    # - { python: 3.5, env: TOXENV=apicheck }
+    # - { python: 3.5, env: TOXENV=linkcheck }
   exclude:
     - { python: 2.7, env: DJANGO=2.0 }
+    - { python: 2.7, env: DJANGO=2.2 }
     - { python: pypy, env: DJANGO=2.0 }
+<<<<<<< HEAD
     - { python: 3.6, env: DJANGO=1.11 }
+=======
+    - { python: pypy, env: DJANGO=2.2 }
+>>>>>>> 35353f9a8c18cdfe788f71eb85a562006e97ff5a
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v

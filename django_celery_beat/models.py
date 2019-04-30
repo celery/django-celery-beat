@@ -8,7 +8,7 @@ from celery import schedules
 from celery.five import python_2_unicode_compatible
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import signals
 from django.utils.translation import ugettext_lazy as _
@@ -42,16 +42,28 @@ def cronexp(field):
 
 @python_2_unicode_compatible
 class SolarSchedule(models.Model):
-    """Schedule following astronomical patterns."""
+    """Schedule following astronomical patterns.
+
+    Example: to run every sunrise in New York City:
+    event='sunrise', latitude=40.7128, longitude=74.0060
+    """
 
     event = models.CharField(
-        _('event'), max_length=24, choices=SOLAR_SCHEDULES
+        max_length=24, choices=SOLAR_SCHEDULES,
+        verbose_name=_('Solar Event'),
+        help_text=_('The type of solar event when the job should run'),
     )
     latitude = models.DecimalField(
-        _('latitude'), max_digits=9, decimal_places=6
+        max_digits=9, decimal_places=6,
+        verbose_name=_('Latitude'),
+        help_text=_('Run the task when the event happens at this latitude'),
+        validators=[MinValueValidator(-90), MaxValueValidator(90)],
     )
     longitude = models.DecimalField(
-        _('longitude'), max_digits=9, decimal_places=6
+        max_digits=9, decimal_places=6,
+        verbose_name=_('Longitude'),
+        help_text=_('Run the task when the event happens at this longitude'),
+        validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
 
     class Meta:
@@ -92,7 +104,11 @@ class SolarSchedule(models.Model):
 
 @python_2_unicode_compatible
 class IntervalSchedule(models.Model):
-    """Schedule executing every n seconds."""
+    """Schedule executing on a regular interval.
+
+    Example: execute every 2 days
+    every=2, period=DAYS
+    """
 
     DAYS = DAYS
     HOURS = HOURS
@@ -102,9 +118,17 @@ class IntervalSchedule(models.Model):
 
     PERIOD_CHOICES = PERIOD_CHOICES
 
-    every = models.IntegerField(_('every'), null=False)
+    every = models.IntegerField(
+        null=False,
+        verbose_name=_('Number of Periods'),
+        help_text=_('Number of interval periods to wait before '
+                    'running the task again'),
+        validators=[MinValueValidator(1)],
+    )
     period = models.CharField(
-        _('period'), max_length=24, choices=PERIOD_CHOICES,
+        max_length=24, choices=PERIOD_CHOICES,
+        verbose_name=_('Interval Period'),
+        help_text=_('The type of period between task runs (Example: days)'),
     )
 
     class Meta:
@@ -144,7 +168,12 @@ class IntervalSchedule(models.Model):
 
 @python_2_unicode_compatible
 class CrontabSchedule(models.Model):
-    """Timezone Aware Crontab-like schedule."""
+    """Timezone Aware Crontab-like schedule.
+
+    Example:  Run every hour at 0 minutes for days of month 10-15
+    minute="0", hour="*", day_of_week="*",
+    day_of_month="10-15", month_of_year="*"
+    """
 
     #
     # The worst case scenario for day of month is a list of all 31 day numbers
@@ -154,27 +183,50 @@ class CrontabSchedule(models.Model):
     # We leave the other fields at their historical length.
     #
     minute = models.CharField(
-        _('minute'), max_length=60 * 4, default='*',
+        max_length=60 * 4, default='*',
+        verbose_name=_('Minute(s)'),
+        help_text=_(
+            'Cron Minutes to Run. Use "*" for "all". (Example: "0,30")'),
         validators=[validators.minute_validator],
     )
     hour = models.CharField(
-        _('hour'), max_length=24 * 4, default='*',
+        max_length=24 * 4, default='*',
+        verbose_name=_('Hour(s)'),
+        help_text=_(
+            'Cron Hours to Run. Use "*" for "all". (Example: "8,20")'),
         validators=[validators.hour_validator],
     )
     day_of_week = models.CharField(
-        _('day of week'), max_length=64, default='*',
+        max_length=64, default='*',
+        verbose_name=_('Day(s) Of The Week'),
+        help_text=_(
+            'Cron Days Of The Week to Run. Use "*" for "all". '
+            '(Example: "0,5")'),
         validators=[validators.day_of_week_validator],
     )
     day_of_month = models.CharField(
-        _('day of month'), max_length=31 * 4, default='*',
+        max_length=31 * 4, default='*',
+        verbose_name=_('Day(s) Of The Month'),
+        help_text=_(
+            'Cron Days Of The Month to Run. Use "*" for "all". '
+            '(Example: "1,15")'),
         validators=[validators.day_of_month_validator],
     )
     month_of_year = models.CharField(
-        _('month of year'), max_length=64, default='*',
+        max_length=64, default='*',
+        verbose_name=_('Month(s) Of The Year'),
+        help_text=_(
+            'Cron Months Of The Year to Run. Use "*" for "all". '
+            '(Example: "0,6")'),
         validators=[validators.month_of_year_validator],
     )
 
-    timezone = timezone_field.TimeZoneField(default='UTC')
+    timezone = timezone_field.TimeZoneField(
+        default='UTC',
+        verbose_name=_('Cron Timezone'),
+        help_text=_(
+            'Timezone to Run the Cron Schedule on.  Default is UTC.'),
+    )
 
     class Meta:
         """Table information."""
@@ -230,7 +282,13 @@ class CrontabSchedule(models.Model):
 
 
 class PeriodicTasks(models.Model):
-    """Helper table for tracking updates to periodic tasks."""
+    """Helper table for tracking updates to periodic tasks.
+
+    This stores a single row with ident=1.  last_update is updated
+    via django signals whenever anything is changed in the PeriodicTask model.
+    Basically this acts like a DB data audit trigger.
+    Doing this so we also track deletions, and not just insert/update.
+    """
 
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
     last_update = models.DateTimeField(null=False)
@@ -259,69 +317,140 @@ class PeriodicTask(models.Model):
     """Model representing a periodic task."""
 
     name = models.CharField(
-        _('name'), max_length=200, unique=True,
-        help_text=_('Useful description'),
+        max_length=200, unique=True,
+        verbose_name=_('Name'),
+        help_text=_('Short Description For This Task'),
     )
-    task = models.CharField(_('task name'), max_length=200)
+    task = models.CharField(
+        max_length=200,
+        verbose_name='Task Name',
+        help_text=_('The Name of the Celery Task that Should be Run.  '
+                    '(Example: "proj.tasks.import_contacts")'),
+    )
+
+    # You can only set ONE of the following schedule FK's
+    # TODO: Redo this as a GenericForeignKey
     interval = models.ForeignKey(
         IntervalSchedule, on_delete=models.CASCADE,
-        null=True, blank=True, verbose_name=_('interval'),
+        null=True, blank=True, verbose_name=_('Interval Schedule'),
+        help_text=_('Interval Schedule to run the task on.  '
+                    'Set only one schedule type, leave the others null.'),
     )
     crontab = models.ForeignKey(
         CrontabSchedule, on_delete=models.CASCADE, null=True, blank=True,
-        verbose_name=_('crontab'), help_text=_('Use one of interval/crontab'),
+        verbose_name=_('Crontab Schedule'),
+        help_text=_('Crontab Schedule to run the task on.  '
+                    'Set only one schedule type, leave the others null.'),
     )
     solar = models.ForeignKey(
         SolarSchedule, on_delete=models.CASCADE, null=True, blank=True,
-        verbose_name=_('solar'), help_text=_('Use a solar schedule')
+        verbose_name=_('Solar Schedule'),
+        help_text=_('Solar Schedule to run the task on.  '
+                    'Set only one schedule type, leave the others null.'),
     )
+
+    # TODO: use django's JsonField
     args = models.TextField(
-        _('Arguments'), blank=True, default='[]',
-        help_text=_('JSON encoded positional arguments'),
+        blank=True, default='[]',
+        verbose_name=_('Positional Arguments'),
+        help_text=_(
+            'JSON encoded positional arguments '
+            '(Example: ["arg1", "arg2"])'),
     )
     kwargs = models.TextField(
-        _('Keyword arguments'), blank=True, default='{}',
-        help_text=_('JSON encoded keyword arguments'),
+        blank=True, default='{}',
+        verbose_name=_('Keyword Arguments'),
+        help_text=_(
+            'JSON encoded keyword arguments '
+            '(Example: {"argument": "value"})'),
     )
+
     queue = models.CharField(
-        _('queue'), max_length=200, blank=True, null=True, default=None,
-        help_text=_('Queue defined in CELERY_TASK_QUEUES'),
+        max_length=200, blank=True, null=True, default=None,
+        verbose_name=_('Queue Override'),
+        help_text=_(
+            'Queue defined in CELERY_TASK_QUEUES. '
+            'Leave None for default queuing.'),
     )
+
+    # you can use low-level AMQP routing options here,
+    # but you almost certaily want to leave these as None
+    # http://docs.celeryproject.org/en/latest/userguide/routing.html#exchanges-queues-and-routing-keys
     exchange = models.CharField(
-        _('exchange'), max_length=200, blank=True, null=True, default=None,
+        max_length=200, blank=True, null=True, default=None,
+        verbose_name=_('Exchange'),
+        help_text=_('Override Exchange for low-level AMQP routing'),
     )
     routing_key = models.CharField(
-        _('routing key'), max_length=200, blank=True, null=True, default=None,
+        max_length=200, blank=True, null=True, default=None,
+        verbose_name=_('Routing Key'),
+        help_text=_('Override Routing Key for low-level AMQP routing'),
     )
     headers = models.TextField(
-        _('Message headers'), blank=True, default='{}',
-        help_text=_('JSON encoded message headers'),
+        blank=True, default='{}',
+        verbose_name=_('AMQP Message Headers'),
+        help_text=_('JSON encoded message headers for the AMQP message.'),
     )
+
     priority = models.PositiveIntegerField(
-        _('priority'), default=None, validators=[MaxValueValidator(255)],
-        blank=True, null=True
+        default=None, validators=[MaxValueValidator(255)],
+        blank=True, null=True,
+        verbose_name=_('Priority'),
+        help_text=_(
+            'Priority Number between 0 and 255. '
+            'Supported by: RabbitMQ, Redis (priority reversed, 0 is highest).')
     )
     expires = models.DateTimeField(
-        _('expires'), blank=True, null=True,
+        blank=True, null=True,
+        verbose_name=_('Expires Datetime'),
+        help_text=_(
+            'Datetime after which the schedule will no longer '
+            'trigger the task to run'),
     )
     one_off = models.BooleanField(
-        _('one-off task'), default=False,
+        default=False,
+        verbose_name=_('One-off Task'),
+        help_text=_(
+            'If True, the schedule will only run the task a single time'),
     )
     start_time = models.DateTimeField(
-        _('start_time'), blank=True, null=True,
+        blank=True, null=True,
+        verbose_name=_('Start Datetime'),
+        help_text=_(
+            'Datetime when the schedule should begin '
+            'triggering the task to run'),
     )
     enabled = models.BooleanField(
-        _('enabled'), default=True,
+        default=True,
+        verbose_name=_('Enabled'),
+        help_text=_('Set to False to disable the schedule'),
     )
     last_run_at = models.DateTimeField(
         auto_now=False, auto_now_add=False,
         editable=False, blank=True, null=True,
+        verbose_name=_('Last Run Datetime'),
+        help_text=_(
+            'Datetime that the schedule last triggered the task to run. '
+            'Reset to None if enabled is set to False.'),
     )
     total_run_count = models.PositiveIntegerField(
         default=0, editable=False,
+        verbose_name=_('Total Run Count'),
+        help_text=_(
+            'Running count of how many times the schedule '
+            'has triggered the task'),
     )
-    date_changed = models.DateTimeField(auto_now=True)
-    description = models.TextField(_('description'), blank=True)
+    date_changed = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('Last Modified'),
+        help_text=_('Datetime that this PeriodicTask was last modified'),
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name=_('Description'),
+        help_text=_(
+            'Detailed description about the details of this Periodic Task'),
+    )
 
     objects = managers.PeriodicTaskManager()
     no_changes = False
