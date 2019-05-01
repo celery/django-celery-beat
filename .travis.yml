@@ -19,7 +19,7 @@ python:
   - 3.7
   - pypy
 # pypy3.5 not yet supported due to compilation errors with pyephem
-# https://github.com/brandon-rhodes/pyephem/issues/126
+# https://github.com/celery/django-celery-beat/issues/245
 #  - pypy3.5
 env:
   - DJANGO=1.11
