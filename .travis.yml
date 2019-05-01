@@ -18,7 +18,9 @@ python:
   - 3.6
   - 3.7
   - pypy
-  - pypy3.5
+# pypy3.5 not yet supported due to compilation errors with pyephem
+# https://github.com/brandon-rhodes/pyephem/issues/126
+#  - pypy3.5
 env:
   - DJANGO=1.11
   - DJANGO=2.0
