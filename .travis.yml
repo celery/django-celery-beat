@@ -12,27 +12,26 @@ before_install:
   - sudo apt install -y erlang-nox
   - sudo apt install -y rabbitmq-server
   - sudo /etc/init.d/rabbitmq-server start
-addons:
-  apt_packages:
-    - binutils
-    - sqlite3
 python:
   - 2.7
   - 3.5
+  - 3.6
+  - 3.7
   - pypy
+  - pypy3.5
 env:
   - DJANGO=1.11
   - DJANGO=2.0
+  - DJANGO=2.1
   - DJANGO=2.2
 os:
   - linux
 matrix:
   include:
-    - {python: 3.7, env: TOXENV=python37, dist: xenial, sudo: true}
     - { python: 2.7, env: TOXENV=upgradebeat111 }
     - { python: 2.7, env: TOXENV=upgradebeat120 }
-    - { python: 3.5, env: TOXENV=upgradebeat130, dist: xenial, sudo: true }
-    - { python: 3.5, env: TOXENV=upgradebeat140, dist: xenial, sudo: true }
+    - { python: 3.5, env: TOXENV=upgradebeat130 }
+    - { python: 3.5, env: TOXENV=upgradebeat140 }
     - { python: 3.5, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
     - { python: 3.5, env: TOXENV=pydocstyle }
@@ -43,8 +42,10 @@ matrix:
     # - { python: 3.5, env: TOXENV=linkcheck }
   exclude:
     - { python: 2.7, env: DJANGO=2.0 }
+    - { python: 2.7, env: DJANGO=2.1 }
     - { python: 2.7, env: DJANGO=2.2 }
     - { python: pypy, env: DJANGO=2.0 }
+    - { python: pypy, env: DJANGO=2.1 }
     - { python: pypy, env: DJANGO=2.2 }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
