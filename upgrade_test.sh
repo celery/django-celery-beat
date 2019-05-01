@@ -32,17 +32,20 @@ if [[ "$1" =~ [^a-zA-Z0-9_\.-] ]]; then
   exit 3
 fi
 
-echo "Will copy git repo to $1"
+# add a timestamp to the temp dir
+# to avoid issues even between PR/push runs of the same test
+TMPDIR=$1_$(date +%s%N)
+
+echo "Will copy git repo to $TMPDIR"
 echo "Will check out tag $2"
 
 # ensure we have tags to checkout
 git fetch --tags
 # create copy of our git clone in a temp dir
-rm -rf $1
-mkdir -p $1
-cp -r `ls -A | grep -v "$1"` $1/
-sudo cp -rp .git $1/
-cd $1
+mkdir -p $TMPDIR
+cp -r `ls -A | grep -v "$TMPDIR"` $TMPDIR/
+sudo cp -rp .git $TMPDIR/
+cd $TMPDIR
 # save current hash so we can come back to it
 git reset --hard HEAD
 git rev-parse HEAD > commit.hash
@@ -59,3 +62,4 @@ cat commit.hash | git checkout -
 python manage.py migrate django_celery_beat
 python manage.py migrate django_celery_beat 0001
 python manage.py migrate django_celery_beat
+rm -rf $TMPDIR
