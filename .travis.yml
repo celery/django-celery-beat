@@ -1,7 +1,11 @@
 language: python
 sudo: false
 cache: false
+before_install:
+  - sudo upgrade sqlite3
 addons:
+  apt:
+    update: true
   apt_packages:
     - binutils
     - sqlite3
@@ -20,8 +24,8 @@ matrix:
     - {python: 3.7, env: TOXENV=python37, dist: xenial, sudo: true}
     - { python: 2.7, env: TOXENV=upgradebeat111 }
     - { python: 2.7, env: TOXENV=upgradebeat120 }
-    - { python: 3.5, env: TOXENV=upgradebeat130 }
-    - { python: 3.5, env: TOXENV=upgradebeat140 }
+    - { python: 3.5, env: TOXENV=upgradebeat130, dist: xenial, sudo: true }
+    - { python: 3.5, env: TOXENV=upgradebeat140, dist: xenial, sudo: true }
     - { python: 3.5, env: TOXENV=flake8 }
     - { python: 2.7, env: TOXENV=flakeplus }
     - { python: 3.5, env: TOXENV=pydocstyle }
