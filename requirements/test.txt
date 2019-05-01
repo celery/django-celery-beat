@@ -3,3 +3,4 @@ pytest-django
 pytz>dev
 pytest<4.0.0
 pytest-timeout
+ephem
