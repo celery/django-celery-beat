@@ -3,14 +3,16 @@ sudo: false
 dist: xenial
 cache: false
 before_install:
+  - sudo apt update
+  - sudo apt install -y wget
+  - wget http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
+  - sudo apt-key add erlang_solutions.asc
   - sudo apt-get install -y --only-upgrade sqlite
   - sudo apt-get install -y --only-upgrade erlang
   - sudo apt-get install -y --only-upgrade erlang-nox
   - sudo apt-get install -y --only-upgrade rabbitmq-server
   - sudo /etc/init.d/rabbitmq-server start
 addons:
-  apt:
-    update: true
   apt_packages:
     - binutils
     - sqlite3
