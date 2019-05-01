@@ -7,6 +7,7 @@ before_install:
   - sudo apt-get install -y --only-upgrade erlang
   - sudo apt-get install -y --only-upgrade erlang-nox
   - sudo apt-get install -y --only-upgrade rabbitmq-server
+  - sudo /etc/init.d/rabbitmq-server start
 addons:
   apt:
     update: true
