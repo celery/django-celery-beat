@@ -2,7 +2,7 @@ language: python
 sudo: false
 cache: false
 before_install:
-  - sudo apt upgrade sqlite3
+  - sudo apt-get install -y --only-upgrade sqlite
 addons:
   apt:
     update: true
