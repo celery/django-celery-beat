@@ -35,10 +35,7 @@ fi
 echo "Will copy git repo to $1"
 echo "Will check out tag $2"
 
-# must use older versions for starting with older celery-beat
-pip install "django>=1.11.17,<2.0"
-pip install "celery<5.0.0"
-pip list
+# ensure we have tags to checkout
 git fetch --tags
 # create copy of our git clone in a temp dir
 rm -rf $1
@@ -52,6 +49,8 @@ git rev-parse HEAD > commit.hash
 cat commit.hash
 # first install our starting version and clean up
 git checkout $2
+rm -f django_celery_beat/migrations/*
+git checkout django_celery_beat/migrations
 # run the migration for the older version
 python manage.py migrate django_celery_beat
 # now return to previous hash and clean up again
