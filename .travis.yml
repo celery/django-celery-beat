@@ -7,10 +7,10 @@ before_install:
   - sudo apt install -y wget
   - wget http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
   - sudo apt-key add erlang_solutions.asc
-  - sudo apt-get install -y --only-upgrade sqlite
-  - sudo apt-get install -y --only-upgrade erlang
-  - sudo apt-get install -y --only-upgrade erlang-nox
-  - sudo apt-get install -y --only-upgrade rabbitmq-server
+  - sudo apt install -y sqlite
+  - sudo apt install -y erlang
+  - sudo apt install -y erlang-nox
+  - sudo apt install -y rabbitmq-server
   - sudo /etc/init.d/rabbitmq-server start
 addons:
   apt_packages:
