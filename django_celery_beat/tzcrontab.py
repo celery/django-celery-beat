@@ -70,10 +70,10 @@ class TzAwareCrontab(schedules.crontab):
 
     def __eq__(self, other):
         if isinstance(other, schedules.crontab):
-            return (other.month_of_year == self.month_of_year and
-                    other.day_of_month == self.day_of_month and
-                    other.day_of_week == self.day_of_week and
-                    other.hour == self.hour and
-                    other.minute == self.minute and
-                    other.tz == self.tz)
+            return (other.month_of_year == self.month_of_year
+                    and other.day_of_month == self.day_of_month
+                    and other.day_of_week == self.day_of_week
+                    and other.hour == self.hour
+                    and other.minute == self.minute
+                    and other.tz == self.tz)
         return NotImplemented

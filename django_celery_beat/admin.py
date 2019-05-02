@@ -116,8 +116,11 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     form = PeriodicTaskForm
     model = PeriodicTask
     celery_app = current_app
-    list_display = ('__str__', 'enabled')
-    actions = ('enable_tasks', 'disable_tasks', 'run_tasks')
+    date_hierarchy = 'start_time'
+    list_display = ('__str__', 'enabled', 'interval', 'start_time', 'one_off')
+    list_filter = ['enabled', 'one_off', 'task', 'start_time']
+    actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
+    search_fields = ('name',)
     fieldsets = (
         (None, {
             'fields': ('name', 'regtask', 'task', 'enabled'),
@@ -132,7 +135,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
         ('Execution Options', {
-            'fields': ('expires', 'queue', 'exchange', 'routing_key'),
+            'fields': ('expires', 'queue', 'exchange', 'routing_key',
+                       'priority', 'headers'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
     )
@@ -178,7 +182,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         self.celery_app.loader.import_default_modules()
         tasks = [(self.celery_app.tasks.get(task.task),
                   loads(task.args),
-                  loads(task.kwargs))
+                  loads(task.kwargs),
+                  task.queue)
                  for task in queryset]
 
         if any(t[0] is None for t in tasks):
@@ -195,9 +200,11 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                 level=messages.ERROR,
             )
             return
-
-        task_ids = [task.delay(*args, **kwargs)
-                    for task, args, kwargs in tasks]
+          
+        task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue)
+                    if queue and len(queue)
+                    else task.apply_async(args=args, kwargs=kwargs)
+                    for task, args, kwargs, queue in tasks]
         tasks_run = len(task_ids)
         self.message_user(
             request,

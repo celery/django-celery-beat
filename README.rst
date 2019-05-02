@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 1.1.1
+:Version: 1.4.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -192,6 +192,46 @@ You can use the ``enabled`` flag to temporarily disable a periodic task::
     >>> periodic_task.enabled = False
     >>> periodic_task.save()
 
+
+Example running periodic tasks
+-----------------------------------
+
+The periodic tasks still need 'workers' to execute them.
+So make sure the default **Celery** package is installed.
+(If not installed, please follow the installation instructions
+here: https://github.com/celery/celery)
+
+Both the worker and beat services need to be running at the same time.
+
+1. Start a Celery worker service (specify your Django project name)::
+
+
+    $ celery -A [project-name] worker --loglevel=info
+
+
+2. As a separate process, start the beat service (specify the Django scheduler)::
+
+
+        $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+
+  **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help ``)::
+
+            $ celery -A [project-name] beat -l info -S django
+
+
+Also, as an alternative, you can run the two steps above (worker and beat services)
+with only one command (recommended for **development environment only**)::
+
+
+    $ celery -A [project-name] worker --beat --scheduler django --loglevel=info
+
+
+3. Now you can add and manage your periodic tasks from the Django Admin interface.
+
+
+
+
 Installation
 ============
 
@@ -228,6 +268,13 @@ You can install the latest snapshot of django-celery-beat using the following
 pip command::
 
     $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+
+
+TZ Awareness:
+-------------
+
+If you have a project that is time zone naive, you can set `DJANGO_CELERY_BEAT_TZ_AWARE=False` in your settings file.
+
 
 .. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
     :alt: Build status

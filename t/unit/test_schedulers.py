@@ -1,5 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
+import math
+import time
 import pytest
 
 from datetime import datetime, timedelta
@@ -7,7 +9,8 @@ from itertools import count
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.utils import timezone
 
 from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab, solar
@@ -95,6 +98,8 @@ class SchedulerCase:
             kwargs='{"callback": "foo"}',
             queue='xaz',
             routing_key='cpu',
+            priority=1,
+            headers='{"_schema_name": "foobar"}',
             exchange='foo',
         )
         return Model(**dict(entry, **kwargs))
@@ -116,6 +121,8 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['queue'] == 'xaz'
         assert e.options['exchange'] == 'foo'
         assert e.options['routing_key'] == 'cpu'
+        assert e.options['priority'] == 1
+        assert e.options['headers'] == {'_schema_name': 'foobar'}
 
         right_now = self.app.now()
         m2 = self.create_model_interval(
@@ -130,6 +137,27 @@ class test_ModelEntry(SchedulerCase):
         e3 = e2.next()
         assert e3.last_run_at > e2.last_run_at
         assert e3.total_run_count == 1
+
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False
+    )
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_is_due__no_use_tz(self):
+        assert self.app.timezone.zone == 'Europe/Berlin'
+
+        # simulate last_run_at from DB - not TZ aware but localtime
+        right_now = timezone.now()
+
+        m = self.create_model_crontab(
+            crontab(minute='*/10'),
+            last_run_at=right_now,
+        )
+        e = self.Entry(m, app=self.app)
+
+        assert e.is_due().is_due is False
+        assert e.is_due().next <= 600  # 10 minutes; see above
 
     def test_task_with_start_time(self):
         interval = 10
@@ -150,7 +178,7 @@ class test_ModelEntry(SchedulerCase):
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
-        assert delay == interval
+        assert delay == math.ceil((tomorrow - right_now).total_seconds())
 
     def test_one_off_task(self):
         interval = 10
@@ -400,15 +428,71 @@ class test_DatabaseScheduler(SchedulerCase):
         with pytest.raises(RuntimeError):
             self.s.sync()
 
+    def test_update_scheduler_heap_invalidation(self, monkeypatch):
+        # mock "schedule_changed" to always trigger update for
+        # all calls to schedule, as a change may occur at any moment
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        self.s.tick()
+
+    def test_heap_size_is_constant(self, monkeypatch):
+        # heap size is constant unless the schedule changes
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        expected_heap_size = len(self.s.schedule.values())
+        self.s.tick()
+        assert len(self.s._heap) == expected_heap_size
+        self.s.tick()
+        assert len(self.s._heap) == expected_heap_size
+
+    def test_scheduler_schedules_equality_on_change(self, monkeypatch):
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: False)
+        assert self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
+        monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
+        assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
+
+    def test_heap_always_return_the_first_item(self):
+        interval = 10
+
+        s1 = schedule(timedelta(seconds=interval))
+        m1 = self.create_model_interval(s1, enabled=False)
+        m1.last_run_at = self.app.now() - timedelta(seconds=interval + 2)
+        m1.save()
+        m1.refresh_from_db()
+
+        s2 = schedule(timedelta(seconds=interval))
+        m2 = self.create_model_interval(s2, enabled=True)
+        m2.last_run_at = self.app.now() - timedelta(seconds=interval + 1)
+        m2.save()
+        m2.refresh_from_db()
+
+        e1 = EntryTrackSave(m1, self.app)
+        # because the disabled task e1 runs first, e2 will never be executed
+        e2 = EntryTrackSave(m2, self.app)
+
+        s = self.Scheduler(app=self.app)
+        s.schedule.clear()
+        s.schedule[e1.name] = e1
+        s.schedule[e2.name] = e2
+
+        tried = set()
+        for _ in range(len(s.schedule) * 8):
+            tick_interval = s.tick()
+            if tick_interval and tick_interval > 0.0:
+                tried.add(s._heap[0].entry.name)
+                time.sleep(tick_interval)
+                if s.should_sync():
+                    s.sync()
+        assert len(tried) == 1 and tried == set([e1.name])
+
 
 @pytest.mark.django_db()
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
-        assert (text_t(IntervalSchedule(every=1, period='seconds')) ==
-                'every second')
-        assert (text_t(IntervalSchedule(every=10, period='seconds')) ==
-                'every 10 seconds')
+        assert (text_t(IntervalSchedule(every=1, period='seconds'))
+                == 'every second')
+        assert (text_t(IntervalSchedule(every=10, period='seconds'))
+                == 'every 10 seconds')
 
     def test_CrontabSchedule_unicode(self):
         assert text_t(CrontabSchedule(
@@ -568,6 +652,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         setattr(request, '_messages', messages)
         return request
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_task(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
@@ -576,6 +663,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '1 task was successfully run'
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_tasks(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))

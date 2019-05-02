@@ -21,6 +21,10 @@ def make_aware(value):
         # then convert to the Django configured timezone.
         default_tz = timezone.get_default_timezone()
         value = timezone.localtime(value, default_tz)
+    else:
+        # naive datetimes are assumed to be in local timezone.
+        if timezone.is_naive(value):
+            value = timezone.make_aware(value, timezone.get_default_timezone())
     return value
 
 
@@ -39,6 +43,6 @@ def is_database_scheduler(scheduler):
     from kombu.utils import symbol_by_name
     from .schedulers import DatabaseScheduler
     return (
-        scheduler == 'django' or
-        issubclass(symbol_by_name(scheduler), DatabaseScheduler)
+        scheduler == 'django'
+        or issubclass(symbol_by_name(scheduler), DatabaseScheduler)
     )

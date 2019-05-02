@@ -30,3 +30,5 @@ cover/
 htmlcov/
 coverage.xml
 .eggs/
+.python-version
+venv
