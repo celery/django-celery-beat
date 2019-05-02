@@ -216,7 +216,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                 level=messages.ERROR,
             )
             return
-          
+
         task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue)
                     if queue and len(queue)
                     else task.apply_async(args=args, kwargs=kwargs)
