@@ -9,7 +9,8 @@ from itertools import count
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
+from django.utils import timezone
 
 from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab, solar
@@ -97,6 +98,8 @@ class SchedulerCase:
             kwargs='{"callback": "foo"}',
             queue='xaz',
             routing_key='cpu',
+            priority=1,
+            headers='{"_schema_name": "foobar"}',
             exchange='foo',
         )
         return Model(**dict(entry, **kwargs))
@@ -118,6 +121,8 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['queue'] == 'xaz'
         assert e.options['exchange'] == 'foo'
         assert e.options['routing_key'] == 'cpu'
+        assert e.options['priority'] == 1
+        assert e.options['headers'] == {'_schema_name': 'foobar'}
 
         right_now = self.app.now()
         m2 = self.create_model_interval(
@@ -132,6 +137,27 @@ class test_ModelEntry(SchedulerCase):
         e3 = e2.next()
         assert e3.last_run_at > e2.last_run_at
         assert e3.total_run_count == 1
+
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False
+    )
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_is_due__no_use_tz(self):
+        assert self.app.timezone.zone == 'Europe/Berlin'
+
+        # simulate last_run_at from DB - not TZ aware but localtime
+        right_now = timezone.now()
+
+        m = self.create_model_crontab(
+            crontab(minute='*/10'),
+            last_run_at=right_now,
+        )
+        e = self.Entry(m, app=self.app)
+
+        assert e.is_due().is_due is False
+        assert e.is_due().next <= 600  # 10 minutes; see above
 
     def test_task_with_start_time(self):
         interval = 10
@@ -626,6 +652,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         setattr(request, '_messages', messages)
         return request
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_task(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
@@ -634,6 +663,9 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '1 task was successfully run'
 
+    # don't hang if broker is down
+    # https://github.com/celery/celery/issues/4627
+    @pytest.mark.timeout(5)
     def test_run_tasks(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))

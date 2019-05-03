@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import When, Value, Case
 from django.forms.widgets import Select
 from django.template.defaultfilters import pluralize
@@ -137,7 +137,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
         ('Execution Options', {
-            'fields': ('expires', 'queue', 'exchange', 'routing_key'),
+            'fields': ('expires', 'queue', 'exchange', 'routing_key',
+                       'priority', 'headers'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
     )
@@ -197,10 +198,29 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         self.celery_app.loader.import_default_modules()
         tasks = [(self.celery_app.tasks.get(task.task),
                   loads(task.args),
-                  loads(task.kwargs))
+                  loads(task.kwargs),
+                  task.queue)
                  for task in queryset]
-        task_ids = [task.delay(*args, **kwargs)
-                    for task, args, kwargs in tasks]
+
+        if any(t[0] is None for t in tasks):
+            for i, t in enumerate(tasks):
+                if t[0] is None:
+                    break
+
+            # variable "i" will be set because list "tasks" is not empty
+            not_found_task_name = queryset[i].task
+
+            self.message_user(
+                request,
+                _('task "{0}" not found'.format(not_found_task_name)),
+                level=messages.ERROR,
+            )
+            return
+
+        task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue)
+                    if queue and len(queue)
+                    else task.apply_async(args=args, kwargs=kwargs)
+                    for task, args, kwargs, queue in tasks]
         tasks_run = len(task_ids)
         self.message_user(
             request,

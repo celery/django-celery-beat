@@ -86,6 +86,7 @@ class ModelEntry(ScheduleEntry):
             if value is None:
                 continue
             self.options[option] = value
+        self.options['headers'] = loads(model.headers or '{}')
 
         self.total_run_count = model.total_run_count
         self.model = model
@@ -93,12 +94,7 @@ class ModelEntry(ScheduleEntry):
         if not model.last_run_at:
             model.last_run_at = self._default_now()
 
-        last_run_at = model.last_run_at
-
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            last_run_at = make_aware(last_run_at)
-
-        self.last_run_at = last_run_at
+        self.last_run_at = model.last_run_at
 
     def _disable(self, model):
         model.no_changes = True
@@ -133,7 +129,7 @@ class ModelEntry(ScheduleEntry):
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
 
-        return self.schedule.is_due(self.last_run_at)
+        return self.schedule.is_due(make_aware(self.last_run_at))
 
     def _default_now(self):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
@@ -197,12 +193,13 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
-                        priority=None, **kwargs):
+                        priority=None, headers=None, **kwargs):
         return {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
-            'priority': priority
+            'priority': priority,
+            'headers': dumps(headers or {}),
         }
 
     def __repr__(self):
@@ -298,7 +295,7 @@ class DatabaseScheduler(Scheduler):
                 try:
                     self.schedule[name].save()
                     _tried.add(name)
-                except (KeyError, ObjectDoesNotExist) as exc:
+                except (KeyError, ObjectDoesNotExist):
                     _failed.add(name)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)
