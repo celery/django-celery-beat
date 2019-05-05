@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from . import managers, validators
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
+from .clockedschedule import clocked
 
 
 DAYS = 'days'
@@ -164,6 +165,42 @@ class IntervalSchedule(models.Model):
     @property
     def period_singular(self):
         return self.period[:-1]
+
+
+@python_2_unicode_compatible
+class ClockedSchedule(models.Model):
+    """clocked schedule."""
+
+    clocked_time = models.DateTimeField()
+    enabled = models.BooleanField(default=True, editable=False)
+
+    class Meta:
+        """Table information."""
+
+        verbose_name = _('clocked')
+        verbose_name_plural = _('clocked')
+        ordering = ['clocked_time']
+
+    def __str__(self):
+        return '{} {}'.format(self.clocked_time, self.enabled)
+
+    @property
+    def schedule(self):
+        c = clocked(clocked_time=self.clocked_time,
+                    enabled=self.enabled, model=self)
+        return c
+
+    @classmethod
+    def from_schedule(cls, schedule):
+        spec = {'clocked_time': schedule.clocked_time,
+                'enabled': schedule.enabled}
+        try:
+            return cls.objects.get(**spec)
+        except cls.DoesNotExist:
+            return cls(**spec)
+        except MultipleObjectsReturned:
+            cls.objects.filter(**spec).delete()
+            return cls(**spec)
 
 
 @python_2_unicode_compatible
@@ -348,7 +385,10 @@ class PeriodicTask(models.Model):
         help_text=_('Solar Schedule to run the task on.  '
                     'Set only one schedule type, leave the others null.'),
     )
-
+    clocked = models.ForeignKey(
+        ClockedSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        verbose_name=_('clocked'), help_text=_('Use a clocked schedule')
+    )
     # TODO: use django's JsonField
     args = models.TextField(
         blank=True, default='[]',
@@ -464,23 +504,29 @@ class PeriodicTask(models.Model):
     def validate_unique(self, *args, **kwargs):
         super(PeriodicTask, self).validate_unique(*args, **kwargs)
 
-        schedule_types = ['interval', 'crontab', 'solar']
+        schedule_types = ['interval', 'crontab', 'solar', 'clocked']
         selected_schedule_types = [s for s in schedule_types
                                    if getattr(self, s)]
 
         if len(selected_schedule_types) == 0:
             raise ValidationError({
                 'interval': [
-                    'One of interval, crontab, or solar must be set.'
+                    'One of clocked, interval, crontab, or solar must be set.'
                 ]
             })
 
-        err_msg = 'Only one of interval, crontab, or solar must be set'
+        err_msg = 'Only one of clocked, interval, crontab, '\
+            'or solar must be set'
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:
                 error_info[selected_schedule_type] = [err_msg]
             raise ValidationError(error_info)
+
+        # clocked must be one off task
+        if self.clocked and not self.one_off:
+            err_msg = 'clocked must be one off, one_off must set True'
+            raise ValidationError(err_msg)
 
     def save(self, *args, **kwargs):
         self.exchange = self.exchange or None
@@ -499,6 +545,8 @@ class PeriodicTask(models.Model):
             fmt = '{0.name}: {0.crontab}'
         if self.solar:
             fmt = '{0.name}: {0.solar}'
+        if self.clocked:
+            fmt = '{0.name}: {0.clocked}'
         return fmt.format(self)
 
     @property
@@ -509,6 +557,8 @@ class PeriodicTask(models.Model):
             return self.crontab.schedule
         if self.solar:
             return self.solar.schedule
+        if self.clocked:
+            return self.clocked.schedule
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
@@ -525,3 +575,7 @@ signals.post_delete.connect(
     PeriodicTasks.update_changed, sender=SolarSchedule)
 signals.post_save.connect(
     PeriodicTasks.update_changed, sender=SolarSchedule)
+signals.post_delete.connect(
+    PeriodicTasks.update_changed, sender=ClockedSchedule)
+signals.post_save.connect(
+    PeriodicTasks.update_changed, sender=ClockedSchedule)

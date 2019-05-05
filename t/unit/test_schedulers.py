@@ -16,10 +16,11 @@ from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab, solar
 
 from django_celery_beat import schedulers
+from django_celery_beat.clockedschedule import clocked
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import (
     PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
-    SolarSchedule
+    SolarSchedule, ClockedSchedule
 )
 from django_celery_beat.utils import make_aware
 
@@ -78,6 +79,11 @@ class SchedulerCase:
         solar = SolarSchedule.from_schedule(schedule)
         solar.save()
         return self.create_model(solar=solar, **kwargs)
+
+    def create_model_clocked(self, schedule, **kwargs):
+        clocked = ClockedSchedule.from_schedule(schedule)
+        clocked.save()
+        return self.create_model(clocked=clocked, one_off=True, **kwargs)
 
     def create_conf_entry(self):
         name = 'thefoo{0}'.format(next(_ids))
@@ -274,6 +280,17 @@ class test_DatabaseScheduler(SchedulerCase):
         self.m4.save()
         self.m4.refresh_from_db()
 
+        dt_aware = make_aware(datetime(day=26,
+                                       month=7,
+                                       year=3000,
+                                       hour=1,
+                                       minute=0))  # future time
+        self.m6 = self.create_model_clocked(
+            clocked(dt_aware)
+        )
+        self.m6.save()
+        self.m6.refresh_from_db()
+
         # disabled, should not be in schedule
         m5 = self.create_model_interval(
             schedule(timedelta(seconds=1)))
@@ -290,7 +307,7 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_all_as_schedule(self):
         sched = self.s.schedule
         assert sched
-        assert len(sched) == 5
+        assert len(sched) == 6
         assert 'celery.backend_cleanup' in sched
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
@@ -529,6 +546,15 @@ class test_models(SchedulerCase):
             'solar_noon', '48.06', '12.86'
         )
 
+    def test_PeriodicTask_unicode_clocked(self):
+        time = make_aware(datetime.now())
+        p = self.create_model_clocked(
+            clocked(time), name='clocked_event'
+        )
+        assert text_t(p) == '{0}: {1} {2}'.format(
+            'clocked_event', str(time), True
+        )
+
     def test_PeriodicTask_schedule_property(self):
         p1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         s1 = p1.schedule
@@ -606,6 +632,40 @@ class test_models(SchedulerCase):
         assert isdue2 is True  # True means task is due and should run.
         assert (nextcheck2 > 0) and (isdue2 is True) or \
             (nextcheck2 == s2.max_interval) and (isdue2 is False)
+
+    def test_ClockedSchedule_schedule(self):
+        due_datetime = make_aware(datetime(day=26,
+                                           month=7,
+                                           year=3000,
+                                           hour=1,
+                                           minute=0))  # future time
+        s = ClockedSchedule(clocked_time=due_datetime)
+        dt = datetime(day=25, month=7, year=2050, hour=1, minute=0)
+        dt_lastrun = make_aware(dt)
+
+        assert s.schedule is not None
+        isdue, nextcheck = s.schedule.is_due(dt_lastrun)
+        assert isdue is False  # False means task isn't due, but keep checking.
+        assert (nextcheck > 0) and (isdue is False) or \
+            (nextcheck == s.max_interval) and (isdue is True)
+
+        due_datetime = make_aware(datetime.now())
+        s = ClockedSchedule(clocked_time=due_datetime)
+        dt2_lastrun = make_aware(datetime.now())
+
+        assert s.schedule is not None
+        isdue2, nextcheck2 = s.schedule.is_due(dt2_lastrun)
+        assert isdue2 is True  # True means task is due and should run.
+        assert (nextcheck2 is None) and (isdue2 is True)
+        print(s.schedule.enabled)
+
+        assert s.schedule is not None
+        isdue3, nextcheck3 = s.schedule.is_due(dt2_lastrun)
+        print(s.schedule.clocked_time, s.schedule.enabled)
+        print(isdue3, nextcheck3)
+        # False means task isn't due, but keep checking.
+        assert isdue3 is False
+        assert (nextcheck3 is None) and (isdue3 is False)
 
 
 @pytest.mark.django_db()

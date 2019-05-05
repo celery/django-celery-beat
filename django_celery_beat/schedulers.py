@@ -24,9 +24,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import (
     PeriodicTask, PeriodicTasks,
     CrontabSchedule, IntervalSchedule,
-    SolarSchedule,
+    SolarSchedule, ClockedSchedule
 )
 from .utils import make_aware
+from .clockedschedule import clocked
 
 try:
     from celery.utils.time import is_naive
@@ -53,6 +54,7 @@ class ModelEntry(ScheduleEntry):
         (schedules.crontab, CrontabSchedule, 'crontab'),
         (schedules.schedule, IntervalSchedule, 'interval'),
         (schedules.solar, SolarSchedule, 'solar'),
+        (clocked, ClockedSchedule, 'clocked')
     )
     save_fields = ['last_run_at', 'total_run_count', 'no_changes']
 
