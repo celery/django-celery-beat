@@ -7,7 +7,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('django_celery_beat', '0005_add_solarschedule_events_choices_squashed_0009_merge_20181012_1416'), # noqa
+        # depends on higher numbers due to a squashed migration
+        # that was later removed due to migration issues it caused
+        ('django_celery_beat', '0005_add_solarschedule_events_choices'),
+        ('django_celery_beat', '0006_auto_20180210_1226'),
+        ('django_celery_beat', '0006_auto_20180322_0932'),
+        ('django_celery_beat', '0007_auto_20180521_0826'),
+        ('django_celery_beat', '0008_auto_20180914_1922'),
     ]
 
     operations = [
