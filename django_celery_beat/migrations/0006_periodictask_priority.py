@@ -7,6 +7,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
+        # depends on higher numbers due to a squashed migration
+        # that was later removed due to migration issues it caused
         ('django_celery_beat', '0005_add_solarschedule_events_choices'),
         ('django_celery_beat', '0006_auto_20180210_1226'),
         ('django_celery_beat', '0006_auto_20180322_0932'),
