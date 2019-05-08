@@ -8,7 +8,8 @@ from django_celery_beat.models import \
     PeriodicTask, \
     CrontabSchedule, \
     IntervalSchedule, \
-    SolarSchedule
+    SolarSchedule, \
+    ClockedSchedule
 from django.core.exceptions import ValidationError
 
 
@@ -67,6 +68,7 @@ class ActionsTests(TestCase):
             ('crontab', CrontabSchedule()),
             ('interval', IntervalSchedule()),
             ('solar', SolarSchedule()),
+            ('clocked', ClockedSchedule())
         ]
         for options in combinations(schedules, 2):
             with self.assertRaises(ValidationError):
@@ -76,3 +78,4 @@ class ActionsTests(TestCase):
         PeriodicTask(crontab=CrontabSchedule()).validate_unique()
         PeriodicTask(interval=IntervalSchedule()).validate_unique()
         PeriodicTask(solar=SolarSchedule()).validate_unique()
+        PeriodicTask(clocked=ClockedSchedule(), one_off=True).validate_unique()

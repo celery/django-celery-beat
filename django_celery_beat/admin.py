@@ -16,7 +16,7 @@ from kombu.utils.json import loads
 from .models import (
     PeriodicTask, PeriodicTasks,
     IntervalSchedule, CrontabSchedule,
-    SolarSchedule
+    SolarSchedule, ClockedSchedule
 )
 from .utils import is_database_scheduler
 
@@ -128,7 +128,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'classes': ('extrapretty', 'wide'),
         }),
         ('Schedule', {
-            'fields': ('interval', 'crontab', 'solar',
+            'fields': ('interval', 'crontab', 'solar', 'clocked',
                        'start_time', 'one_off'),
             'classes': ('extrapretty', 'wide'),
         }),
@@ -152,7 +152,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(PeriodicTaskAdmin, self).get_queryset(request)
-        return qs.select_related('interval', 'crontab', 'solar')
+        return qs.select_related('interval', 'crontab', 'solar', 'clocked')
 
     def _message_user_about_update(self, request, rows_updated, verb):
         """Send message about action to user.
@@ -236,4 +236,5 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 admin.site.register(IntervalSchedule)
 admin.site.register(CrontabSchedule)
 admin.site.register(SolarSchedule)
+admin.site.register(ClockedSchedule)
 admin.site.register(PeriodicTask, PeriodicTaskAdmin)
