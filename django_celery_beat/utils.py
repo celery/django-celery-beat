@@ -6,21 +6,19 @@ from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.utils import timezone
 
-is_aware = timezone.is_aware
+from celery import current_app
 
-# see Issue #222
-now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
+is_aware = timezone.is_aware
 
 
 def make_aware(value):
     """Force datatime to have timezone information."""
-    if getattr(settings, 'USE_TZ', False):
+    if getattr(settings, 'CELERY_TIMEZONE', False):
         # naive datetimes are assumed to be in UTC.
         if timezone.is_naive(value):
             value = timezone.make_aware(value, timezone.utc)
         # then convert to the Django configured timezone.
-        default_tz = timezone.get_default_timezone()
-        value = timezone.localtime(value, default_tz)
+        value = value.astimezone(current_app.tz)
     else:
         # naive datetimes are assumed to be in local timezone.
         if timezone.is_naive(value):
@@ -30,8 +28,8 @@ def make_aware(value):
 
 def now():
     """Return the current date and time."""
-    if getattr(settings, 'USE_TZ', False):
-        return now_localtime(timezone.now())
+    if getattr(settings, 'CELERY_TIMEZONE', False):
+        return timezone.now().astimezone(current_app.tz)
     else:
         return timezone.now()
 
