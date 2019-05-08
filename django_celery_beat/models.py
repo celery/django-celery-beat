@@ -171,8 +171,16 @@ class IntervalSchedule(models.Model):
 class ClockedSchedule(models.Model):
     """clocked schedule."""
 
-    clocked_time = models.DateTimeField()
-    enabled = models.BooleanField(default=True, editable=False)
+    clocked_time = models.DateTimeField(
+        verbose_name=_('Clock Time'),
+        help_text=_('Run the task at clocked time'),
+    )
+    enabled = models.BooleanField(
+        default=True,
+        editable=False,
+        verbose_name=_('Enabled'),
+        help_text=_('Set to False to disable the schedule'),
+    )
 
     class Meta:
         """Table information."""
@@ -387,7 +395,9 @@ class PeriodicTask(models.Model):
     )
     clocked = models.ForeignKey(
         ClockedSchedule, on_delete=models.CASCADE, null=True, blank=True,
-        verbose_name=_('clocked'), help_text=_('Use a clocked schedule')
+        verbose_name=_('Clocked Schedule'),
+        help_text=_('Clocked Schedule to run the task on.  '
+                    'Set only one schedule type, leave the others null.'),
     )
     # TODO: use django's JsonField
     args = models.TextField(
