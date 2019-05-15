@@ -23,7 +23,6 @@ python:
 #  - pypy3.5
 env:
   - DJANGO=1.11
-  - DJANGO=2.0
   - DJANGO=2.1
   - DJANGO=2.2
 os:
@@ -43,10 +42,8 @@ matrix:
     # - { python: 3.5, env: TOXENV=apicheck }
     # - { python: 3.5, env: TOXENV=linkcheck }
   exclude:
-    - { python: 2.7, env: DJANGO=2.0 }
     - { python: 2.7, env: DJANGO=2.1 }
     - { python: 2.7, env: DJANGO=2.2 }
-    - { python: pypy, env: DJANGO=2.0 }
     - { python: pypy, env: DJANGO=2.1 }
     - { python: pypy, env: DJANGO=2.2 }
 install: travis_retry pip install -U tox-travis
