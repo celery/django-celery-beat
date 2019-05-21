@@ -10,9 +10,9 @@ import re
 
 from collections import namedtuple
 
-__version__ = '1.4.0'
-__author__ = 'Ask Solem'
-__contact__ = 'ask@celeryproject.org'
+__version__ = '1.5.0'
+__author__ = 'Asif Saif Uddin, Ask Solem'
+__contact__ = 'auvipy@gmai.com, ask@celeryproject.org'
 __homepage__ = 'https://github.com/celery/django-celery-beat'
 __docformat__ = 'restructuredtext'
 
