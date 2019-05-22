@@ -215,13 +215,12 @@ Both the worker and beat services need to be running at the same time.
         $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 
-  **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help ``)::
+   **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help``)::
 
             $ celery -A [project-name] beat -l info -S django
 
-
-Also, as an alternative, you can run the two steps above (worker and beat services)
-with only one command (recommended for **development environment only**)::
+   Also, as an alternative, you can run the two steps above (worker and beat services)
+   with only one command (recommended for **development environment only**)::
 
 
     $ celery -A [project-name] worker --beat --scheduler django --loglevel=info
