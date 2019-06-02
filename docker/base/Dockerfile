@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
         wait-for-it
 
 RUN pip3 install --user \
-        celery \
         django-createsuperuserwithpassword \
         psycopg2-binary
 
