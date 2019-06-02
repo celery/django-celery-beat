@@ -118,8 +118,9 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     model = PeriodicTask
     celery_app = current_app
     date_hierarchy = 'start_time'
-    list_display = ('__str__', 'enabled', 'interval', 'start_time', 'one_off')
-    list_filter = ['enabled', 'one_off', 'task', 'start_time']
+    list_display = ('__str__', 'enabled', 'interval', 'start_time',
+                    'last_run_at', 'one_off')
+    list_filter = ['enabled', 'one_off', 'task', 'start_time', 'last_run_at']
     actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
     search_fields = ('name',)
     fieldsets = (
@@ -129,7 +130,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
         ('Schedule', {
             'fields': ('interval', 'crontab', 'solar', 'clocked',
-                       'start_time', 'one_off'),
+                       'start_time', 'last_run_at', 'one_off'),
             'classes': ('extrapretty', 'wide'),
         }),
         ('Arguments', {
@@ -141,6 +142,9 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                        'priority', 'headers'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
+    )
+    readonly_fields = (
+        'last_run_at',
     )
 
     def changelist_view(self, request, extra_context=None):
