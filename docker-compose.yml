@@ -1,0 +1,42 @@
+# Copyright (C) 2019 Sebastian Pipping <sebastian@pipping.org>
+# Licensed under the BSD License (3 clause, also known as the new BSD license)
+
+version: '3'
+
+services:
+  base:
+    build:
+      context: .
+      dockerfile: docker/base/Dockerfile
+    command: ["sleep", "inf"]
+
+  django:
+    depends_on:
+      - base
+      - postgres
+    build:
+      context: .
+      dockerfile: docker/django/Dockerfile
+    ports:
+      - "127.0.0.1:58000:8000"
+    entrypoint: ["/app/docker/django/entrypoint.sh"]
+    command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+    tty: true
+    volumes:
+      - './django_celery_beat/:/app/django_celery_beat/'
+
+  celery-beat:
+    depends_on:
+      - base
+      - postgres
+    build:
+      context: .
+      dockerfile: docker/celery-beat/Dockerfile
+    entrypoint: ["/app/docker/celery-beat/entrypoint.sh"]
+    command: ["python3", '-m', "celery", "-A", "mysite", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    tty: true
+    volumes:
+      - './django_celery_beat/:/app/django_celery_beat/'
+
+  postgres:
+    image: postgres

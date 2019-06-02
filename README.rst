@@ -269,6 +269,16 @@ pip command::
     $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
 
 
+Developing django-celery-beat
+-----------------------------
+
+To spin up a local development copy of django-celery-beat with Django admin at http://0.0.0.0:58000/admin/ run::
+
+    $ docker-compose build
+    $ docker-compose run django python3 manage.py createsuperuser
+    $ docker-compose up
+
+
 TZ Awareness:
 -------------
 
