@@ -159,7 +159,7 @@ Example creating crontab-based periodic task
 --------------------------------------------
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
-``day_of_month`` and ``month_of_year`, so if you want the equivalent
+``day_of_month`` and ``month_of_year``, so if you want the equivalent
 of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify::
 
     >>> from django_celery_beat.models import CrontabSchedule, PeriodicTask
@@ -237,7 +237,7 @@ Installation
 You can install django-celery-beat either via the Python Package Index (PyPI)
 or from source.
 
-To install using `pip`,::
+To install using ``pip``::
 
     $ pip install -U django-celery-beat
 
@@ -282,7 +282,7 @@ To spin up a local development copy of django-celery-beat with Django admin at h
 TZ Awareness:
 -------------
 
-If you have a project that is time zone naive, you can set `DJANGO_CELERY_BEAT_TZ_AWARE=False` in your settings file.
+If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_TZ_AWARE=False`` in your settings file.
 
 
 .. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
