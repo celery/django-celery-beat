@@ -30,7 +30,7 @@ RUN django-admin startproject mysite
 WORKDIR /mysite/
 
 RUN echo 'DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "postgres", "USER": "postgres", "HOST": "postgres", "PORT": 5432}}' >> mysite/settings.py
-RUN echo 'ALLOWED_HOSTS = ["0.0.0.0"]' >> mysite/settings.py
+RUN echo 'ALLOWED_HOSTS = ["*"]' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_celery_beat", )' >> mysite/settings.py
 
 RUN echo 'from celery import Celery' > mysite/celery.py
