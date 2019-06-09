@@ -274,9 +274,9 @@ Developing django-celery-beat
 
 To spin up a local development copy of django-celery-beat with Django admin at http://0.0.0.0:58000/admin/ run::
 
-    $ docker-compose build
-    $ docker-compose run django python3 manage.py createsuperuser
-    $ docker-compose up
+    $ docker-compose up --build
+
+Log-in as user ``admin`` with password ``admin``.
 
 
 TZ Awareness:

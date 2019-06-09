@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
 
 RUN pip3 install --user \
         celery \
+        django-createsuperuserwithpassword \
         psycopg2-binary
 
 COPY setup.cfg setup.py   /app/
@@ -32,6 +33,7 @@ WORKDIR /mysite/
 RUN echo 'DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "postgres", "USER": "postgres", "HOST": "postgres", "PORT": 5432}}' >> mysite/settings.py
 RUN echo 'ALLOWED_HOSTS = ["*"]' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_celery_beat", )' >> mysite/settings.py
+RUN echo 'INSTALLED_APPS += ("django_createsuperuserwithpassword", )' >> mysite/settings.py
 
 RUN echo 'from celery import Celery' > mysite/celery.py
 RUN echo 'import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")' >> mysite/celery.py
