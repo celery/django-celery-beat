@@ -272,7 +272,7 @@ pip command::
 Developing django-celery-beat
 -----------------------------
 
-To spin up a local development copy of django-celery-beat with Django admin at http://0.0.0.0:58000/admin/ run::
+To spin up a local development copy of django-celery-beat with Django admin at http://127.0.0.1:58000/admin/ run::
 
     $ docker-compose up --build
 
