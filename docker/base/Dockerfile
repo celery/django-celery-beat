@@ -35,6 +35,4 @@ RUN echo 'ALLOWED_HOSTS = ["*"]' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_celery_beat", )' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_createsuperuserwithpassword", )' >> mysite/settings.py
 
-RUN echo 'from celery import Celery' > mysite/celery.py
-RUN echo 'import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")' >> mysite/celery.py
-RUN echo 'app = Celery("mysite")' >> mysite/celery.py
+COPY docker/base/celery.py mysite/celery.py
