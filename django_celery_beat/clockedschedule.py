@@ -28,9 +28,7 @@ class clocked(schedules.BaseSchedule):
         return self.clocked_time - self.now()
 
     def is_due(self, last_run_at):
-        # actually last run at is useless
-        last_run_at = maybe_make_aware(last_run_at)
-        rem_delta = self.remaining_estimate(last_run_at)
+        rem_delta = self.remaining_estimate(None)
         remaining_s = max(rem_delta.total_seconds(), 0)
         if not self.enabled:
             return schedstate(is_due=False, next=None)
