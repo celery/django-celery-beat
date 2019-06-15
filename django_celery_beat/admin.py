@@ -237,8 +237,24 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     run_tasks.short_description = _('Run selected tasks')
 
 
+class ClockedScheduleAdmin(admin.ModelAdmin):
+    """Admin-interface for clocked schedules."""
+
+    fields = (
+        'clocked_time',
+        'enabled',
+    )
+    readonly_fields = (
+        'enabled',
+    )
+    list_display = (
+        'clocked_time',
+        'enabled',
+    )
+
+
 admin.site.register(IntervalSchedule)
 admin.site.register(CrontabSchedule)
 admin.site.register(SolarSchedule)
-admin.site.register(ClockedSchedule)
+admin.site.register(ClockedSchedule, ClockedScheduleAdmin)
 admin.site.register(PeriodicTask, PeriodicTaskAdmin)
