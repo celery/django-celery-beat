@@ -545,6 +545,7 @@ class PeriodicTask(models.Model):
         self.headers = self.headers or None
         if not self.enabled:
             self.last_run_at = None
+        self.validate_unique()
         super(PeriodicTask, self).save(*args, **kwargs)
 
     def __str__(self):
