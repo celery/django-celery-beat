@@ -91,9 +91,6 @@ class SolarSchedule(models.Model):
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
             return cls(**spec)
-        except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
 
     def __str__(self):
         return '{0} ({1}, {2})'.format(
