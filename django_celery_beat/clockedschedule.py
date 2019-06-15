@@ -13,7 +13,7 @@ schedstate = namedtuple('schedstate', ('is_due', 'next'))
 class clocked(schedules.BaseSchedule):
     """clocked schedule.
 
-    It depend on PeriodicTask once_off
+    Depends on PeriodicTask one_off=True
     """
 
     def __init__(self, clocked_time, enabled=True,
