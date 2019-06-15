@@ -87,10 +87,7 @@ class SolarSchedule(models.Model):
         spec = {'event': schedule.event,
                 'latitude': schedule.lat,
                 'longitude': schedule.lon}
-        try:
-            return cls.objects.get(**spec)
-        except cls.DoesNotExist:
-            return cls(**spec)
+        return cls.objects.get_or_create(**spec)[0]
 
     def __str__(self):
         return '{0} ({1}, {2})'.format(
@@ -147,10 +144,11 @@ class IntervalSchedule(models.Model):
     @classmethod
     def from_schedule(cls, schedule, period=SECONDS):
         every = max(schedule.run_every.total_seconds(), 0)
-        try:
-            return cls.objects.get(every=every, period=period)
-        except cls.DoesNotExist:
-            return cls(every=every, period=period)
+        spec = {
+            'every': every,
+            'period': period,
+        }
+        return cls.objects.get_or_create(**spec)[0]
 
     def __str__(self):
         if self.every == 1:
@@ -198,10 +196,7 @@ class ClockedSchedule(models.Model):
     def from_schedule(cls, schedule):
         spec = {'clocked_time': schedule.clocked_time,
                 'enabled': schedule.enabled}
-        try:
-            return cls.objects.get(**spec)
-        except cls.DoesNotExist:
-            return cls(**spec)
+        return cls.objects.get_or_create(**spec)[0]
 
 
 @python_2_unicode_compatible
@@ -312,10 +307,7 @@ class CrontabSchedule(models.Model):
                 'month_of_year': schedule._orig_month_of_year,
                 'timezone': schedule.tz
                 }
-        try:
-            return cls.objects.get(**spec)
-        except cls.DoesNotExist:
-            return cls(**spec)
+        return cls.objects.get_or_create(**spec)[0]
 
 
 class PeriodicTasks(models.Model):
