@@ -20,7 +20,7 @@ from django_celery_beat.clockedschedule import clocked
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import (
     PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
-    SolarSchedule, ClockedSchedule
+    SolarSchedule, ClockedSchedule, DAYS
 )
 from django_celery_beat.utils import make_aware
 
@@ -109,6 +109,9 @@ class SchedulerCase:
             exchange='foo',
         )
         return Model(**dict(entry, **kwargs))
+
+    def create_interval_schedule(self):
+        return IntervalSchedule.objects.create(every=10, period=DAYS)
 
 
 @pytest.mark.django_db()
@@ -220,7 +223,8 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
 
         self.entry_name, entry = self.create_conf_entry()
         self.app.conf.beat_schedule = {self.entry_name: entry}
-        self.m1 = PeriodicTask(name=self.entry_name)
+        self.m1 = PeriodicTask(name=self.entry_name,
+                               interval=self.create_interval_schedule())
 
     def test_constructor(self):
         s = self.Scheduler(app=self.app)
@@ -693,15 +697,17 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         self.site = AdminSite()
         self.request_factory = RequestFactory()
 
+        interval_schedule = self.create_interval_schedule()
+
         entry_name, entry = self.create_conf_entry()
         self.app.conf.beat_schedule = {entry_name: entry}
-        self.m1 = PeriodicTask(name=entry_name)
+        self.m1 = PeriodicTask(name=entry_name, interval=interval_schedule)
         self.m1.task = 'celery.backend_cleanup'
         self.m1.save()
 
         entry_name, entry = self.create_conf_entry()
         self.app.conf.beat_schedule = {entry_name: entry}
-        self.m2 = PeriodicTask(name=entry_name)
+        self.m2 = PeriodicTask(name=entry_name, interval=interval_schedule)
         self.m2.task = 'celery.backend_cleanup'
         self.m2.save()
 
