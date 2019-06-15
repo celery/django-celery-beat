@@ -7,7 +7,7 @@ import timezone_field
 from celery import schedules
 from celery.five import python_2_unicode_compatible
 from django.conf import settings
-from django.core.exceptions import MultipleObjectsReturned, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import signals
@@ -135,6 +135,7 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        unique_together = ('every', 'period')
 
     @property
     def schedule(self):
@@ -149,9 +150,6 @@ class IntervalSchedule(models.Model):
         try:
             return cls.objects.get(every=every, period=period)
         except cls.DoesNotExist:
-            return cls(every=every, period=period)
-        except MultipleObjectsReturned:
-            cls.objects.filter(every=every, period=period).delete()
             return cls(every=every, period=period)
 
     def __str__(self):
@@ -171,6 +169,7 @@ class ClockedSchedule(models.Model):
     clocked_time = models.DateTimeField(
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
+        unique=True,
     )
     enabled = models.BooleanField(
         default=True,
@@ -202,9 +201,6 @@ class ClockedSchedule(models.Model):
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
-            return cls(**spec)
-        except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
             return cls(**spec)
 
 
@@ -277,6 +273,8 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        unique_together = ('minute', 'hour', 'day_of_week', 'day_of_month',
+                           'month_of_year', 'timezone')
 
     def __str__(self):
         return '{0} {1} {2} {3} {4} (m/h/d/dM/MY) {5}'.format(
@@ -317,9 +315,6 @@ class CrontabSchedule(models.Model):
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
-            return cls(**spec)
-        except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
             return cls(**spec)
 
 
