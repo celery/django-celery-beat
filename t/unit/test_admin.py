@@ -81,16 +81,16 @@ class ActionsTests(TestCase):
         with self.assertRaises(ValidationError):
             PeriodicTask().validate_unique()
 
-    def test_validate_unique_raises_for_multiple_schedules(self):
+    def test_save_raises_for_multiple_schedules(self):
         schedules = [
             ('crontab', CrontabSchedule()),
             ('interval', IntervalSchedule()),
             ('solar', SolarSchedule()),
             ('clocked', ClockedSchedule())
         ]
-        for options in combinations(schedules, 2):
+        for i, options in enumerate(combinations(schedules, 2)):
             with self.assertRaises(ValidationError):
-                PeriodicTask(**dict(options)).validate_unique()
+                PeriodicTask(name='task{}'.format(i), **dict(options)).save()
 
     def test_validate_unique_not_raises(self):
         PeriodicTask(crontab=CrontabSchedule()).validate_unique()
