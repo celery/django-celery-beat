@@ -6,8 +6,10 @@ from celery import schedules
 from celery.utils.time import maybe_make_aware
 from collections import namedtuple
 
-
-schedstate = namedtuple('schedstate', ('is_due', 'next'))
+try:
+    from celery.schedules import schedstate  # Celery >=3.1.0
+except ImportError:
+    schedstate = namedtuple('schedstate', ('is_due', 'next'))
 
 
 class clocked(schedules.BaseSchedule):
