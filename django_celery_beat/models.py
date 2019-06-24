@@ -450,6 +450,9 @@ class PeriodicTask(models.Model):
             'Priority Number between 0 and 255. '
             'Supported by: RabbitMQ, Redis (priority reversed, 0 is highest).')
     )
+    origin_key = models.CharField(
+        _('origin key'), max_length=200, blank=True, null=True, default=None,
+    )
     expires = models.DateTimeField(
         blank=True, null=True,
         verbose_name=_('Expires Datetime'),
