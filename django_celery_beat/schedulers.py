@@ -94,7 +94,10 @@ class ModelEntry(ScheduleEntry):
         self.model = model
 
         if not model.last_run_at:
-            model.last_run_at = self._default_now()
+            if model.start_time is not None and model.start_time > self._default_now():
+                model.last_run_at = model.start_time
+            else:
+                model.last_run_at = self._default_now()
 
         self.last_run_at = model.last_run_at
 
@@ -109,18 +112,18 @@ class ModelEntry(ScheduleEntry):
             return schedules.schedstate(False, 5.0)
 
         # START DATE: only run after the `start_time`, if one exists.
-        if self.model.start_time is not None:
-            now = self._default_now()
-            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-                now = maybe_make_aware(self._default_now())
+        # if self.model.start_time is not None:
+        #    now = self._default_now()
+        #    if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+        #        now = maybe_make_aware(self._default_now())
 
-            if now < self.model.start_time:
+        #    if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
-                delay = math.ceil(
-                    (self.model.start_time - now).total_seconds()
-                )
-                return schedules.schedstate(False, delay)
+        #        delay = math.ceil(
+        #            (self.model.start_time - now).total_seconds()
+        #        )
+        #        return schedules.schedstate(False, delay)
 
         # ONE OFF TASK: Disable one off tasks after they've ran once
         if self.model.one_off and self.model.enabled \
