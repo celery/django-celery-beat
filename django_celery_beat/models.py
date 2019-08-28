@@ -553,16 +553,16 @@ class PeriodicTask(models.Model):
         self.headers = self.headers or None
         if not self.enabled:
             self.last_run_at = None
-        self.update_expires()
+        self._clean_expires()
         self.validate_unique()
         super(PeriodicTask, self).save(*args, **kwargs)
 
-    def update_expires(self):
-        if isinstance(self.expires, (int, float)):
+    def _clean_expires(self):
+        self.expire_seconds = None
+
+        if self.expires and isinstance(self.expires, (int, float)):
             self.expire_seconds = self.expires
             self.expires = None
-        elif self.expire_seconds:
-            self.expire_seconds = None
 
     @property
     def expires_(self):
