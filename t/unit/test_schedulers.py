@@ -241,6 +241,10 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert self.entry_name in sched
         for n, e in sched.items():
             assert isinstance(e, s.Entry)
+            if n == 'celery.backend_cleanup':
+                assert e.options['expires'] == 12 * 3600
+                assert e.model.expires == None
+                assert e.model.expire_seconds == 12 * 3600
 
     def test_periodic_task_model_disabled_schedule(self):
         self.m1.enabled = False
