@@ -457,6 +457,14 @@ class PeriodicTask(models.Model):
             'Datetime after which the schedule will no longer '
             'trigger the task to run'),
     )
+    expire_seconds = models.FloatField(
+        default=None, null=True,
+        verbose_name=_('Expires timedelta with seconds'),
+        help_text=_(
+            'Timedelta with seconds which the schedule will no longer '
+            'trigger the task to run'),
+
+    )
     one_off = models.BooleanField(
         default=False,
         verbose_name=_('One-off Task'),
@@ -545,8 +553,20 @@ class PeriodicTask(models.Model):
         self.headers = self.headers or None
         if not self.enabled:
             self.last_run_at = None
+        self.update_expires()
         self.validate_unique()
         super(PeriodicTask, self).save(*args, **kwargs)
+
+    def update_expires(self):
+        if isinstance(self.expires, (int, float)):
+            self.expire_seconds = self.expires
+            self.expires = None
+        elif self.expire_seconds:
+            self.expire_seconds = None
+
+    @property
+    def expires_(self):
+        return self.expires or self.expire_seconds
 
     def __str__(self):
         fmt = '{0.name}: {{no schedule}}'
