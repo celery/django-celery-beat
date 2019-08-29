@@ -92,6 +92,11 @@ class PeriodicTaskForm(forms.ModelForm):
             exc = forms.ValidationError(_('Need name of task'))
             self._errors['task'] = self.error_class(exc.messages)
             raise exc
+
+        if data.get('expire_seconds') and data.get('expires'):
+            raise forms.ValidationError(
+                _('Only one can be set, in expires and expire_seconds')
+            )
         return data
 
     def _clean_json(self, field):
