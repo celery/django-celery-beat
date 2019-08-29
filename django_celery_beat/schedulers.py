@@ -325,7 +325,8 @@ class DatabaseScheduler(Scheduler):
                     s[name] = entry
 
             except Exception as exc:
-                logger.error(ADD_ENTRY_ERROR, name, exc, entry_fields, exc_info=True)
+                logger.error(ADD_ENTRY_ERROR, name, exc, entry_fields,
+                             exc_info=True)
         self.schedule.update(s)
 
     def install_default_entries(self, data):
