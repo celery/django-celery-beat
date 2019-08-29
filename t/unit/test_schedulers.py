@@ -243,7 +243,7 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
             assert isinstance(e, s.Entry)
             if n == 'celery.backend_cleanup':
                 assert e.options['expires'] == 12 * 3600
-                assert e.model.expires == None
+                assert e.model.expires is None
                 assert e.model.expire_seconds == 12 * 3600
 
     def test_periodic_task_model_disabled_schedule(self):
