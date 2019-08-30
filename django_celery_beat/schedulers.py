@@ -88,7 +88,7 @@ class ModelEntry(ScheduleEntry):
                 continue
             self.options[option] = value
 
-        if getattr(model, 'expires_'):
+        if getattr(model, 'expires_', None):
             self.options['expires'] = getattr(model, 'expires_')
 
         self.options['headers'] = loads(model.headers or '{}')
@@ -198,14 +198,15 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
-                        priority=None, headers=None, expires=None, **kwargs):
+                        priority=None, headers=None, expire_seconds=None,
+                        **kwargs):
         return {
             'queue': queue,
             'exchange': exchange,
             'routing_key': routing_key,
             'priority': priority,
             'headers': dumps(headers or {}),
-            'expires': expires,
+            'expire_seconds': expire_seconds,
         }
 
     def __repr__(self):
@@ -336,7 +337,7 @@ class DatabaseScheduler(Scheduler):
                 'celery.backend_cleanup', {
                     'task': 'celery.backend_cleanup',
                     'schedule': schedules.crontab('0', '4', '*'),
-                    'options': {'expires': 12 * 3600},
+                    'options': {'expire_seconds': 12 * 3600},
                 },
             )
         self.update_from_dict(entries)
