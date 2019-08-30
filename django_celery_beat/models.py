@@ -457,7 +457,7 @@ class PeriodicTask(models.Model):
             'Datetime after which the schedule will no longer '
             'trigger the task to run'),
     )
-    expire_seconds = models.FloatField(
+    expire_seconds = models.PositiveIntegerField(
         blank=True, null=True,
         verbose_name=_('Expires timedelta with seconds'),
         help_text=_(
@@ -562,10 +562,6 @@ class PeriodicTask(models.Model):
             raise ValidationError(
                 _('Only one can be set, in expires and expire_seconds')
             )
-        if self.expires and isinstance(self.expires, (int, float)):
-            # Redispatch value from default entries
-            self.expire_seconds = self.expires
-            self.expires = None
 
     @property
     def expires_(self):
