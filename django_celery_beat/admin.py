@@ -93,7 +93,7 @@ class PeriodicTaskForm(forms.ModelForm):
             self._errors['task'] = self.error_class(exc.messages)
             raise exc
 
-        if data.get('expire_seconds') and data.get('expires'):
+        if data.get('expire_seconds') is not None and data.get('expires'):
             raise forms.ValidationError(
                 _('Only one can be set, in expires and expire_seconds')
             )
