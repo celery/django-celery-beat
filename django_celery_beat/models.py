@@ -558,7 +558,7 @@ class PeriodicTask(models.Model):
         super(PeriodicTask, self).save(*args, **kwargs)
 
     def _clean_expires(self):
-        if self.expire_seconds and self.expires:
+        if self.expire_seconds is not None and self.expires:
             raise ValidationError(
                 _('Only one can be set, in expires and expire_seconds')
             )
