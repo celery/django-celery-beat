@@ -14,6 +14,7 @@ services:
     depends_on:
       - base
       - postgres
+      - rabbit
     build:
       context: .
       dockerfile: docker/django/Dockerfile
@@ -29,14 +30,20 @@ services:
     depends_on:
       - base
       - postgres
+      - rabbit
     build:
       context: .
       dockerfile: docker/celery-beat/Dockerfile
     entrypoint: ["/app/docker/celery-beat/entrypoint.sh"]
+    environment:
+        CELERY_BROKER_URL: 'amqp://guest:guest@rabbit:5672'
     command: ["python3", '-m', "celery", "-A", "mysite", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
     tty: true
     volumes:
       - './django_celery_beat/:/app/django_celery_beat/'
+
+  rabbit:
+      image: rabbitmq:3.8.0
 
   postgres:
     image: postgres
