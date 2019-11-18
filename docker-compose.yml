@@ -43,7 +43,7 @@ services:
       - './django_celery_beat/:/app/django_celery_beat/'
 
   rabbit:
-      image: rabbitmq:3.8.0
+      image: rabbitmq
 
   postgres:
     image: postgres
