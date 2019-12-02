@@ -323,3 +323,7 @@ If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_
     :alt: Support Python implementations.
     :target: http://pypi.python.org/pypi/django-celery-beat/
 
+django-celery-beat as part of the Tidelift Subscription
+-------------
+
+The maintainers of django-celery-beat and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/pypi-django-celery-beat?utm_source=pypi-django-celery-beat&utm_medium=referral&utm_campaign=readme&utm_term=repo)
