@@ -167,6 +167,30 @@ class test_ModelEntry(SchedulerCase):
 
         assert e.is_due().is_due is False
         assert e.is_due().next <= 600  # 10 minutes; see above
+    
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        TIME_ZONE="Europe/Berlin",
+        CELERY_TIMEZONE="America/New_York"
+    )
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='America/New_York')
+    def test_entry_is_due__celery_timezone_doesnt_match_time_zone(self):
+        assert self.app.timezone.zone == 'America/New_York'
+
+        # simulate last_run_at all none, doing the same thing that
+        # _default_now() would do
+        right_now = timezone.now()
+
+        m = self.create_model_crontab(
+            crontab(minute='*/10'),
+            last_run_at=right_now,
+        )
+        e = self.Entry(m, app=self.app)
+
+        assert e.is_due().is_due is False
+        assert e.is_due().next <= 600  # 10 minutes; see above
 
     def test_task_with_start_time(self):
         interval = 10
