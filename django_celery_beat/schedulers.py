@@ -134,7 +134,7 @@ class ModelEntry(ScheduleEntry):
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
 
-        return self.schedule.is_due(make_aware(self.last_run_at))
+        return self.schedule.is_due(make_aware(self.last_run_at).astimezone(self.app.timezone))
 
     def _default_now(self):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
