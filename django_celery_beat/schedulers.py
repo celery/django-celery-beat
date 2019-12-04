@@ -134,7 +134,9 @@ class ModelEntry(ScheduleEntry):
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
 
-        return self.schedule.is_due(make_aware(self.last_run_at).astimezone(self.app.timezone))
+        # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
+        # while maybe_make_aware assumes utc for naive datetimes
+        return self.schedule.is_due(maybe_make_aware(self.last_run_at).astimezone(self.app.timezone))
 
     def _default_now(self):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
@@ -144,7 +146,9 @@ class ModelEntry(ScheduleEntry):
             now = self.app.now()
             now = now.tzinfo.localize(now.replace(tzinfo=None))
         else:
-            now = datetime.datetime.now()
+            # this ends up getting passed to maybe_make_aware, which expects all
+            # naive datetime objects to be in utc time.
+            now = datetime.datetime.utcnow()
         return now
 
     def __next__(self):
