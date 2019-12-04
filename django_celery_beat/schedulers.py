@@ -26,7 +26,6 @@ from .models import (
     CrontabSchedule, IntervalSchedule,
     SolarSchedule, ClockedSchedule
 )
-from .utils import make_aware
 from .clockedschedule import clocked
 
 try:
@@ -136,7 +135,9 @@ class ModelEntry(ScheduleEntry):
 
         # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
         # while maybe_make_aware assumes utc for naive datetimes
-        return self.schedule.is_due(maybe_make_aware(self.last_run_at).astimezone(self.app.timezone))
+        tz = self.app.timezone
+        last_run_at_in_tz = maybe_make_aware(self.last_run_at).astimezone(tz)
+        return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
         # The PyTZ datetime must be localised for the Django-Celery-Beat
@@ -146,8 +147,8 @@ class ModelEntry(ScheduleEntry):
             now = self.app.now()
             now = now.tzinfo.localize(now.replace(tzinfo=None))
         else:
-            # this ends up getting passed to maybe_make_aware, which expects all
-            # naive datetime objects to be in utc time.
+            # this ends up getting passed to maybe_make_aware, which expects
+            # all naive datetime objects to be in utc time.
             now = datetime.datetime.utcnow()
         return now
 
