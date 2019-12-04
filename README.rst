@@ -258,19 +258,15 @@ The last command must be executed as a privileged user if
 you are not currently using a virtualenv.
 
 
-After installation, add `django_celery_beat` to Django settings file and migrate.
+After installation, add ``django_celery_beat`` to Django settings file::
 
-settings.py
-```
-INSTALLED_APPS = [
-    ...,
-    'django_celery_beat',
-]
-```
+    INSTALLED_APPS = [
+        ...,
+        'django_celery_beat',
+    ]
 
-```
-python manage.py migrate django_celery_beat
-```
+    python manage.py migrate django_celery_beat
+
 
 Using the development version
 -----------------------------
