@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
-import math, os
+import math
+import os
 import time
 import pytest
 
@@ -178,7 +179,7 @@ class test_ModelEntry(SchedulerCase):
             del os.environ["TZ"]
         if hasattr(time, "tzset"):
             time.tzset()
-    
+
     @override_settings(
         USE_TZ=False,
         DJANGO_CELERY_BEAT_TZ_AWARE=False,
