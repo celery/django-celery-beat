@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import math
+import os
 import time
 import pytest
 
@@ -151,13 +152,18 @@ class test_ModelEntry(SchedulerCase):
         USE_TZ=False,
         DJANGO_CELERY_BEAT_TZ_AWARE=False
     )
+    @pytest.mark.usefixtures('depends_on_current_app')
     @timezone.override('Europe/Berlin')
     @pytest.mark.celery(timezone='Europe/Berlin')
     def test_entry_is_due__no_use_tz(self):
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
         assert self.app.timezone.zone == 'Europe/Berlin'
 
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = timezone.now()
+        right_now = datetime.utcnow()
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
@@ -167,6 +173,47 @@ class test_ModelEntry(SchedulerCase):
 
         assert e.is_due().is_due is False
         assert e.is_due().next <= 600  # 10 minutes; see above
+        if old_tz is not None:
+            os.environ["TZ"] = old_tz
+        else:
+            del os.environ["TZ"]
+        if hasattr(time, "tzset"):
+            time.tzset()
+
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        TIME_ZONE="Europe/Berlin",
+        CELERY_TIMEZONE="America/New_York"
+    )
+    @pytest.mark.usefixtures('depends_on_current_app')
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='America/New_York')
+    def test_entry_is_due__celery_timezone_doesnt_match_time_zone(self):
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
+        assert self.app.timezone.zone == 'America/New_York'
+
+        # simulate last_run_at all none, doing the same thing that
+        # _default_now() would do
+        right_now = datetime.utcnow()
+
+        m = self.create_model_crontab(
+            crontab(minute='*/10'),
+            last_run_at=right_now,
+        )
+        e = self.Entry(m, app=self.app)
+
+        assert e.is_due().is_due is False
+        assert e.is_due().next <= 600  # 10 minutes; see above
+        if old_tz is not None:
+            os.environ["TZ"] = old_tz
+        else:
+            del os.environ["TZ"]
+        if hasattr(time, "tzset"):
+            time.tzset()
 
     def test_task_with_start_time(self):
         interval = 10
