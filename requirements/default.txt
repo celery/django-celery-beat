@@ -1,2 +1,2 @@
-django-timezone-field>=2.0
+django-timezone-field>=2.0,<4.0
 python-crontab>=2.3.4
