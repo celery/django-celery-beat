@@ -8,7 +8,6 @@ from multiprocessing.util import Finalize
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
-from celery.five import values, items
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
@@ -320,7 +319,7 @@ class DatabaseScheduler(Scheduler):
 
     def update_from_dict(self, mapping):
         s = {}
-        for name, entry_fields in items(mapping):
+        for name, entry_fields in mapping.items():
             try:
                 entry = self.Entry.from_entry(name,
                                               app=self.app,
@@ -370,6 +369,6 @@ class DatabaseScheduler(Scheduler):
                 self._heap_invalidated = True
             if logger.isEnabledFor(logging.DEBUG):
                 debug('Current schedule:\n%s', '\n'.join(
-                    repr(entry) for entry in values(self._schedule)),
+                    repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
