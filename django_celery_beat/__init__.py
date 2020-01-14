@@ -3,9 +3,6 @@
 # :copyright: (c) 2016, Ask Solem.
 #             All rights reserved.
 # :license:   BSD (3 Clause), see LICENSE for more details.
-
-from __future__ import absolute_import, unicode_literals
-
 import re
 
 from collections import namedtuple

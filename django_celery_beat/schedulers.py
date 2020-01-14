@@ -1,6 +1,4 @@
 """Beat Scheduler Implementation."""
-from __future__ import absolute_import, unicode_literals
-
 import datetime
 import logging
 import math

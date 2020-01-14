@@ -1,8 +1,6 @@
 """Utilities."""
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
-from __future__ import absolute_import, unicode_literals
-
 from django.conf import settings
 from django.utils import timezone
 

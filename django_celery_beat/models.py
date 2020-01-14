@@ -1,6 +1,4 @@
 """Database models."""
-from __future__ import absolute_import, unicode_literals
-
 from datetime import timedelta
 
 import timezone_field
