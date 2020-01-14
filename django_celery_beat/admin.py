@@ -5,7 +5,7 @@ from django.contrib import admin, messages
 from django.db.models import When, Value, Case
 from django.forms.widgets import Select
 from django.template.defaultfilters import pluralize
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from celery import current_app
 from celery.utils import cached_property
