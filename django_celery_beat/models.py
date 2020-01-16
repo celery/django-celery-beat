@@ -49,7 +49,7 @@ class CeleryMySQLIndex(Index):
 
     def _create_sql(self, model, schema_editor, using=''):
         sql_create_index = 'CREATE INDEX %(name)s ON %(table)s (%(columns)s(%(size)d))%(extra)s'
-        sql_parameters = self.get_sql_create_template_values(
+        sql_parameters = self.create_sql(
             model,
             schema_editor,
             using
