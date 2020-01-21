@@ -1,6 +1,6 @@
 """Database models."""
 from __future__ import absolute_import, unicode_literals
-
+import logging
 from datetime import timedelta
 import dateutil
 
@@ -50,6 +50,7 @@ class CeleryMySQLIndex(Index):
     def _create_sql(self, model, schema_editor, using=''):
         sql_create_index = 'CREATE INDEX %(name)s ON %(table)s (%(columns)s(%(size)d))%(extra)s'
         sql_parameters = super(CeleryMySQLIndex, self).create_sql(model, schema_editor, using=using)
+        logging.warning('creat index content - {c}'.format(c=sql_parameters))
         print(sql_parameters)
         sql_parameters['size'] = getattr(
             settings,
