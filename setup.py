@@ -140,6 +140,7 @@ setuptools.setup(
     version=meta['version'],
     description=meta['doc'],
     long_description=long_description,
+    long_description_content_type='text/markdown',
     keywords='django celery beat periodic task database',
     author=meta['author'],
     author_email=meta['contact'],
