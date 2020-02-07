@@ -1,6 +1,4 @@
 """Clocked schedule Implementation."""
-from __future__ import absolute_import, unicode_literals
-
 
 from celery import schedules
 from celery.utils.time import maybe_make_aware

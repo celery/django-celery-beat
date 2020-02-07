@@ -1,17 +1,14 @@
 """Database models."""
-from __future__ import absolute_import, unicode_literals
-
 from datetime import timedelta
 
 import timezone_field
 from celery import schedules
-from celery.five import python_2_unicode_compatible
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import signals
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from . import managers, validators
 from .tzcrontab import TzAwareCrontab
@@ -41,7 +38,6 @@ def cronexp(field):
     return field and str(field).replace(' ', '') or '*'
 
 
-@python_2_unicode_compatible
 class SolarSchedule(models.Model):
     """Schedule following astronomical patterns.
 
@@ -103,7 +99,6 @@ class SolarSchedule(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class IntervalSchedule(models.Model):
     """Schedule executing on a regular interval.
 
@@ -167,7 +162,6 @@ class IntervalSchedule(models.Model):
         return self.period[:-1]
 
 
-@python_2_unicode_compatible
 class ClockedSchedule(models.Model):
     """clocked schedule."""
 
@@ -211,7 +205,6 @@ class ClockedSchedule(models.Model):
             return cls(**spec)
 
 
-@python_2_unicode_compatible
 class CrontabSchedule(models.Model):
     """Timezone Aware Crontab-like schedule.
 
@@ -357,7 +350,6 @@ class PeriodicTasks(models.Model):
             pass
 
 
-@python_2_unicode_compatible
 class PeriodicTask(models.Model):
     """Model representing a periodic task."""
 

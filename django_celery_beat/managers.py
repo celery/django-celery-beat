@@ -1,8 +1,4 @@
 """Model managers."""
-from __future__ import absolute_import, unicode_literals
-
-from celery.five import items
-
 from django.db import models
 from django.db.models.query import QuerySet
 
@@ -18,7 +14,7 @@ class ExtendedQuerySet(QuerySet):
 
     def _update_model_with_dict(self, obj, fields):
         [setattr(obj, attr_name, attr_value)
-            for attr_name, attr_value in items(fields)]
+            for attr_name, attr_value in fields.items()]
         obj.save()
         return obj
 

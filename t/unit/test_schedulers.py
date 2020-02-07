@@ -1,5 +1,3 @@
-from __future__ import absolute_import, unicode_literals
-
 import math
 import os
 import time
@@ -7,13 +5,13 @@ import pytest
 
 from datetime import datetime, timedelta
 from itertools import count
+from time import monotonic
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 
-from celery.five import monotonic, text_t
 from celery.schedules import schedule, crontab, solar
 
 from django_celery_beat import schedulers
@@ -561,18 +559,18 @@ class test_DatabaseScheduler(SchedulerCase):
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
-        assert (text_t(IntervalSchedule(every=1, period='seconds'))
+        assert (str(IntervalSchedule(every=1, period='seconds'))
                 == 'every second')
-        assert (text_t(IntervalSchedule(every=10, period='seconds'))
+        assert (str(IntervalSchedule(every=10, period='seconds'))
                 == 'every 10 seconds')
 
     def test_CrontabSchedule_unicode(self):
-        assert text_t(CrontabSchedule(
+        assert str(CrontabSchedule(
             minute=3,
             hour=3,
             day_of_week=None,
         )) == '3 3 * * * (m/h/d/dM/MY) UTC'
-        assert text_t(CrontabSchedule(
+        assert str(CrontabSchedule(
             minute=3,
             hour=3,
             day_of_week='tue',
@@ -582,14 +580,14 @@ class test_models(SchedulerCase):
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
-        assert text_t(p) == '{0}: every 10.0 seconds'.format(p.name)
+        assert str(p) == '{0}: every 10.0 seconds'.format(p.name)
 
     def test_PeriodicTask_unicode_crontab(self):
         p = self.create_model_crontab(crontab(
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert text_t(p) == """{0}: * 4,5 4,5 * * (m/h/d/dM/MY) UTC""".format(
+        assert str(p) == """{0}: * 4,5 4,5 * * (m/h/d/dM/MY) UTC""".format(
             p.name
         )
 
@@ -597,7 +595,7 @@ class test_models(SchedulerCase):
         p = self.create_model_solar(
             solar('solar_noon', 48.06, 12.86), name='solar_event'
         )
-        assert text_t(p) == 'solar_event: {0} ({1}, {2})'.format(
+        assert str(p) == 'solar_event: {0} ({1}, {2})'.format(
             'solar_noon', '48.06', '12.86'
         )
 
@@ -606,7 +604,7 @@ class test_models(SchedulerCase):
         p = self.create_model_clocked(
             clocked(time), name='clocked_event'
         )
-        assert text_t(p) == '{0}: {1} {2}'.format(
+        assert str(p) == '{0}: {1} {2}'.format(
             'clocked_event', str(time), True
         )
 
@@ -630,7 +628,7 @@ class test_models(SchedulerCase):
 
     def test_PeriodicTask_unicode_no_schedule(self):
         p = self.create_model()
-        assert text_t(p) == '{0}: {{no schedule}}'.format(p.name)
+        assert str(p) == '{0}: {{no schedule}}'.format(p.name)
 
     def test_CrontabSchedule_schedule(self):
         s = CrontabSchedule(
