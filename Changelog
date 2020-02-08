@@ -4,6 +4,25 @@
  Change history
 ================
 
+2.0.0
+=====
+:release-date: 
+:release-by: 
+- Added support for Django 3.0
+- Dropped support for Django < 2.2 and Python < 3.5
+
+1.6.0
+=====
+:release-date: 2020-02-01 4:30 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+- Fixed invalid long_description (#255)
+- Exposed read-only field PeriodicTask.last_run_at in Django admin (#257)
+- Added docker config to ease development (#260, #261, #264, #288)
+- Added validation schedule validation on save (#271)
+- Added French translation (#286)
+- Fixed case where last_run_at = None and CELERY_TIMEZONE != TIME_ZONE (#294)
+
+
 1.5.0
 =====
 :release-date: 2019-05-21 17:00 p.m. UTC+6:00
