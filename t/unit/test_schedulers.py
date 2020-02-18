@@ -180,6 +180,40 @@ class test_ModelEntry(SchedulerCase):
 
     @override_settings(
         USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False
+    )
+    @pytest.mark.usefixtures('depends_on_current_app')
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_and_model_last_run_at_with_utc_no_use_tz(self, monkeypatch):
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
+        assert self.app.timezone.zone == 'Europe/Berlin'
+        # simulate last_run_at from DB - not TZ aware but localtime
+        right_now = datetime.utcnow()
+        # make sure to use fixed date time
+        monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
+        m = self.create_model_crontab(
+            crontab(minute='*/10')
+        )
+        m.save()
+        e = self.Entry(m, app=self.app)
+        e.save()
+        m.refresh_from_db()
+
+        assert m.last_run_at == e.last_run_at
+
+        if old_tz is not None:
+            os.environ["TZ"] = old_tz
+        else:
+            del os.environ["TZ"]
+        if hasattr(time, "tzset"):
+            time.tzset()
+
+    @override_settings(
+        USE_TZ=False,
         DJANGO_CELERY_BEAT_TZ_AWARE=False,
         TIME_ZONE="Europe/Berlin",
         CELERY_TIMEZONE="America/New_York"

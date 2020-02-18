@@ -163,9 +163,6 @@ class ModelEntry(ScheduleEntry):
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
 
-        if not getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            obj.last_run_at = datetime.datetime.now()
-
         obj.save()
 
     @classmethod
