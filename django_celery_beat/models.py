@@ -30,6 +30,14 @@ PERIOD_CHOICES = (
     (MICROSECONDS, _('Microseconds')),
 )
 
+SINGULAR_PERIODS = (
+    (DAYS, _('Day')),
+    (HOURS, _('Hour')),
+    (MINUTES, _('Minute')),
+    (SECONDS, _('Second')),
+    (MICROSECONDS, _('Microsecond')),
+)
+
 SOLAR_SCHEDULES = [(x, _(x)) for x in sorted(schedules.solar._all_events)]
 
 
@@ -153,9 +161,18 @@ class IntervalSchedule(models.Model):
             return cls(every=every, period=period)
 
     def __str__(self):
+        readable_period = None
         if self.every == 1:
-            return _('every {0.period_singular}').format(self)
-        return _('every {0.every} {0.period}').format(self)
+            for period, _readable_period in SINGULAR_PERIODS:
+                if period == self.period:
+                    readable_period = _readable_period.lower()
+                    break
+            return _('every {}').format(readable_period)
+        for period, _readable_period in PERIOD_CHOICES:
+            if period == self.period:
+                readable_period = _readable_period.lower()
+                break
+        return _('every {} {}').format(self.every, readable_period)
 
     @property
     def period_singular(self):

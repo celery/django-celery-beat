@@ -89,6 +89,26 @@ msgstr "秒"
 msgid "Microseconds"
 msgstr "毫秒"
 
+#: django_celery_beat/models.py:38
+msgid "Day"
+msgstr "天"
+
+#: django_celery_beat/models.py:39
+msgid "Hour"
+msgstr "小时"
+
+#: django_celery_beat/models.py:40
+msgid "Minute"
+msgstr "分钟"
+
+#: django_celery_beat/models.py:41
+msgid "Second"
+msgstr "秒"
+
+#: django_celery_beat/models.py:42
+msgid "Microsecond"
+msgstr "毫秒"
+
 #: .\django_celery_beat\models.py:48
 msgid "event"
 msgstr "事件"
@@ -127,13 +147,13 @@ msgstr "间隔"
 
 #: .\django_celery_beat\models.py:137
 #, python-brace-format
-msgid "every {0.period_singular}"
-msgstr "每 {0.period_singular}"
+msgid "every {}"
+msgstr "每 {}"
 
 #: .\django_celery_beat\models.py:138
 #, python-brace-format
-msgid "every {0.every} {0.period}"
-msgstr "每 {0.every} {0.period}"
+msgid "every {} {}"
+msgstr "每 {} {}"
 
 #: .\django_celery_beat\models.py:157
 msgid "minute"
