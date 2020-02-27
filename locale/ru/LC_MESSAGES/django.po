@@ -96,6 +96,26 @@ msgstr "Секунды"
 msgid "Microseconds"
 msgstr "Микросекунды"
 
+#: django_celery_beat/models.py:38
+msgid "Day"
+msgstr "день"
+
+#: django_celery_beat/models.py:39
+msgid "Hour"
+msgstr "время"
+
+#: django_celery_beat/models.py:40
+msgid "Minute"
+msgstr "минут"
+
+#: django_celery_beat/models.py:41
+msgid "Second"
+msgstr "Секунды"
+
+#: django_celery_beat/models.py:42
+msgid "Microsecond"
+msgstr "Микросекунды"
+
 #: django_celery_beat/models.py:54
 msgid "Solar Event"
 msgstr "Астрономическое"
@@ -154,13 +174,13 @@ msgstr "интервалы"
 
 #: django_celery_beat/models.py:162
 #, python-brace-format
-msgid "every {0.period_singular}"
-msgstr "каждые {0.period_singular}"
+msgid "every {}"
+msgstr "каждые {}"
 
 #: django_celery_beat/models.py:163
 #, python-brace-format
-msgid "every {0.every} {0.period}"
-msgstr "каждые {0.every} {0.period}"
+msgid "every {} {}"
+msgstr "каждые {} {}"
 
 #: django_celery_beat/models.py:175
 msgid "Clock Time"
