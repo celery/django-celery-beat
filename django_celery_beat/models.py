@@ -533,21 +533,24 @@ class PeriodicTask(models.Model):
 
         schedule_types = ['interval', 'crontab', 'solar', 'clocked']
         selected_schedule_types = [s for s in schedule_types
-                                   if getattr(self, s)]
+                                   if getattr(self, s, None)]
 
         if len(selected_schedule_types) == 0:
-            raise ValidationError({
-                'interval': [
-                    'One of clocked, interval, crontab, or solar must be set.'
-                ]
-            })
+            err_msg = \
+                'One of clocked, interval, crontab, or solar must be set.'
+            error_info = {
+                schedule_type: [err_msg]
+                for schedule_type in schedule_types
+            }
+            raise ValidationError(error_info)
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
-            'or solar must be set'
-        if len(selected_schedule_types) > 1:
-            error_info = {}
-            for selected_schedule_type in selected_schedule_types:
-                error_info[selected_schedule_type] = [err_msg]
+        elif len(selected_schedule_types) > 1:
+            err_msg = \
+                'Only one of clocked, interval, crontab, or solar must be set'
+            error_info = {
+                selected_schedule_type: [err_msg]
+                for selected_schedule_type in selected_schedule_types
+            }
             raise ValidationError(error_info)
 
         # clocked must be one off task
