@@ -75,20 +75,37 @@ class ActionsTests(TestCase):
         self.assertTrue(e2)
         self.assertTrue(e3)
 
-    def test_validate_unique_raises_if_schedule_not_set(self):
-        with self.assertRaises(ValidationError):
-            PeriodicTask().validate_unique()
 
-    def test_save_raises_for_multiple_schedules(self):
+class ValidateUniqueTests(TestCase):
+
+    def test_validate_unique_raises_if_schedule_not_set(self):
+        with self.assertRaises(ValidationError) as cm:
+            PeriodicTask(name='task0').validate_unique()
+        self.assertEquals(
+            cm.exception.args[0],
+            'One of clocked, interval, crontab, or solar must be set.',
+        )
+
+    def test_validate_unique_raises_for_multiple_schedules(self):
         schedules = [
             ('crontab', CrontabSchedule()),
             ('interval', IntervalSchedule()),
             ('solar', SolarSchedule()),
             ('clocked', ClockedSchedule())
         ]
+        expected_error_msg = (
+            'Only one of clocked, interval, crontab, or solar '
+            'must be set'
+        )
         for i, options in enumerate(combinations(schedules, 2)):
-            with self.assertRaises(ValidationError):
-                PeriodicTask(name='task{}'.format(i), **dict(options)).save()
+            name = 'task{}'.format(i)
+            options_dict = dict(options)
+            with self.assertRaises(ValidationError) as cm:
+                PeriodicTask(name=name, **options_dict).validate_unique()
+            errors = cm.exception.args[0]
+            self.assertEquals(errors.keys(), options_dict.keys())
+            for error_msg in errors.values():
+                self.assertEquals(error_msg, [expected_error_msg])
 
     def test_validate_unique_not_raises(self):
         PeriodicTask(crontab=CrontabSchedule()).validate_unique()

@@ -536,11 +536,10 @@ class PeriodicTask(models.Model):
                                    if getattr(self, s)]
 
         if len(selected_schedule_types) == 0:
-            raise ValidationError({
-                'interval': [
-                    'One of clocked, interval, crontab, or solar must be set.'
-                ]
-            })
+            raise ValidationError(
+                'One of clocked, interval, crontab, or solar '
+                'must be set.'
+            )
 
         err_msg = 'Only one of clocked, interval, crontab, '\
             'or solar must be set'
