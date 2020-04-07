@@ -2,6 +2,7 @@
 import datetime
 import logging
 import math
+import pytz
 
 from multiprocessing.util import Finalize
 
@@ -129,6 +130,21 @@ class ModelEntry(ScheduleEntry):
             self.model.no_changes = False  # Mark the model entry as changed
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
+
+        # When Django settings USE_TZ is False and Django settings TIME_ZONE is set
+        # value of TIME_ZINE is the time zone in which Django will store all datetimes.
+        # Because of that if datetime is naive we should use it as source timezone
+        # celery.utils.time.maybe_make_aware - always convert naive datetime to UTC
+        # which may be wrong in Django sicase.
+        django_timezone = getattr(settings, 'TIME_ZONE', None)
+        django_use_tz = getattr(settings, 'USE_TZ', None)
+        if (not django_use_tz
+            and django_timezone
+            and self.last_run_at.tzinfo is None
+            and self.app.timezone):
+            source_timezone = pytz.timezone(django_timezone)
+            last_run_at_django_tz = source_timezone.localize(self.last_run_at)
+            self.last_run_at = last_run_at_django_tz.astimezone(self.app.timezone)
 
         # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
         # while maybe_make_aware assumes utc for naive datetimes
