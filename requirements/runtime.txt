@@ -1,2 +1,3 @@
 celery
 Django>=1.11.17
+ephem

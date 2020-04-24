@@ -26,18 +26,18 @@ services:
     volumes:
       - './django_celery_beat/:/app/django_celery_beat/'
 
-  celery-beat:
+  celery:
     depends_on:
-      - base
+      - django
       - postgres
       - rabbit
     build:
       context: .
-      dockerfile: docker/celery-beat/Dockerfile
-    entrypoint: ["/app/docker/celery-beat/entrypoint.sh"]
+      dockerfile: docker/celery/Dockerfile
+    entrypoint: ["/app/docker/celery/entrypoint.sh"]
     environment:
         CELERY_BROKER_URL: 'amqp://guest:guest@rabbit:5672'
-    command: ["python3", '-m', "celery", "-A", "mysite", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    command: ["python3", '-m', "celery", "-A", "mysite", "worker", "--beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
     tty: true
     volumes:
       - './django_celery_beat/:/app/django_celery_beat/'
@@ -47,3 +47,5 @@ services:
 
   postgres:
     image: postgres
+    environment:
+        POSTGRES_HOST_AUTH_METHOD: 'trust'
