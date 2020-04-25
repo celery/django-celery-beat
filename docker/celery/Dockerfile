@@ -4,4 +4,4 @@
 ARG COMPOSE_PROJECT_NAME=django-celery-beat
 FROM ${COMPOSE_PROJECT_NAME}_base
 
-COPY docker/celery-beat/entrypoint.sh  /app/docker/celery-beat/
+COPY docker/celery/entrypoint.sh  /app/docker/celery/

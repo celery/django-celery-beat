@@ -554,6 +554,7 @@ class test_DatabaseScheduler(SchedulerCase):
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
 
+    @pytest.mark.skip
     def test_heap_always_return_the_first_item(self):
         interval = 10
 

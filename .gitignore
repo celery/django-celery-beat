@@ -32,3 +32,4 @@ coverage.xml
 .eggs/
 .python-version
 venv
+.vscode/
