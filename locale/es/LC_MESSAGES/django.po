@@ -190,11 +190,11 @@ msgstr "cada {} {}"
 
 #: django_celery_beat/models.py:195
 msgid "Clock Time"
-msgstr "Hora del reloj"
+msgstr "Hora y día"
 
 #: django_celery_beat/models.py:196
 msgid "Run the task at clocked time"
-msgstr "Ejecuta la tarea a la hora marcada"
+msgstr "Ejecuta la tarea en el momento indicado"
 
 #: django_celery_beat/models.py:201
 #: django_celery_beat/models.py:503
@@ -204,12 +204,12 @@ msgstr "Habilitada"
 #: django_celery_beat/models.py:202
 #: django_celery_beat/models.py:504
 msgid "Set to False to disable the schedule"
-msgstr "Establece en Falso para deshabilitar la programación"
+msgstr "Establece a Falso para deshabilitar la programación"
 
 #: django_celery_beat/models.py:208
 #: django_celery_beat/models.py:209
 msgid "clocked"
-msgstr "registrado"
+msgstr "cronometrado"
 
 #: django_celery_beat/models.py:252
 msgid "Minute(s)"
@@ -331,14 +331,14 @@ msgstr ""
 
 #: django_celery_beat/models.py:418
 msgid "Clocked Schedule"
-msgstr "Programación de reloj"
+msgstr "Programación horaria"
 
 #: django_celery_beat/models.py:419
 msgid ""
 "Clocked Schedule to run the task on.  Set only one schedule type, leave the "
 "others null."
 msgstr ""
-"Programación de reloj con la cual ejecutar la tarea. Establece sólo un tipo "
+"Programación horaria con la cual ejecutar la tarea. Establece sólo un tipo "
 "de programación, deja el resto en blanco."
 
 #: django_celery_beat/models.py:425
