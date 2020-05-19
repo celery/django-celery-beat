@@ -290,7 +290,8 @@ class DatabaseScheduler(Scheduler):
         return new_entry
 
     def sync(self):
-        info('Writing entries...')
+        if logger.isEnabledFor(logging.DEBUG):
+            debug('Writing entries...')
         _tried = set()
         _failed = set()
         try:
