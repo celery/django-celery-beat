@@ -12,6 +12,7 @@ import timezone_field
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import crontab_schedule_celery_timezone
 
+
 class MigrationTests(TestCase):
     def test_no_future_duplicate_migration_numbers(self):
         """Verify no duplicate migration numbers.
@@ -56,6 +57,7 @@ class MigrationTests(TestCase):
         self.assertTrue(
             not changes,
             msg='Model changes exist that do not have a migration')
+
 
 class CrontabScheduleTestCase(TestCase):
     FIRST_VALID_TIMEZONE = timezone_field.TimeZoneField.CHOICES[0][0].zone
