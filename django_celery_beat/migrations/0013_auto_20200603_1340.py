@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='crontabschedule',
             name='timezone',
-            field=timezone_field.fields.TimeZoneField(
-                default=django_celery_beat.models.crontab_schedule_celery_timezone, help_text='Timezone to Run the Cron Schedule on. Default is UTC.', verbose_name='Cron Timezone'),
+            field=timezone_field.fields.TimeZoneField(default=django_celery_beat.models.crontab_schedule_celery_timezone, help_text='Timezone to Run the Cron Schedule on. Default is UTC.', verbose_name='Cron Timezone'),
         ),
     ]
