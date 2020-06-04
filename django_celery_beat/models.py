@@ -47,8 +47,9 @@ def cronexp(field):
 
 
 def crontab_schedule_celery_timezone():
-    """Returns timezone string from Django settings `CELERY_TIMEZONE` variable,
-    if is defined and is a valid timezone, else `"UTC"`.
+    """Return timezone string from Django settings `CELERY_TIMEZONE` variable.
+
+    If is not defined or is not a valid timezone, return `"UTC"` instead.
     """
     try:
         CELERY_TIMEZONE = getattr(settings, 'CELERY_TIMEZONE')
