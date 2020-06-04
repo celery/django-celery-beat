@@ -45,6 +45,7 @@ def cronexp(field):
     """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
 
+
 def crontab_schedule_celery_timezone():
     """Returns timezone string from Django settings `CELERY_TIMEZONE` variable,
     if is defined and is a valid timezone, else `"UTC"`.
@@ -56,6 +57,7 @@ def crontab_schedule_celery_timezone():
     return CELERY_TIMEZONE if CELERY_TIMEZONE in [
         choice[0].zone for choice in timezone_field.TimeZoneField.CHOICES
     ] else 'UTC'
+
 
 class SolarSchedule(models.Model):
     """Schedule following astronomical patterns.
@@ -291,7 +293,7 @@ class CrontabSchedule(models.Model):
         default=crontab_schedule_celery_timezone,
         verbose_name=_('Cron Timezone'),
         help_text=_(
-            'Timezone to Run the Cron Schedule on.  Default is UTC.'),
+            'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
 
     class Meta:
