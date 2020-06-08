@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 import timezone_field
-from celery import schedules
+from celery import schedules, current_app
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -52,7 +52,8 @@ def crontab_schedule_celery_timezone():
     If is not defined or is not a valid timezone, return `"UTC"` instead.
     """
     try:
-        CELERY_TIMEZONE = getattr(settings, 'CELERY_TIMEZONE')
+        CELERY_TIMEZONE = getattr(
+            settings, '%s_TIMEZONE' % current_app.namespace)
     except AttributeError:
         return 'UTC'
     return CELERY_TIMEZONE if CELERY_TIMEZONE in [
