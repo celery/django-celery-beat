@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 import timezone_field
-from celery import schedules
+from celery import schedules, current_app
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -44,6 +44,21 @@ SOLAR_SCHEDULES = [(x, _(x)) for x in sorted(schedules.solar._all_events)]
 def cronexp(field):
     """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
+
+
+def crontab_schedule_celery_timezone():
+    """Return timezone string from Django settings `CELERY_TIMEZONE` variable.
+
+    If is not defined or is not a valid timezone, return `"UTC"` instead.
+    """
+    try:
+        CELERY_TIMEZONE = getattr(
+            settings, '%s_TIMEZONE' % current_app.namespace)
+    except AttributeError:
+        return 'UTC'
+    return CELERY_TIMEZONE if CELERY_TIMEZONE in [
+        choice[0].zone for choice in timezone_field.TimeZoneField.CHOICES
+    ] else 'UTC'
 
 
 class SolarSchedule(models.Model):
@@ -277,10 +292,10 @@ class CrontabSchedule(models.Model):
     )
 
     timezone = timezone_field.TimeZoneField(
-        default='UTC',
+        default=crontab_schedule_celery_timezone,
         verbose_name=_('Cron Timezone'),
         help_text=_(
-            'Timezone to Run the Cron Schedule on.  Default is UTC.'),
+            'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
 
     class Meta:
