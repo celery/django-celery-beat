@@ -33,7 +33,7 @@ class clocked(schedules.BaseSchedule):
         rem_delta = self.remaining_estimate(None)
         remaining_s = max(rem_delta.total_seconds(), 0)
         if remaining_s == 0:
-            if self.model:
+            if self.model and not self.model.periodictask_set.filter(one_off=True).exists():
                 self.model.enabled = False
                 self.model.save()
             return schedstate(is_due=True, next=None)
