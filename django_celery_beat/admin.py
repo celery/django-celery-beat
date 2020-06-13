@@ -133,7 +133,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
         ('Schedule', {
             'fields': ('interval', 'crontab', 'solar', 'clocked',
-                       'start_time', 'last_run_at', 'one_off'),
+                       'start_time', 'last_run_at','total_run_count', 'one_off'),
             'classes': ('extrapretty', 'wide'),
         }),
         ('Arguments', {
@@ -148,6 +148,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         'last_run_at',
+        'total_run_count'
     )
 
     def changelist_view(self, request, extra_context=None):

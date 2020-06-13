@@ -125,7 +125,6 @@ class ModelEntry(ScheduleEntry):
         if self.model.one_off and self.model.enabled \
                 and self.model.total_run_count > 0:
             self.model.enabled = False
-            self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
             self.model.save()
             return schedules.schedstate(False, None)  # Don't recheck
