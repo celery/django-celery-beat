@@ -24,6 +24,7 @@ from .models import (
     SolarSchedule, ClockedSchedule
 )
 from .clockedschedule import clocked
+from .utils import NEVER_CHECK_TIMEOUT
 
 try:
     from celery.utils.time import is_naive
@@ -128,7 +129,8 @@ class ModelEntry(ScheduleEntry):
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
             self.model.save()
-            return schedules.schedstate(False, None)  # Don't recheck
+            # Don't recheck
+            return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
         # while maybe_make_aware assumes utc for naive datetimes

@@ -245,14 +245,9 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
 
     fields = (
         'clocked_time',
-        'enabled',
-    )
-    readonly_fields = (
-        'enabled',
     )
     list_display = (
         'clocked_time',
-        'enabled',
     )
 
 

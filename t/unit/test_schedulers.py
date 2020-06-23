@@ -21,7 +21,7 @@ from django_celery_beat.models import (
     PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
     SolarSchedule, ClockedSchedule, DAYS
 )
-from django_celery_beat.utils import make_aware
+from django_celery_beat.utils import make_aware, NEVER_CHECK_TIMEOUT
 
 _ids = count(0)
 
@@ -288,7 +288,7 @@ class test_ModelEntry(SchedulerCase):
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
-        assert delay is None
+        assert delay == NEVER_CHECK_TIMEOUT
 
 
 @pytest.mark.django_db()
@@ -638,8 +638,8 @@ class test_models(SchedulerCase):
         p = self.create_model_clocked(
             clocked(time), name='clocked_event'
         )
-        assert str(p) == '{0}: {1} {2}'.format(
-            'clocked_event', str(time), True
+        assert str(p) == '{0}: {1}'.format(
+            'clocked_event', str(time)
         )
 
     def test_PeriodicTask_schedule_property(self):
@@ -743,16 +743,7 @@ class test_models(SchedulerCase):
         assert s.schedule is not None
         isdue2, nextcheck2 = s.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
-        assert (nextcheck2 is None) and (isdue2 is True)
-        print(s.schedule.enabled)
-
-        assert s.schedule is not None
-        isdue3, nextcheck3 = s.schedule.is_due(dt2_lastrun)
-        print(s.schedule.clocked_time, s.schedule.enabled)
-        print(isdue3, nextcheck3)
-        # False means task isn't due, but keep checking.
-        assert isdue3 is False
-        assert (nextcheck3 is None) and (isdue3 is False)
+        assert (nextcheck2 == NEVER_CHECK_TIMEOUT) and (isdue2 is True)
 
 
 @pytest.mark.django_db()

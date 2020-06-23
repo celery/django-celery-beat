@@ -201,12 +201,6 @@ class ClockedSchedule(models.Model):
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
     )
-    enabled = models.BooleanField(
-        default=True,
-        editable=False,
-        verbose_name=_('Enabled'),
-        help_text=_('Set to False to disable the schedule'),
-    )
 
     class Meta:
         """Table information."""
@@ -216,18 +210,16 @@ class ClockedSchedule(models.Model):
         ordering = ['clocked_time']
 
     def __str__(self):
-        return '{} {}'.format(self.clocked_time, self.enabled)
+        return '{}'.format(self.clocked_time)
 
     @property
     def schedule(self):
-        c = clocked(clocked_time=self.clocked_time,
-                    enabled=self.enabled, model=self)
+        c = clocked(clocked_time=self.clocked_time)
         return c
 
     @classmethod
     def from_schedule(cls, schedule):
-        spec = {'clocked_time': schedule.clocked_time,
-                'enabled': schedule.enabled}
+        spec = {'clocked_time': schedule.clocked_time}
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
