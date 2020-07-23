@@ -300,19 +300,19 @@ If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_
 .. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=master
     :target: https://codecov.io/github/celery/django-celery-beat?branch=master
 
-.. |license| image:: https://img.shields.io/pypi/l/django-celery-beat.svg
+.. |license| image:: https://img.shields.io/pypi/l/django-celery-beat.svg#foo
     :alt: BSD License
     :target: https://opensource.org/licenses/BSD-3-Clause
 
-.. |wheel| image:: https://img.shields.io/pypi/wheel/django-celery-beat.svg
+.. |wheel| image:: https://img.shields.io/pypi/wheel/django-celery-beat.svg#foo
     :alt: django-celery-beat can be installed via wheel
     :target: http://pypi.python.org/pypi/django-celery-beat/
 
-.. |pyversion| image:: https://img.shields.io/pypi/pyversions/django-celery-beat.svg
+.. |pyversion| image:: https://img.shields.io/pypi/pyversions/django-celery-beat.svg#foo
     :alt: Supported Python versions.
     :target: http://pypi.python.org/pypi/django-celery-beat/
 
-.. |pyimp| image:: https://img.shields.io/pypi/implementation/django-celery-beat.svg
+.. |pyimp| image:: https://img.shields.io/pypi/implementation/django-celery-beat.svg#foo
     :alt: Support Python implementations.
     :target: http://pypi.python.org/pypi/django-celery-beat/
 
