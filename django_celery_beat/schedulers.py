@@ -1,22 +1,32 @@
 """Beat Scheduler Implementation."""
+from __future__ import absolute_import, unicode_literals
+
 import datetime
 import logging
 import math
-
-from multiprocessing.util import Finalize
+import sys
 
 from celery import current_app
 from celery import schedules
-from celery.beat import Scheduler, ScheduleEntry
+# noinspection PyProtectedMember
+from celery.beat import Scheduler, ScheduleEntry, SchedulingError, BeatLazyFunc
+# noinspection PyUnresolvedReferences
+from celery.five import (
+    items, monotonic, python_2_unicode_compatible,
+    reraise, values
+)
 from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
 from django.conf import settings
+# noinspection PyProtectedMember
 from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
+# noinspection PyUnresolvedReferences
+from multiprocessing.util import Finalize
 
 from .models import (
     PeriodicTask, PeriodicTasks,
@@ -60,6 +70,7 @@ class ModelEntry(ScheduleEntry):
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
+        self.task_signature = model.get_task_signature()
         try:
             self.schedule = model.schedule
         except model.DoesNotExist:
@@ -372,3 +383,30 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+    def apply_async(self, entry, producer=None, advance=True, **kwargs):
+        # Update time-stamps and run counts before we actually execute,
+        # so we have that done if an exception is raised (doesn't schedule
+        # forever.)
+        entry = self.reserve(entry) if advance else entry
+        task = entry.task_signature if entry.task_signature is not None else self.app.tasks.get(entry.task)
+
+        try:
+            entry_args = [v() if isinstance(v, BeatLazyFunc) else v for v in (entry.args or [])]
+            entry_kwargs = {k: v() if isinstance(v, BeatLazyFunc) else v for k, v in entry.kwargs.items()}
+            if task:
+                return task.apply_async(entry_args, entry_kwargs,
+                                        producer=producer,
+                                        **entry.options)
+            else:
+                return self.send_task(entry.task, entry_args, entry_kwargs,
+                                      producer=producer,
+                                      **entry.options)
+        except Exception as exc:  # pylint: disable=broad-except
+            reraise(SchedulingError, SchedulingError(
+                "Couldn't apply scheduled task {0.name}: {exc}".format(
+                    entry, exc=exc)), sys.exc_info()[2])
+        finally:
+            self._tasks_since_sync += 1
+            if self.should_sync():
+                self._do_sync()

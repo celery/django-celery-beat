@@ -1,2 +1,3 @@
 celery
+# celery>=4.4.7
 Django>=1.11.17

@@ -203,11 +203,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def run_tasks(self, request, queryset):
         self.celery_app.loader.import_default_modules()
-        tasks = [(self.celery_app.tasks.get(task.task),
-                  loads(task.args),
-                  loads(task.kwargs),
-                  task.queue)
-                 for task in queryset]
+        tasks = [
+            (
+                task.get_task_signature() if task.task_signature is not None else self.celery_app.tasks.get(task.task),
+                loads(task.args),
+                loads(task.kwargs),
+                task.queue
+            ) for task in queryset
+        ]
 
         if any(t[0] is None for t in tasks):
             for i, t in enumerate(tasks):
@@ -215,7 +218,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                     break
 
             # variable "i" will be set because list "tasks" is not empty
-            not_found_task_name = queryset[i].task
+            not_found_task_name = queryset[i].task_signature.name if queryset[i].task_signature is not None \
+                else queryset[i].task
 
             self.message_user(
                 request,

@@ -1,6 +1,7 @@
 """Database models."""
 from datetime import timedelta
 
+import dill
 import timezone_field
 from celery import schedules, current_app
 from django.conf import settings
@@ -388,6 +389,11 @@ class PeriodicTask(models.Model):
         help_text=_('The Name of the Celery Task that Should be Run.  '
                     '(Example: "proj.tasks.import_contacts")'),
     )
+    task_signature = models.BinaryField(
+        null=True,
+        help_text='Serialized signature objects of task (or chain, group, '
+                  'etc.) got by https://pypi.org/project/dill/'
+    )  # todo: add sign of a serialized task
 
     # You can only set ONE of the following schedule FK's
     # TODO: Redo this as a GenericForeignKey
@@ -577,6 +583,12 @@ class PeriodicTask(models.Model):
             raise ValidationError(
                 _('Only one can be set, in expires and expire_seconds')
             )
+
+    def get_task_signature(self):
+        if self.task_signature is None:
+            return None
+        # todo: add sign check
+        return dill.loads(bytes(self.task_signature))
 
     @property
     def expires_(self):
