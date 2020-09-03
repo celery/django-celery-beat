@@ -90,7 +90,10 @@ class ModelEntry(ScheduleEntry):
             )
             self._disable(model)
 
-        self.options = {}
+        self.options = {
+            'link': model.get_verified_callback_signature()
+        }
+
         for option in ['queue', 'exchange', 'routing_key', 'priority']:
             value = getattr(model, option)
             if value is None:
