@@ -20,17 +20,26 @@ def _load_keys():
     public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
 
     if os.path.exists(private_key_path):
-        with open(private_key_path, 'r') as id_rsa:
+        with open(private_key_path, 'rb') as id_rsa:
             private_key = RSA.importKey(id_rsa.read())
             public_key = private_key.publickey()
+
+        if not os.path.exists(public_key_path):
+            open(private_key_path, 'wb').close()
+            os.chmod(public_key_path, 0o644)
+            with open(public_key_path, 'wb') as id_rsa_pub:
+                id_rsa_pub.write(public_key.exportKey())
     else:
         private_key = RSA.generate(4096, os.urandom)
         public_key = private_key.publickey()
 
+        open(private_key_path, 'wb').close()
         os.chmod(private_key_path, 0o600)
-        with open(private_key_path, 'wb+') as id_rsa:
+        with open(private_key_path, 'wb') as id_rsa:
             id_rsa.write(private_key.exportKey())
 
+        open(public_key_path, 'wb').close()
+        os.chmod(public_key_path, 0o644)
         with open(public_key_path, 'wb') as id_rsa_pub:
             id_rsa_pub.write(public_key.exportKey())
 
@@ -74,13 +83,14 @@ def is_database_scheduler(scheduler):
 
 
 def sign(data):
-    """Sign the data to protect against database changes and return signature in hex"""
+    """Sign the bytes data to protect against database changes and return signature in hex"""
+    assert isinstance(data, bytes), ValueError('Data must be bytes')
     return hex(_private_key.sign(data, '')[0])
 
 
 def verify(data, signature):
     """Check the signature and return True if it is correct for the specified data"""
-    return _public_key.verify(data, signature)
+    return _public_key.verify(data, (int(signature, 16),))
 
 
 _private_key, _public_key = _load_keys()

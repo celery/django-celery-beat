@@ -605,9 +605,7 @@ class PeriodicTask(models.Model):
                 raise ValueError(err)
             return None
 
-        task_signature_sign = int(self.task_signature_sign, 16)
-
-        if not verify(bytes(self.task_signature), (task_signature_sign,)):
+        if not verify(bytes(self.task_signature), self.task_signature_sign):
             err = 'Wrong sign for `{}`. Task disabled.'.format(self)
             self.enabled = False
             self.save(update_fields=['enabled'])
