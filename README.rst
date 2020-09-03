@@ -79,7 +79,7 @@ If you update periodic tasks in bulk, you will need to update the counter
 manually::
 
     >>> from django_celery_beat.models import PeriodicTasks
-    >>> PeriodicTasks.changed()
+    >>> PeriodicTasks.update_changed()
 
 Example creating interval-based periodic task
 ---------------------------------------------
