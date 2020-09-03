@@ -70,7 +70,8 @@ class ModelEntry(ScheduleEntry):
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
-        self.task_signature = model.get_task_signature()
+        self.task_signature = model.get_verified_task_signature()
+
         try:
             self.schedule = model.schedule
         except model.DoesNotExist:

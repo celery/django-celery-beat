@@ -13,9 +13,11 @@ from django.utils.translation import gettext_lazy as _
 
 from . import managers, validators
 from .tzcrontab import TzAwareCrontab
-from .utils import make_aware, now
+from .utils import make_aware, now, verify
 from .clockedschedule import clocked
+from celery.utils.log import get_logger
 
+logger = get_logger(__name__)
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -391,9 +393,14 @@ class PeriodicTask(models.Model):
     )
     task_signature = models.BinaryField(
         null=True,
-        help_text='Serialized signature objects of task (or chain, group, '
+        help_text='Serialized `celery.canvas.Signature` type\'s object of task (or chain, group, '
                   'etc.) got by https://pypi.org/project/dill/'
-    )  # todo: add sign of a serialized task
+    )
+    task_signature_sign = models.CharField(
+        null=True,
+        max_length=1028,
+        help_text='Signature (in hex) of serialized `celery.canvas.Signature` type\'s object (see task_signature field)'
+    )
 
     # You can only set ONE of the following schedule FK's
     # TODO: Redo this as a GenericForeignKey
@@ -584,10 +591,31 @@ class PeriodicTask(models.Model):
                 _('Only one can be set, in expires and expire_seconds')
             )
 
-    def get_task_signature(self):
+    def get_verified_task_signature(self, raise_exceptions=True):
         if self.task_signature is None:
             return None
-        # todo: add sign check
+
+        if self.task_signature_sign is None:
+            err = 'Not found `task_signature_sign` for `{}` (use django_celery_be' \
+                  'at.utils.sign to sign). Task disabled.'.format(self)
+            self.enabled = False
+            self.save(update_fields=['enabled'])
+            logger.error(err)
+            if raise_exceptions:
+                raise ValueError(err)
+            return None
+
+        task_signature_sign = int(self.task_signature_sign, 16)
+
+        if not verify(bytes(self.task_signature), (task_signature_sign,)):
+            err = 'Wrong sign for `{}`. Task disabled.'.format(self)
+            self.enabled = False
+            self.save(update_fields=['enabled'])
+            logger.error(err)
+            if raise_exceptions:
+                raise ValueError(err)
+            return None
+
         return dill.loads(bytes(self.task_signature))
 
     @property

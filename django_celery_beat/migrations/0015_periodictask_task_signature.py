@@ -13,6 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='periodictask',
             name='task_signature',
-            field=models.BinaryField(help_text='Serialized signature objects of task (or chain, group, etc.) got by https://pypi.org/project/dill/', null=True),
+            field=models.BinaryField(help_text="Serialized `celery.canvas.Signature` type's object of task (or chain, group, etc.) got by https://pypi.org/project/dill/", null=True),
+        ),
+        migrations.AddField(
+            model_name='periodictask',
+            name='task_signature_sign',
+            field=models.CharField(help_text="Signature (in hex) of serialized `celery.canvas.Signature` type's object (see task_signature field)", max_length=1028, null=True),
         ),
     ]

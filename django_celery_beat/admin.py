@@ -74,6 +74,7 @@ class PeriodicTaskForm(forms.ModelForm):
         required=False,
         max_length=200,
     )
+    # todo: add field for task_signature
 
     class Meta:
         """Form metadata."""
@@ -205,7 +206,9 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         self.celery_app.loader.import_default_modules()
         tasks = [
             (
-                task.get_task_signature() if task.task_signature is not None else self.celery_app.tasks.get(task.task),
+                task.get_verified_task_signature(raise_exceptions=False)
+                if task.task_signature is not None
+                else self.celery_app.tasks.get(task.task),
                 loads(task.args),
                 loads(task.kwargs),
                 task.queue
@@ -218,8 +221,9 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                     break
 
             # variable "i" will be set because list "tasks" is not empty
-            not_found_task_name = queryset[i].task_signature.name if queryset[i].task_signature is not None \
-                else queryset[i].task
+            not_found_task_name = queryset[i].get_verified_task_signature(raise_exceptions=False).name \
+                if queryset[i].task_signature is not None and queryset[i].get_verified_task_signature(
+                raise_exceptions=False) is not None else queryset[i].task
 
             self.message_user(
                 request,
@@ -231,7 +235,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         task_ids = [task.apply_async(args=args, kwargs=kwargs, queue=queue)
                     if queue and len(queue)
                     else task.apply_async(args=args, kwargs=kwargs)
-                    for task, args, kwargs, queue in tasks]
+                    for task, args, kwargs, queue in tasks if task is not None]
         tasks_run = len(task_ids)
         self.message_user(
             request,
