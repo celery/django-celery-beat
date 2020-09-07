@@ -1,5 +1,6 @@
 """Utilities."""
 import os
+from hashlib import sha256
 
 import Crypto.PublicKey.RSA as RSA
 # -- XXX This module must not use translation as that causes
@@ -82,15 +83,15 @@ def is_database_scheduler(scheduler):
     )
 
 
-def sign(data):
+def sign_task_signature(serialized_task_signature):
     """Sign the bytes data to protect against database changes and return signature in hex"""
-    assert isinstance(data, bytes), ValueError('Data must be bytes')
-    return hex(_private_key.sign(data, '')[0])
+    assert isinstance(serialized_task_signature, bytes), ValueError('Data must be bytes')
+    return hex(_private_key.sign(sha256(serialized_task_signature).hexdigest().encode(), '')[0])
 
 
-def verify(data, signature):
+def verify_task_signature(serialized_task_signature, sign_in_hex):
     """Check the signature and return True if it is correct for the specified data"""
-    return _public_key.verify(data, (int(signature, 16),))
+    return _public_key.verify(sha256(serialized_task_signature).hexdigest().encode(), (int(sign_in_hex, 16),))
 
 
 _private_key, _public_key = _load_keys()

@@ -4,6 +4,7 @@ from datetime import timedelta
 import dill
 import timezone_field
 from celery import schedules, current_app
+from celery.utils.log import get_logger
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -12,10 +13,9 @@ from django.db.models import signals
 from django.utils.translation import gettext_lazy as _
 
 from . import managers, validators
-from .tzcrontab import TzAwareCrontab
-from .utils import make_aware, now, verify
 from .clockedschedule import clocked
-from celery.utils.log import get_logger
+from .tzcrontab import TzAwareCrontab
+from .utils import make_aware, now, verify_task_signature
 
 logger = get_logger(__name__)
 
@@ -572,8 +572,8 @@ class PeriodicTask(models.Model):
                 'must be set.'
             )
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
-            'or solar must be set'
+        err_msg = 'Only one of clocked, interval, crontab, ' \
+                  'or solar must be set'
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:
@@ -636,7 +636,9 @@ class PeriodicTask(models.Model):
                 raise ValueError(err)
             return None
 
-        if not verify(bytes(obj_signarute), obj_signarute_sign):
+        obj_signarute = bytes(obj_signarute)
+
+        if not verify_task_signature(obj_signarute, obj_signarute_sign):
             err = 'Wrong sign for `{}`. Task disabled.'.format(self)
             self.enabled = False
             self.save(update_fields=['enabled'])
@@ -645,7 +647,7 @@ class PeriodicTask(models.Model):
                 raise ValueError(err)
             return None
 
-        return dill.loads(bytes(obj_signarute))
+        return dill.loads(obj_signarute)
 
     @property
     def expires_(self):
