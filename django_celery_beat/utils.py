@@ -5,6 +5,7 @@ from hashlib import sha256
 import Crypto.PublicKey.RSA as RSA
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
+from celery.utils.log import get_logger
 from django.conf import settings
 from django.utils import timezone
 
@@ -14,37 +15,44 @@ NEVER_CHECK_TIMEOUT = 100000000
 
 # see Issue #222
 now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
+_private_key = _public_key = None
+
+logger = get_logger(__name__)
 
 
 def _load_keys():
+    global _private_key, _public_key
+
+    if _private_key is not None and _public_key is not None:
+        return
+
     private_key_path = os.environ.get('DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH', './id_rsa')
     public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
 
     if os.path.exists(private_key_path):
         with open(private_key_path, 'rb') as id_rsa:
-            private_key = RSA.importKey(id_rsa.read())
-            public_key = private_key.publickey()
-
-        if not os.path.exists(public_key_path):
-            open(private_key_path, 'wb').close()
-            os.chmod(public_key_path, 0o644)
-            with open(public_key_path, 'wb') as id_rsa_pub:
-                id_rsa_pub.write(public_key.exportKey())
+            _private_key = RSA.importKey(id_rsa.read())
+            _public_key = _private_key.publickey()
     else:
-        private_key = RSA.generate(4096, os.urandom)
-        public_key = private_key.publickey()
+        logger.info(
+            'Keys not found. Generating new RSA keys... [{},{}]'.format(
+                public_key_path,
+                private_key_path
+            )
+        )
+
+        _private_key = RSA.generate(4096, os.urandom)
+        _public_key = _private_key.publickey()
 
         open(private_key_path, 'wb').close()
         os.chmod(private_key_path, 0o600)
         with open(private_key_path, 'wb') as id_rsa:
-            id_rsa.write(private_key.exportKey())
+            id_rsa.write(_private_key.exportKey())
 
-        open(public_key_path, 'wb').close()
-        os.chmod(public_key_path, 0o644)
-        with open(public_key_path, 'wb') as id_rsa_pub:
-            id_rsa_pub.write(public_key.exportKey())
-
-    return private_key, public_key
+    open(public_key_path, 'wb').close()
+    os.chmod(public_key_path, 0o644)
+    with open(public_key_path, 'wb') as id_rsa_pub:
+        id_rsa_pub.write(_public_key.exportKey())
 
 
 def make_aware(value):
@@ -85,13 +93,14 @@ def is_database_scheduler(scheduler):
 
 def sign_task_signature(serialized_task_signature):
     """Sign the bytes data to protect against database changes and return signature in hex"""
+    _load_keys()
+
     assert isinstance(serialized_task_signature, bytes), ValueError('Data must be bytes')
     return hex(_private_key.sign(sha256(serialized_task_signature).hexdigest().encode(), '')[0])
 
 
 def verify_task_signature(serialized_task_signature, sign_in_hex):
     """Check the signature and return True if it is correct for the specified data"""
+    _load_keys()
+
     return _public_key.verify(sha256(serialized_task_signature).hexdigest().encode(), (int(sign_in_hex, 16),))
-
-
-_private_key, _public_key = _load_keys()
