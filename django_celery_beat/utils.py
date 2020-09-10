@@ -20,25 +20,20 @@ now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
 logger = get_logger(__name__)
 
 
-@lru_cache(maxsize=None)
-def _load_private_key():
-    private_key_path = os.environ.get('DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH', './id_rsa')
-
-    if os.path.exists(private_key_path):
-        with open(private_key_path, 'rb') as id_rsa:
-            private_key = RSA.importKey(id_rsa.read())
-        return private_key
-
-    public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
-    logger.warning(
-        'Keys not found. Generating new RSA keys... [{},{}]'.format(
-            public_key_path,
-            private_key_path
-        )
-    )
-
+def generate_keys(
+    private_key_path=os.environ.get('DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH', './id_rsa'),
+    public_key_path=os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
+):
     private_key = RSA.generate(4096, os.urandom)
     public_key = private_key.publickey()
+
+    if os.path.exists(private_key_path):
+        if input('Do you realy want to rewrite `{}` key file? [y/n]: '.format(private_key_path)) != 'y':
+            return
+
+    if os.path.exists(public_key_path):
+        if input('Do you realy want to rewrite `{}` key file? [y/n]: '.format(public_key_path)) != 'y':
+            return
 
     open(private_key_path, 'wb').close()
     os.chmod(private_key_path, 0o600)
@@ -50,7 +45,21 @@ def _load_private_key():
     with open(public_key_path, 'wb') as id_rsa_pub:
         id_rsa_pub.write(public_key.exportKey())
 
-    return private_key
+
+@lru_cache(maxsize=None)
+def _load_private_key():
+    private_key_path = os.environ.get('DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH', './id_rsa')
+
+    if os.path.exists(private_key_path):
+        with open(private_key_path, 'rb') as id_rsa:
+            private_key = RSA.importKey(id_rsa.read())
+        return private_key
+
+    raise FileNotFoundError(
+        'Private key not found. Use `django_celery_beat.utils.generate_keys` '
+        'to generate new RSA keys... [{}]'.format(private_key_path)
+    )
+
 
 @lru_cache(maxsize=None)
 def _load_public_key():
@@ -58,14 +67,12 @@ def _load_public_key():
 
     if os.path.exists(public_key_path):
         with open(public_key_path, 'rb') as id_rsa_pub:
-            _private_key = RSA.importKey(id_rsa_pub.read())
-            _public_key = _private_key.publickey()
+            _public_key = RSA.importKey(id_rsa_pub.read())
         return _public_key
 
     raise FileNotFoundError(
-        'Failed, public key not found. [{}]'.format(
-            public_key_path
-        )
+        'Private key not found. Use `django_celery_beat.utils.generate_keys` '
+        'to generate new RSA keys... [{}]'.format(public_key_path)
     )
 
 

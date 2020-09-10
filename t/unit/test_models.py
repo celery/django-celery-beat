@@ -14,7 +14,7 @@ from django.test import TestCase, override_settings
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import crontab_schedule_celery_timezone, PeriodicTask, IntervalSchedule
-from django_celery_beat.utils import _load_keys, sign_task_signature
+from django_celery_beat.utils import sign_task_signature, generate_keys
 
 
 class MigrationTests(TestCase):
@@ -87,7 +87,10 @@ class PeriodicTaskSignatureTestCase(TestCase):
             'DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH': cls.test_public_key_path,
         })
 
-        _load_keys()
+        generate_keys(
+            private_key_path=cls.test_private_key_path,
+            public_key_path=cls.test_public_key_path
+        )
 
     def test_periodic_task_with_signatures(self):
         empty_task_signature = Signature(task='empty_task')

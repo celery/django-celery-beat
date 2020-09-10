@@ -4,7 +4,7 @@ from unittest import TestCase
 import dill
 from celery.canvas import Signature
 
-from django_celery_beat.utils import sign_task_signature, _load_keys, verify_task_signature
+from django_celery_beat.utils import sign_task_signature, verify_task_signature, generate_keys
 
 
 class UtilsTests(TestCase):
@@ -20,7 +20,10 @@ class UtilsTests(TestCase):
             'DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH': cls.test_public_key_path,
         })
 
-        _load_keys()
+        generate_keys(
+            private_key_path=cls.test_private_key_path,
+            public_key_path=cls.test_public_key_path
+        )
 
     def test_sign_verify_task_signature(self):
         empty_task_signature = Signature()
