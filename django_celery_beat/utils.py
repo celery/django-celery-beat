@@ -8,6 +8,7 @@ import Crypto.PublicKey.RSA as RSA
 from celery.utils.log import get_logger
 from django.conf import settings
 from django.utils import timezone
+from functools import lru_cache
 
 is_aware = timezone.is_aware
 # celery schedstate return None will make it not work
@@ -15,44 +16,61 @@ NEVER_CHECK_TIMEOUT = 100000000
 
 # see Issue #222
 now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
-_private_key = _public_key = None
 
 logger = get_logger(__name__)
 
 
-def _load_keys():
-    global _private_key, _public_key
-
-    if _private_key is not None and _public_key is not None:
-        return
-
+@lru_cache(maxsize=None)
+def _load_private_key():
     private_key_path = os.environ.get('DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH', './id_rsa')
-    public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
 
     if os.path.exists(private_key_path):
         with open(private_key_path, 'rb') as id_rsa:
-            _private_key = RSA.importKey(id_rsa.read())
-            _public_key = _private_key.publickey()
-    else:
-        logger.info(
-            'Keys not found. Generating new RSA keys... [{},{}]'.format(
-                public_key_path,
-                private_key_path
-            )
+            private_key = RSA.importKey(id_rsa.read())
+        return private_key
+
+    public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
+    logger.warning(
+        'Keys not found. Generating new RSA keys... [{},{}]'.format(
+            public_key_path,
+            private_key_path
         )
+    )
 
-        _private_key = RSA.generate(4096, os.urandom)
-        _public_key = _private_key.publickey()
+    private_key = RSA.generate(4096, os.urandom)
+    public_key = private_key.publickey()
 
-        open(private_key_path, 'wb').close()
-        os.chmod(private_key_path, 0o600)
-        with open(private_key_path, 'wb') as id_rsa:
-            id_rsa.write(_private_key.exportKey())
+    open(private_key_path, 'wb').close()
+    os.chmod(private_key_path, 0o600)
+    with open(private_key_path, 'wb') as id_rsa:
+        id_rsa.write(private_key.exportKey())
 
     open(public_key_path, 'wb').close()
     os.chmod(public_key_path, 0o644)
     with open(public_key_path, 'wb') as id_rsa_pub:
-        id_rsa_pub.write(_public_key.exportKey())
+        id_rsa_pub.write(public_key.exportKey())
+
+    return private_key
+
+@lru_cache(maxsize=None)
+def _load_public_key():
+    public_key_path = os.environ.get('DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH', './id_rsa.pub')
+
+    if os.path.exists(public_key_path):
+        with open(public_key_path, 'rb') as id_rsa_pub:
+            _private_key = RSA.importKey(id_rsa_pub.read())
+            _public_key = _private_key.publickey()
+        return _public_key
+
+    raise FileNotFoundError(
+        'Failed, public key not found. [{}]'.format(
+            public_key_path
+        )
+    )
+
+
+def _load_keys():
+    return _load_private_key(), _load_public_key()
 
 
 def make_aware(value):
@@ -93,14 +111,14 @@ def is_database_scheduler(scheduler):
 
 def sign_task_signature(serialized_task_signature):
     """Sign the bytes data to protect against database changes and return signature in hex"""
-    _load_keys()
+    private_key = _load_private_key()
 
     assert isinstance(serialized_task_signature, bytes), ValueError('Data must be bytes')
-    return hex(_private_key.sign(sha256(serialized_task_signature).hexdigest().encode(), '')[0])
+    return hex(private_key.sign(sha256(serialized_task_signature).hexdigest().encode(), '')[0])
 
 
 def verify_task_signature(serialized_task_signature, sign_in_hex):
     """Check the signature and return True if it is correct for the specified data"""
-    _load_keys()
+    public_key = _load_public_key()
 
-    return _public_key.verify(sha256(serialized_task_signature).hexdigest().encode(), (int(sign_in_hex, 16),))
+    return public_key.verify(sha256(serialized_task_signature).hexdigest().encode(), (int(sign_in_hex, 16),))
