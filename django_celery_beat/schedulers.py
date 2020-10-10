@@ -8,9 +8,9 @@ from multiprocessing.util import Finalize
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
-from kombu.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
+from kombu.utils.encoding import safe_str, safe_repr
 from kombu.utils.json import dumps, loads
 
 from django.conf import settings
@@ -25,11 +25,6 @@ from .models import (
 )
 from .clockedschedule import clocked
 from .utils import NEVER_CHECK_TIMEOUT
-
-try:
-    from celery.utils.time import is_naive
-except ImportError:  # pragma: no cover
-    from celery.utils.timeutils import is_naive  # noqa
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
