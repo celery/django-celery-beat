@@ -18,11 +18,6 @@ from .models import (
 )
 from .utils import is_database_scheduler
 
-try:
-    from django.utils.encoding import force_text
-except ImportError:
-    from django.utils.encoding import force_unicode as force_text  # noqa
-
 
 class TaskSelectWidget(Select):
     """Widget that lets you choose between task names."""
