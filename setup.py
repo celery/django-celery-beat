@@ -107,8 +107,10 @@ def reqs(*f):
 
 if os.path.exists('README.rst'):
     long_description = codecs.open('README.rst', 'r', 'utf-8').read()
+    long_description_content_type = 'text/x-rst'
 else:
     long_description = 'See http://pypi.python.org/pypi/%s' % (NAME,)
+    long_description_content_type = 'text/markdown'
 
 # -*- %%% -*-
 
@@ -132,7 +134,7 @@ setuptools.setup(
     version=meta['version'],
     description=meta['doc'],
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type=long_description_content_type,
     keywords='django celery beat periodic task database',
     author=meta['author'],
     author_email=meta['contact'],
