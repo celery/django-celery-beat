@@ -32,20 +32,23 @@ Important Warning about Time Zones
 ==================================
 
 .. warning::
+   If you change the Django ``TIME_ZONE`` setting your periodic task schedule
+   will still be based on the old timezone.
 
-    If you change the Django ``TIME_ZONE`` setting your periodic task schedule
-    will still be based on the old timezone.
+   To fix that you would have to reset the "last run time" for each periodic task:
 
-    To fix that you would have to reset the "last run time" for each periodic
-    task::
+.. code-block:: Python
 
         >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
         >>> PeriodicTask.objects.all().update(last_run_at=None)
         >>> for task in PeriodicTask.objects.all():
         >>>     PeriodicTasks.changed(task)
 
-    Note that this will reset the state as if the periodic tasks have never run
-    before.
+
+
+.. note:: 
+   This will reset the state as if the periodic tasks have never run before.
+
 
 Models
 ======
@@ -76,24 +79,28 @@ incremented, which tells the ``celery beat`` service to reload the schedule
 from the database.
 
 If you update periodic tasks in bulk, you will need to update the counter
-manually::
+manually:
 
-    >>> from django_celery_beat.models import PeriodicTasks
-    >>> PeriodicTasks.update_changed()
+.. code-block:: Python
+
+        >>> from django_celery_beat.models import PeriodicTasks
+        >>> PeriodicTasks.update_changed()
 
 Example creating interval-based periodic task
 ---------------------------------------------
 
 To create a periodic task executing at an interval you must first
-create the interval object::
+create the interval object:
 
-    >>> from django_celery_beat.models import PeriodicTask, IntervalSchedule
+.. code-block:: Python
 
-    # executes every 10 seconds.
-    >>> schedule, created = IntervalSchedule.objects.get_or_create(
-    ...     every=10,
-    ...     period=IntervalSchedule.SECONDS,
-    ... )
+        >>> from django_celery_beat.models import PeriodicTask, IntervalSchedule
+        
+        # executes every 10 seconds.
+        >>> schedule, created = IntervalSchedule.objects.get_or_create(
+        ...     every=10,
+        ...     period=IntervalSchedule.SECONDS,
+        ... )
 
 That's all the fields you need: a period type and the frequency.
 
@@ -107,24 +114,28 @@ You can choose between a specific set of periods:
 - ``IntervalSchedule.MICROSECONDS``
 
 .. note::
-
     If you have multiple periodic tasks executing every 10 seconds,
     then they should all point to the same schedule object.
 
 There's also a "choices tuple" available should you need to present this
-to the user::
+to the user:
 
-    >>> IntervalSchedule.PERIOD_CHOICES
+
+.. code-block:: Python
+
+        >>> IntervalSchedule.PERIOD_CHOICES
 
 
 Now that we have defined the schedule object, we can create the periodic task
-entry::
+entry:
 
-    >>> PeriodicTask.objects.create(
-    ...     interval=schedule,                  # we created this above.
-    ...     name='Importing contacts',          # simply describes this periodic task.
-    ...     task='proj.tasks.import_contacts',  # name of task.
-    ... )
+.. code-block:: Python
+
+        >>> PeriodicTask.objects.create(
+        ...     interval=schedule,                  # we created this above.
+        ...     name='Importing contacts',          # simply describes this periodic task.
+        ...     task='proj.tasks.import_contacts',  # name of task.
+        ... )
 
 
 Note that this is a very basic example, you can also specify the arguments
@@ -132,21 +143,23 @@ and keyword arguments used to execute the task, the ``queue`` to send it
 to[*], and set an expiry time.
 
 Here's an example specifying the arguments, note how JSON serialization is
-required::
+required:
 
-    >>> import json
-    >>> from datetime import datetime, timedelta
+.. code-block:: Python
 
-    >>> PeriodicTask.objects.create(
-    ...     interval=schedule,                  # we created this above.
-    ...     name='Importing contacts',          # simply describes this periodic task.
-    ...     task='proj.tasks.import_contacts',  # name of task.
-    ...     args=json.dumps(['arg1', 'arg2']),
-    ...     kwargs=json.dumps({
-    ...        'be_careful': True,
-    ...     }),
-    ...     expires=datetime.utcnow() + timedelta(seconds=30)
-    ... )
+        >>> import json
+        >>> from datetime import datetime, timedelta
+
+        >>> PeriodicTask.objects.create(
+        ...     interval=schedule,                  # we created this above.
+        ...     name='Importing contacts',          # simply describes this periodic task.
+        ...     task='proj.tasks.import_contacts',  # name of task.
+        ...     args=json.dumps(['arg1', 'arg2']),
+        ...     kwargs=json.dumps({
+        ...        'be_careful': True,
+        ...     }),
+        ...     expires=datetime.utcnow() + timedelta(seconds=30)
+        ... )
 
 
 .. [*] you can also use low-level AMQP routing using the ``exchange`` and
@@ -157,37 +170,43 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year``, so if you want the equivalent
-of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify::
+of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
 
-    >>> from django_celery_beat.models import CrontabSchedule, PeriodicTask
-    >>> schedule, _ = CrontabSchedule.objects.get_or_create(
-    ...     minute='30',
-    ...     hour='*',
-    ...     day_of_week='*',
-    ...     day_of_month='*',
-    ...     month_of_year='*',
-    ...     timezone=pytz.timezone('Canada/Pacific')
-    ... )
+.. code-block:: Python
+
+        >>> from django_celery_beat.models import CrontabSchedule, PeriodicTask
+        >>> schedule, _ = CrontabSchedule.objects.get_or_create(
+        ...     minute='30',
+        ...     hour='*',
+        ...     day_of_week='*',
+        ...     day_of_month='*',
+        ...     month_of_year='*',
+        ...     timezone=pytz.timezone('Canada/Pacific')
+        ... )
 
 The crontab schedule is linked to a specific timezone using the 'timezone' input parameter.
 
 Then to create a periodic task using this schedule, use the same approach as
 the interval-based periodic task earlier in this document, but instead
-of ``interval=schedule``, specify ``crontab=schedule``::
+of ``interval=schedule``, specify ``crontab=schedule``:
 
-    >>> PeriodicTask.objects.create(
-    ...     crontab=schedule,
-    ...     name='Importing contacts',
-    ...     task='proj.tasks.import_contacts',
-    ... )
+.. code-block:: Python
+
+        >>> PeriodicTask.objects.create(
+        ...     crontab=schedule,
+        ...     name='Importing contacts',
+        ...     task='proj.tasks.import_contacts',
+        ... )
 
 Temporarily disable a periodic task
 -----------------------------------
 
-You can use the ``enabled`` flag to temporarily disable a periodic task::
+You can use the ``enabled`` flag to temporarily disable a periodic task:
 
-    >>> periodic_task.enabled = False
-    >>> periodic_task.save()
+.. code-block:: Python
+
+        >>> periodic_task.enabled = False
+        >>> periodic_task.save()
 
 
 Example running periodic tasks
@@ -202,23 +221,19 @@ Both the worker and beat services need to be running at the same time.
 
 1. Start a Celery worker service (specify your Django project name)::
 
-
-    $ celery -A [project-name] worker --loglevel=info
+   $ celery -A [project-name] worker --loglevel=info
 
 
 2. As a separate process, start the beat service (specify the Django scheduler)::
 
-
-        $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-
+    $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
    **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help``)::
 
-            $ celery -A [project-name] beat -l info -S django
+    $ celery -A [project-name] beat -l info -S django
 
    Also, as an alternative, you can run the two steps above (worker and beat services)
    with only one command (recommended for **development environment only**)::
-
 
     $ celery -A [project-name] worker --beat --scheduler django --loglevel=info
 
@@ -234,9 +249,11 @@ Installation
 You can install django-celery-beat either via the Python Package Index (PyPI)
 or from source.
 
-To install using ``pip``::
+To install using ``pip``:
 
-    $ pip install -U django-celery-beat
+.. code-block:: bash
+
+        $ pip install -U django-celery-beat
 
 Downloading and installing from source
 --------------------------------------
@@ -244,25 +261,35 @@ Downloading and installing from source
 Download the latest version of django-celery-beat from
 http://pypi.python.org/pypi/django-celery-beat
 
-You can install it by doing the following,::
+You can install it by doing the following :
 
-    $ tar xvfz django-celery-beat-0.0.0.tar.gz
-    $ cd django-celery-beat-0.0.0
-    $ python setup.py build
-    # python setup.py install
+.. code-block:: bash
+
+        $ tar xvfz django-celery-beat-0.0.0.tar.gz
+        $ cd django-celery-beat-0.0.0
+        $ python setup.py build
+        # python setup.py install
 
 The last command must be executed as a privileged user if
 you are not currently using a virtualenv.
 
 
-After installation, add ``django_celery_beat`` to Django settings file::
+After installation, add ``django_celery_beat`` to Django's settings module:
 
-    INSTALLED_APPS = [
-        ...,
-        'django_celery_beat',
-    ]
 
-    python manage.py migrate django_celery_beat
+.. code-block:: Python
+
+        INSTALLED_APPS = [
+            ...,
+            'django_celery_beat',
+        ]
+
+
+Run the ``django_celery_beat`` migrations using:
+
+.. code-block:: bash
+    
+        $ python manage.py migrate django_celery_beat
 
 
 Using the development version
@@ -272,17 +299,21 @@ With pip
 ~~~~~~~~
 
 You can install the latest snapshot of django-celery-beat using the following
-pip command::
+pip command:
 
-    $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+.. code-block:: bash
+
+        $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
 
 
 Developing django-celery-beat
 -----------------------------
 
-To spin up a local development copy of django-celery-beat with Django admin at http://127.0.0.1:58000/admin/ run::
+To spin up a local development copy of django-celery-beat with Django admin at http://127.0.0.1:58000/admin/ run:
 
-    $ docker-compose up --build
+.. code-block:: bash
+
+        $ docker-compose up --build
 
 Log-in as user ``admin`` with password ``admin``.
 
