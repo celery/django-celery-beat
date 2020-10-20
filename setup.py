@@ -22,11 +22,11 @@ PACKAGE = 'django_celery_beat'
 E_UNSUPPORTED_PYTHON = '%s 1.0 requires %%s %%s or later!' % (NAME,)
 
 PYIMP = _pyimp()
-PY35_OR_LESS = sys.version_info < (3, 6)
+PY36_OR_LESS = sys.version_info < (3, 6)
 PYPY_VERSION = getattr(sys, 'pypy_version_info', None)
 PYPY24_ATLEAST = PYPY_VERSION and PYPY_VERSION >= (2, 4)
 
-if PY35_OR_LESS and not PYPY24_ATLEAST:
+if PY36_OR_LESS and not PYPY24_ATLEAST:
     raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, '3.6'))
 
 # -*- Classifiers -*-
