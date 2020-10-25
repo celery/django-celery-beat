@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 2.0.0
+:Version: 2.1.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -79,7 +79,7 @@ If you update periodic tasks in bulk, you will need to update the counter
 manually::
 
     >>> from django_celery_beat.models import PeriodicTasks
-    >>> PeriodicTasks.changed()
+    >>> PeriodicTasks.update_changed()
 
 Example creating interval-based periodic task
 ---------------------------------------------
