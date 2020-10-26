@@ -10,31 +10,24 @@ from celery import current_app
 from celery import schedules
 # noinspection PyProtectedMember
 from celery.beat import Scheduler, ScheduleEntry, SchedulingError, BeatLazyFunc
-# noinspection PyUnresolvedReferences
-from celery.five import (
-    items, monotonic, python_2_unicode_compatible,
-    reraise, values
-)
-from celery.utils.encoding import safe_str, safe_repr
+from celery.exceptions import reraise
+# from celery.utils.encoding import safe_str, safe_repr
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
-from kombu.utils.encoding import safe_str, safe_repr
-from kombu.utils.json import dumps, loads
-
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 # noinspection PyProtectedMember
 from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
-from django.core.exceptions import ObjectDoesNotExist
-# noinspection PyUnresolvedReferences
-from multiprocessing.util import Finalize
+from kombu.utils.encoding import safe_str, safe_repr
+from kombu.utils.json import dumps, loads
 
+from .clockedschedule import clocked
 from .models import (
     PeriodicTask, PeriodicTasks,
     CrontabSchedule, IntervalSchedule,
     SolarSchedule, ClockedSchedule
 )
-from .clockedschedule import clocked
 from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
@@ -244,6 +237,7 @@ class DatabaseScheduler(Scheduler):
         """Initialize the database scheduler."""
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
+        # noinspection PyUnresolvedReferences
         self._finalize = Finalize(self, self.sync, exitpriority=5)
         self.max_interval = (
             kwargs.get('max_interval')
