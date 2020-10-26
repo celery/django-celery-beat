@@ -8,7 +8,7 @@ import sys
 
 from celery import current_app
 from celery import schedules
-# noinspection PyProtectedMember
+# noinspection PyProtectedMember 
 from celery.beat import Scheduler, ScheduleEntry, SchedulingError, BeatLazyFunc
 from celery.exceptions import reraise
 # from celery.utils.encoding import safe_str, safe_repr
