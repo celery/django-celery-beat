@@ -1,5 +1,4 @@
 language: python
-sudo: false
 dist: xenial
 cache: false
 before_install:
