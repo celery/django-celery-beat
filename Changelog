@@ -4,6 +4,19 @@
  Change history
 ================
 
+2.1.0
+=====
+:release-date: 
+:release-by: 
+- Fix string representation of CrontabSchedule, so it matches UNIX CRON expression format (#318)
+- If no schedule is selected in PeriodicTask form, raise a non-field error instead of an error bounded to the `interval` field (#327)
+- Fix some Spanish translations (#339)
+- Log "Writing entries..." message as DEBUG instead of INFO (#342)
+- Use CELERY_TIMEZONE setting as `CrontabSchedule.timezone` default instead of UTC (#346)
+- Fix bug in ClockedSchedule that made the schedule stuck after a clocked task was executed. The `enabled` field of ClockedSchedule has been dropped (#341)
+- Drop support for Python < 3.6 (#368)
+- Add support for Celery 5 and Django 3.1 (#368)
+
 2.0.0
 =====
 :release-date: 
