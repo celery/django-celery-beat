@@ -60,7 +60,8 @@ class MigrationTests(TestCase):
 
 
 class CrontabScheduleTestCase(TestCase):
-    FIRST_VALID_TIMEZONE = timezone_field.TimeZoneField.CHOICES[0][0].zone
+    FIRST_VALID_TIMEZONE = timezone_field.\
+        TimeZoneField.default_choices[0][0].zone
 
     def test_default_timezone_without_settings_config(self):
         assert crontab_schedule_celery_timezone() == "UTC"
