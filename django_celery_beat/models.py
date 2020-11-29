@@ -57,7 +57,8 @@ def crontab_schedule_celery_timezone():
     except AttributeError:
         return 'UTC'
     return CELERY_TIMEZONE if CELERY_TIMEZONE in [
-        choice[0].zone for choice in timezone_field.TimeZoneField.CHOICES
+        choice[0].zone for choice in timezone_field.
+        TimeZoneField.default_choices
     ] else 'UTC'
 
 
