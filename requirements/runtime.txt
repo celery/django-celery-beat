@@ -1,2 +1,1 @@
-celery>=4.4,<6.0
-Django>=2.2
+Django>=2.2,<4.0

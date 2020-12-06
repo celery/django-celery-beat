@@ -1,5 +1,7 @@
-from itertools import combinations
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+from itertools import combinations
 
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import \
@@ -9,9 +11,9 @@ from django_celery_beat.models import \
     IntervalSchedule, \
     SolarSchedule, \
     ClockedSchedule
-from django.core.exceptions import ValidationError
 
 
+@pytest.mark.django_db()
 class ActionsTests(TestCase):
 
     @classmethod
@@ -76,6 +78,7 @@ class ActionsTests(TestCase):
         self.assertTrue(e3)
 
 
+@pytest.mark.django_db()
 class ValidateUniqueTests(TestCase):
 
     def test_validate_unique_raises_if_schedule_not_set(self):
