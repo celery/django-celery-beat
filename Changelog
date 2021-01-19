@@ -4,10 +4,22 @@
  Change history
 ================
 
+2.2.0
+=====
+:release-date: 2021-01-19 2:30 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Fixed compatibility with django-timezone-field>=4.1.0
+- Fixed deprecation warnings: 'assertEquals' in tests.
+- Fixed SolarSchedule event choices i18n support.
+- Updated 'es' .po file metadata
+- Update 'fr' .po file metadata
+- New schema migrations for SolarSchedule events choices changes in models.
+
 2.1.0
 =====
 :release-date: 
-:release-by: 
+:release-by: Asif Saif Uddin
 - Fix string representation of CrontabSchedule, so it matches UNIX CRON expression format (#318)
 - If no schedule is selected in PeriodicTask form, raise a non-field error instead of an error bounded to the `interval` field (#327)
 - Fix some Spanish translations (#339)
