@@ -36,11 +36,11 @@ class EntryTrackSave(schedulers.ModelEntry):
 
     def __init__(self, *args, **kwargs):
         self.saved = 0
-        super(EntryTrackSave, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self):
         self.saved += 1
-        super(EntryTrackSave, self).save()
+        super().save()
 
 
 class EntrySaveRaises(schedulers.ModelEntry):
