@@ -14,7 +14,7 @@ class clocked(schedules.BaseSchedule):
     def __init__(self, clocked_time, nowfun=None, app=None):
         """Initialize clocked."""
         self.clocked_time = maybe_make_aware(clocked_time)
-        super(clocked, self).__init__(nowfun=nowfun, app=app)
+        super().__init__(nowfun=nowfun, app=app)
 
     def remaining_estimate(self, last_run_at):
         return self.clocked_time - self.now()

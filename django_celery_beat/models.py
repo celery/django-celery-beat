@@ -547,7 +547,7 @@ class PeriodicTask(models.Model):
         verbose_name_plural = _('periodic tasks')
 
     def validate_unique(self, *args, **kwargs):
-        super(PeriodicTask, self).validate_unique(*args, **kwargs)
+        super().validate_unique(*args, **kwargs)
 
         schedule_types = ['interval', 'crontab', 'solar', 'clocked']
         selected_schedule_types = [s for s in schedule_types
@@ -581,7 +581,7 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
-        super(PeriodicTask, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
