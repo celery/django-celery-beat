@@ -18,7 +18,7 @@ class ActionsTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        super(ActionsTests, cls).setUpTestData()
+        super().setUpTestData()
         cls.interval_schedule = IntervalSchedule.objects.create(every=10,
                                                                 period=DAYS)
 
