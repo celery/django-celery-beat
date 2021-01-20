@@ -1,5 +1,5 @@
 language: python
-dist: xenial
+dist: bionic
 cache: false
 before_install:
   - sudo apt update
