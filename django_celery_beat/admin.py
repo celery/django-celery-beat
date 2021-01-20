@@ -77,7 +77,7 @@ class PeriodicTaskForm(forms.ModelForm):
         exclude = ()
 
     def clean(self):
-        data = super(PeriodicTaskForm, self).clean()
+        data = super().clean()
         regtask = data.get('regtask')
         if regtask:
             data['task'] = regtask
@@ -153,7 +153,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             request, extra_context)
 
     def get_queryset(self, request):
-        qs = super(PeriodicTaskAdmin, self).get_queryset(request)
+        qs = super().get_queryset(request)
         return qs.select_related('interval', 'crontab', 'solar', 'clocked')
 
     def _message_user_about_update(self, request, rows_updated, verb):

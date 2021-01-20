@@ -343,7 +343,7 @@ class DatabaseScheduler(Scheduler):
         if self._heap_invalidated:
             self._heap_invalidated = False
             return False
-        return super(DatabaseScheduler, self).schedules_equal(*args, **kwargs)
+        return super().schedules_equal(*args, **kwargs)
 
     @property
     def schedule(self):
