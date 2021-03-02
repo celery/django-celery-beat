@@ -67,7 +67,22 @@ class MigrationTests(TestCase):
             msg='Model changes exist that do not have a migration')
 
 
-class CrontabScheduleTestCase(TestCase):
+class TestDuplicatesMixin:
+    def _test_duplicate_schedules(self, cls, kwargs, schedule=None):
+        sched1 = cls.objects.create(**kwargs)
+        cls.objects.create(**kwargs)
+        self.assertEqual(cls.objects.filter(**kwargs).count(), 2)
+        # try to create a duplicate schedule from a celery schedule
+        if schedule is None:
+            schedule = sched1.schedule
+        sched3 = cls.from_schedule(schedule)
+        # the schedule should be the first of the 2 previous duplicates
+        self.assertEqual(sched3, sched1)
+        # and the duplicates should not be deleted !
+        self.assertEqual(cls.objects.filter(**kwargs).count(), 2)
+
+
+class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
     FIRST_VALID_TIMEZONE = timezone_field.\
         TimeZoneField.default_choices[0][0].zone
 
@@ -88,17 +103,8 @@ class CrontabScheduleTestCase(TestCase):
             "month_of_year": "*",
             "day_of_week": "*",
         }
-        # create 2 duplicates schedules
-        sched1 = CrontabSchedule.objects.create(**kwargs)
-        CrontabSchedule.objects.create(**kwargs)
-        self.assertEqual(CrontabSchedule.objects.filter(**kwargs).count(), 2)
-        # try to create a duplicate CrontabSchedule from a celery schedule
         schedule = schedules.crontab(hour="4")
-        sched3 = CrontabSchedule.from_schedule(schedule)
-        # the schedule should be the first of the 2 previous duplicates
-        self.assertEqual(sched3, sched1)
-        # and the duplicates should not be deleted !
-        self.assertEqual(CrontabSchedule.objects.filter(**kwargs).count(), 2)
+        self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)
 
 
 class SolarScheduleTestCase(TestCase):
@@ -127,38 +133,16 @@ class SolarScheduleTestCase(TestCase):
             assert event_choice in schedules.solar._all_events
 
 
-class IntervalScheduleTestCase(TestCase):
+class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
 
     def test_duplicate_schedules(self):
-        # See: https://github.com/celery/django-celery-beat/issues/322
         kwargs = {'every': 1, 'period': IntervalSchedule.SECONDS}
-        # create 2 duplicates schedules
-        sched1 = IntervalSchedule.objects.create(**kwargs)
-        IntervalSchedule.objects.create(**kwargs)
-        self.assertEqual(IntervalSchedule.objects.filter(**kwargs).count(), 2)
-        # try to create a duplicate IntervalSchedule from a celery schedule
         schedule = schedules.schedule(run_every=1.0)
-        sched3 = IntervalSchedule.from_schedule(schedule)
-        # the schedule should be the first of the 2 previous duplicates
-        self.assertEqual(sched3, sched1)
-        # and the duplicates should not be deleted !
-        self.assertEqual(IntervalSchedule.objects.filter(**kwargs).count(), 2)
+        self._test_duplicate_schedules(IntervalSchedule, kwargs, schedule)
 
 
-class ClockedScheduleTestCase(TestCase):
+class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
 
     def test_duplicate_schedules(self):
-        # See: https://github.com/celery/django-celery-beat/issues/322
-        d = timezone.now()
-        # create 2 duplicates schedules
-        sched1 = ClockedSchedule.objects.create(clocked_time=d)
-        sched2 = ClockedSchedule.objects.create(clocked_time=d)
-        self.assertEqual(ClockedSchedule.objects.count(), 2)
-        # try to create a duplicate ClockedSchedule from a previous schedule
-        sched3 = ClockedSchedule.from_schedule(sched2.schedule)
-        # the schedule should be the first of the 2 previous duplicates
-        self.assertEqual(sched3, sched1)
-        # and the duplicates should not be deleted !
-        self.assertEqual(
-            ClockedSchedule.objects.filter(clocked_time=d).count(), 2
-        )
+        kwargs = {'clocked_time': timezone.now()}
+        self._test_duplicate_schedules(ClockedSchedule, kwargs)
