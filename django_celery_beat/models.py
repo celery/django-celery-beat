@@ -122,8 +122,9 @@ class SolarSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(**spec)
         except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
+            # unique_together constraint should not permit reaching this code,
+            # but just in case, we return the first schedule found
+            return cls.objects.filter(**spec).first()
 
     def __str__(self):
         return '{0} ({1}, {2})'.format(
@@ -183,8 +184,7 @@ class IntervalSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(every=every, period=period)
         except MultipleObjectsReturned:
-            cls.objects.filter(every=every, period=period).delete()
-            return cls(every=every, period=period)
+            return cls.objects.filter(every=every, period=period).first()
 
     def __str__(self):
         readable_period = None
@@ -236,8 +236,7 @@ class ClockedSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(**spec)
         except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
+            return cls.objects.filter(**spec).first()
 
 
 class CrontabSchedule(models.Model):
@@ -350,8 +349,7 @@ class CrontabSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(**spec)
         except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
+            return cls.objects.filter(**spec).first()
 
 
 class PeriodicTasks(models.Model):

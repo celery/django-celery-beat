@@ -7,6 +7,7 @@ from django.db.migrations.state import ProjectState
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.utils import timezone
 
 import timezone_field
 
@@ -14,6 +15,9 @@ from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
     crontab_schedule_celery_timezone,
     SolarSchedule,
+    CrontabSchedule,
+    ClockedSchedule,
+    IntervalSchedule,
 )
 
 
@@ -74,6 +78,20 @@ class CrontabScheduleTestCase(TestCase):
     def test_default_timezone_with_settings_config(self):
         assert crontab_schedule_celery_timezone() == self.FIRST_VALID_TIMEZONE
 
+    def test_duplicate_schedules(self):
+        # See: https://github.com/celery/django-celery-beat/issues/322
+        # create 2 duplicates schedules
+        sched1 = CrontabSchedule.objects.create(hour="4")
+        sched2 = CrontabSchedule.objects.create(hour="4")
+        self.assertEqual(CrontabSchedule.objects.count(), 2)
+        # try to create a duplicate CrontabSchedule from a celery schedule
+        schedule = schedules.crontab(hour="4")
+        sched3 = CrontabSchedule.from_schedule(schedule)
+        # the schedule should be the first of the 2 previous duplicates
+        self.assertEqual(sched3, sched1)
+        # and the duplicates should not be deleted !
+        self.assertEqual(CrontabSchedule.objects.count(), 2)
+
 
 class SolarScheduleTestCase(TestCase):
     EVENT_CHOICES = SolarSchedule._meta.get_field("event").choices
@@ -99,3 +117,43 @@ class SolarScheduleTestCase(TestCase):
 
         for event_choice in event_choices_values:
             assert event_choice in schedules.solar._all_events
+
+    def test_duplicate_schedules(self):
+        # Duplicates cannot be tested for solar schedules because of the
+        # unique constraints in the SolarSchedule model
+        pass
+
+
+class IntervalScheduleTestCase(TestCase):
+
+    def test_duplicate_schedules(self):
+        # See: https://github.com/celery/django-celery-beat/issues/322
+        kwargs = {'every': 1, 'period': IntervalSchedule.SECONDS}
+        # create 2 duplicates schedules
+        sched1 = IntervalSchedule.objects.create(**kwargs)
+        sched2 = IntervalSchedule.objects.create(**kwargs)
+        self.assertEqual(IntervalSchedule.objects.count(), 2)
+        # try to create a duplicate IntervalSchedule from a celery schedule
+        schedule = schedules.schedule(run_every=1.0)
+        sched3 = IntervalSchedule.from_schedule(schedule)
+        # the schedule should be the first of the 2 previous duplicates
+        self.assertEqual(sched3, sched1)
+        # and the duplicates should not be deleted !
+        self.assertEqual(IntervalSchedule.objects.count(), 2)
+
+
+class ClockedScheduleTestCase(TestCase):
+
+    def test_duplicate_schedules(self):
+        # See: https://github.com/celery/django-celery-beat/issues/322
+        d = timezone.now()
+        # create 2 duplicates schedules
+        sched1 = ClockedSchedule.objects.create(clocked_time=d)
+        sched2 = ClockedSchedule.objects.create(clocked_time=d)
+        self.assertEqual(ClockedSchedule.objects.count(), 2)
+        # try to create a duplicate ClockedSchedule from a previous schedule
+        sched3 = ClockedSchedule.from_schedule(sched2.schedule)
+        # the schedule should be the first of the 2 previous duplicates
+        self.assertEqual(sched3, sched1)
+        # and the duplicates should not be deleted !
+        self.assertEqual(ClockedSchedule.objects.count(), 2)
