@@ -82,7 +82,7 @@ class CrontabScheduleTestCase(TestCase):
         # See: https://github.com/celery/django-celery-beat/issues/322
         # create 2 duplicates schedules
         sched1 = CrontabSchedule.objects.create(hour="4")
-        sched2 = CrontabSchedule.objects.create(hour="4")
+        CrontabSchedule.objects.create(hour="4")
         self.assertEqual(CrontabSchedule.objects.count(), 2)
         # try to create a duplicate CrontabSchedule from a celery schedule
         schedule = schedules.crontab(hour="4")
@@ -131,7 +131,7 @@ class IntervalScheduleTestCase(TestCase):
         kwargs = {'every': 1, 'period': IntervalSchedule.SECONDS}
         # create 2 duplicates schedules
         sched1 = IntervalSchedule.objects.create(**kwargs)
-        sched2 = IntervalSchedule.objects.create(**kwargs)
+        IntervalSchedule.objects.create(**kwargs)
         self.assertEqual(IntervalSchedule.objects.count(), 2)
         # try to create a duplicate IntervalSchedule from a celery schedule
         schedule = schedules.schedule(run_every=1.0)
