@@ -126,11 +126,6 @@ class SolarScheduleTestCase(TestCase):
         for event_choice in event_choices_values:
             assert event_choice in schedules.solar._all_events
 
-    def test_duplicate_schedules(self):
-        # Duplicates cannot be tested for solar schedules because of the
-        # unique constraints in the SolarSchedule model
-        pass
-
 
 class IntervalScheduleTestCase(TestCase):
 

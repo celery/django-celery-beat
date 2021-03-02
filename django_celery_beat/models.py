@@ -117,14 +117,13 @@ class SolarSchedule(models.Model):
         spec = {'event': schedule.event,
                 'latitude': schedule.lat,
                 'longitude': schedule.lon}
+
+        # we do not check for MultipleObjectsReturned exception here because
+        # the unique_together constraint safely prevents from duplicates
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
             return cls(**spec)
-        except MultipleObjectsReturned:
-            # unique_together constraint should not permit reaching this code,
-            # but just in case, we return the first schedule found
-            return cls.objects.filter(**spec).first()
 
     def __str__(self):
         return '{0} ({1}, {2})'.format(
