@@ -80,17 +80,25 @@ class CrontabScheduleTestCase(TestCase):
 
     def test_duplicate_schedules(self):
         # See: https://github.com/celery/django-celery-beat/issues/322
+        kwargs = {
+            "minute": "*",
+            "hour": "4",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "day_of_week": "*",
+        }
         # create 2 duplicates schedules
-        sched1 = CrontabSchedule.objects.create(hour="4")
-        CrontabSchedule.objects.create(hour="4")
-        self.assertEqual(CrontabSchedule.objects.count(), 2)
+        sched1 = CrontabSchedule.objects.create(**kwargs)
+        CrontabSchedule.objects.create(**kwargs)
+        self.assertEqual(CrontabSchedule.objects.filter(**kwargs).count(), 2)
         # try to create a duplicate CrontabSchedule from a celery schedule
         schedule = schedules.crontab(hour="4")
         sched3 = CrontabSchedule.from_schedule(schedule)
         # the schedule should be the first of the 2 previous duplicates
         self.assertEqual(sched3, sched1)
         # and the duplicates should not be deleted !
-        self.assertEqual(CrontabSchedule.objects.count(), 2)
+        self.assertEqual(CrontabSchedule.objects.filter(**kwargs).count(), 2)
 
 
 class SolarScheduleTestCase(TestCase):
@@ -132,14 +140,14 @@ class IntervalScheduleTestCase(TestCase):
         # create 2 duplicates schedules
         sched1 = IntervalSchedule.objects.create(**kwargs)
         IntervalSchedule.objects.create(**kwargs)
-        self.assertEqual(IntervalSchedule.objects.count(), 2)
+        self.assertEqual(IntervalSchedule.objects.filter(**kwargs).count(), 2)
         # try to create a duplicate IntervalSchedule from a celery schedule
         schedule = schedules.schedule(run_every=1.0)
         sched3 = IntervalSchedule.from_schedule(schedule)
         # the schedule should be the first of the 2 previous duplicates
         self.assertEqual(sched3, sched1)
         # and the duplicates should not be deleted !
-        self.assertEqual(IntervalSchedule.objects.count(), 2)
+        self.assertEqual(IntervalSchedule.objects.filter(**kwargs).count(), 2)
 
 
 class ClockedScheduleTestCase(TestCase):
@@ -156,4 +164,6 @@ class ClockedScheduleTestCase(TestCase):
         # the schedule should be the first of the 2 previous duplicates
         self.assertEqual(sched3, sched1)
         # and the duplicates should not be deleted !
-        self.assertEqual(ClockedSchedule.objects.count(), 2)
+        self.assertEqual(
+            ClockedSchedule.objects.filter(clocked_time=d).count(), 2
+        )
