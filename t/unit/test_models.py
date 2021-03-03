@@ -7,6 +7,7 @@ from django.db.migrations.state import ProjectState
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.utils import timezone
 
 import timezone_field
 
@@ -14,6 +15,9 @@ from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
     crontab_schedule_celery_timezone,
     SolarSchedule,
+    CrontabSchedule,
+    ClockedSchedule,
+    IntervalSchedule,
 )
 
 
@@ -63,7 +67,22 @@ class MigrationTests(TestCase):
             msg='Model changes exist that do not have a migration')
 
 
-class CrontabScheduleTestCase(TestCase):
+class TestDuplicatesMixin:
+    def _test_duplicate_schedules(self, cls, kwargs, schedule=None):
+        sched1 = cls.objects.create(**kwargs)
+        cls.objects.create(**kwargs)
+        self.assertEqual(cls.objects.filter(**kwargs).count(), 2)
+        # try to create a duplicate schedule from a celery schedule
+        if schedule is None:
+            schedule = sched1.schedule
+        sched3 = cls.from_schedule(schedule)
+        # the schedule should be the first of the 2 previous duplicates
+        self.assertEqual(sched3, sched1)
+        # and the duplicates should not be deleted !
+        self.assertEqual(cls.objects.filter(**kwargs).count(), 2)
+
+
+class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
     FIRST_VALID_TIMEZONE = timezone_field.\
         TimeZoneField.default_choices[0][0].zone
 
@@ -73,6 +92,19 @@ class CrontabScheduleTestCase(TestCase):
     @override_settings(CELERY_TIMEZONE=FIRST_VALID_TIMEZONE)
     def test_default_timezone_with_settings_config(self):
         assert crontab_schedule_celery_timezone() == self.FIRST_VALID_TIMEZONE
+
+    def test_duplicate_schedules(self):
+        # See: https://github.com/celery/django-celery-beat/issues/322
+        kwargs = {
+            "minute": "*",
+            "hour": "4",
+            "day_of_week": "*",
+            "day_of_month": "*",
+            "month_of_year": "*",
+            "day_of_week": "*",
+        }
+        schedule = schedules.crontab(hour="4")
+        self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)
 
 
 class SolarScheduleTestCase(TestCase):
@@ -99,3 +131,18 @@ class SolarScheduleTestCase(TestCase):
 
         for event_choice in event_choices_values:
             assert event_choice in schedules.solar._all_events
+
+
+class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
+
+    def test_duplicate_schedules(self):
+        kwargs = {'every': 1, 'period': IntervalSchedule.SECONDS}
+        schedule = schedules.schedule(run_every=1.0)
+        self._test_duplicate_schedules(IntervalSchedule, kwargs, schedule)
+
+
+class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
+
+    def test_duplicate_schedules(self):
+        kwargs = {'clocked_time': timezone.now()}
+        self._test_duplicate_schedules(ClockedSchedule, kwargs)
