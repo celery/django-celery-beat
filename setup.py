@@ -150,6 +150,6 @@ setuptools.setup(
             'django = django_celery_beat.schedulers:DatabaseScheduler',
         ],
     },
-    include_package_data=False,
+    include_package_data=True,
     zip_safe=False,
 )
