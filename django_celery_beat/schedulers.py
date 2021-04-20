@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime
+import importlib
 import logging
 import math
 import sys
@@ -384,6 +385,14 @@ class DatabaseScheduler(Scheduler):
         # forever.)
         entry = self.reserve(entry) if advance else entry
         task = entry.task_signature if entry.task_signature is not None else self.app.tasks.get(entry.task)
+
+        if hasattr(self.app.conf, 'call_before_run_periodic_task'):
+            for func_ref in self.app.conf.call_before_run_periodic_task:
+                func_ref = func_ref.split('.')
+                callback = importlib.import_module(
+                    '.'.join(func_ref[:-1])
+                ).__getattribute__(func_ref[-1])
+                callback(task=task, entry=entry, producer=producer, advance=advance, **kwargs)
 
         try:
             entry_args = [v() if isinstance(v, BeatLazyFunc) else v for v in (entry.args or [])]
