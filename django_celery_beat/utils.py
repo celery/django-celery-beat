@@ -28,12 +28,10 @@ def generate_keys(
     public_key = private_key.publickey()
 
     if os.path.exists(private_key_path):
-        if input('Do you realy want to rewrite `{}` key file? [y/n]: '.format(private_key_path)) != 'y':
-            return
+        raise FileExistsError(private_key_path)
 
     if os.path.exists(public_key_path):
-        if input('Do you realy want to rewrite `{}` key file? [y/n]: '.format(public_key_path)) != 'y':
-            return
+        raise FileExistsError(public_key_path)
 
     open(private_key_path, 'wb').close()
     os.chmod(private_key_path, 0o600)

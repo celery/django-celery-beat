@@ -23,7 +23,7 @@ from django_celery_beat.models import (
     PeriodicTask,
     IntervalSchedule,
 )
-from django_celery_beat.utils import sign_task_signature, generate_keys
+from django_celery_beat.utils import sign_task_signature
 
 
 class MigrationTests(TestCase):
@@ -157,20 +157,6 @@ class PeriodicTaskSignatureTestCase(TestCase):
     test_private_key_path = './test_id_rsa'
     test_public_key_path = './test_id_rsa.pub'
 
-    @classmethod
-    def setUpClass(cls):
-        super(PeriodicTaskSignatureTestCase, cls).setUpClass()
-
-        os.environ.update({
-            'DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH': cls.test_private_key_path,
-            'DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH': cls.test_public_key_path,
-        })
-
-        generate_keys(
-            private_key_path=cls.test_private_key_path,
-            public_key_path=cls.test_public_key_path
-        )
-
     def test_periodic_task_with_signatures(self):
         empty_task_signature = Signature(task='empty_task')
 
@@ -195,13 +181,3 @@ class PeriodicTaskSignatureTestCase(TestCase):
 
         self.assertEqual(empty_task_signature, task_signature)
         self.assertEqual(empty_task_signature, callback_signature)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        super(PeriodicTaskSignatureTestCase, cls).tearDownClass()
-
-        if os.path.exists(cls.test_private_key_path):
-            os.remove(cls.test_private_key_path)
-
-        if os.path.exists(cls.test_public_key_path):
-            os.remove(cls.test_public_key_path)

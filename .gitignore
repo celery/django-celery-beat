@@ -33,3 +33,5 @@ coverage.xml
 .eggs/
 .python-version
 venv
+test_id_rsa
+test_id_rsa.pub

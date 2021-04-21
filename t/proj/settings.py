@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import sys
 
+from django_celery_beat.utils import generate_keys
+
 CELERY_DEFAULT_EXCHANGE = 'testcelery'
 CELERY_DEFAULT_ROUTING_KEY = 'testcelery'
 CELERY_DEFAULT_QUEUE = 'testcelery'
@@ -122,3 +124,19 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 DJANGO_CELERY_BEAT_TZ_AWARE = True
+
+PRIVATE_KEY_PATH = './test_id_rsa'
+PUBLIC_KEY_PATH = './test_id_rsa.pub'
+
+os.environ.update({
+    'DJANGO_CELERY_BEAT_PRIVATE_KEY_PATH': PRIVATE_KEY_PATH,
+    'DJANGO_CELERY_BEAT_PUBLIC_KEY_PATH': PUBLIC_KEY_PATH,
+})
+
+try:
+    generate_keys(
+        private_key_path=PRIVATE_KEY_PATH,
+        public_key_path=PUBLIC_KEY_PATH
+    )
+except FileExistsError:
+    pass
