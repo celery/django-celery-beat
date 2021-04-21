@@ -380,9 +380,6 @@ class DatabaseScheduler(Scheduler):
         return self._schedule
 
     def apply_async(self, entry, producer=None, advance=True, **kwargs):
-        if entry.task_signature is None:
-            super(DatabaseScheduler, self).apply_async(entry, producer=producer, advance=advance, **kwargs)
-
         entry = self.reserve(entry) if advance else entry
         task = entry.task_signature
 
@@ -395,6 +392,9 @@ class DatabaseScheduler(Scheduler):
                     '.'.join(func_ref[:-1])
                 ).__getattribute__(func_ref[-1])
                 callback(task=task, entry=entry, producer=producer, advance=advance, **kwargs)
+
+        if entry.task_signature is None:
+            return super(DatabaseScheduler, self).apply_async(entry, producer=producer, advance=advance, **kwargs)
 
         try:
             return task.apply_async(producer=producer, **entry.options)
