@@ -36,11 +36,11 @@ class EntryTrackSave(schedulers.ModelEntry):
 
     def __init__(self, *args, **kwargs):
         self.saved = 0
-        super(EntryTrackSave, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self):
         self.saved += 1
-        super(EntryTrackSave, self).save()
+        super().save()
 
 
 class EntrySaveRaises(schedulers.ModelEntry):
@@ -630,7 +630,7 @@ class test_models(SchedulerCase):
             solar('solar_noon', 48.06, 12.86), name='solar_event'
         )
         assert str(p) == 'solar_event: {0} ({1}, {2})'.format(
-            'solar_noon', '48.06', '12.86'
+            'Solar noon', '48.06', '12.86'
         )
 
     def test_PeriodicTask_unicode_clocked(self):

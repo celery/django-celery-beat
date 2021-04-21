@@ -41,7 +41,17 @@ SINGULAR_PERIODS = (
     (MICROSECONDS, _('Microsecond')),
 )
 
-SOLAR_SCHEDULES = [(x, _(x)) for x in sorted(schedules.solar._all_events)]
+SOLAR_SCHEDULES = [
+    ("dawn_astronomical", _("Astronomical dawn")),
+    ("dawn_civil", _("Civil dawn")),
+    ("dawn_nautical", _("Nautical dawn")),
+    ("dusk_astronomical", _("Astronomical dusk")),
+    ("dusk_civil", _("Civil dusk")),
+    ("dusk_nautical", _("Nautical dusk")),
+    ("solar_noon", _("Solar noon")),
+    ("sunrise", _("Sunrise")),
+    ("sunset", _("Sunset")),
+]
 
 
 def cronexp(field):
@@ -110,12 +120,12 @@ class SolarSchedule(models.Model):
         spec = {'event': schedule.event,
                 'latitude': schedule.lat,
                 'longitude': schedule.lon}
+
+        # we do not check for MultipleObjectsReturned exception here because
+        # the unique_together constraint safely prevents from duplicates
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
-            return cls(**spec)
-        except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
             return cls(**spec)
 
     def __str__(self):
@@ -176,8 +186,7 @@ class IntervalSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(every=every, period=period)
         except MultipleObjectsReturned:
-            cls.objects.filter(every=every, period=period).delete()
-            return cls(every=every, period=period)
+            return cls.objects.filter(every=every, period=period).first()
 
     def __str__(self):
         readable_period = None
@@ -229,8 +238,7 @@ class ClockedSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(**spec)
         except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
+            return cls.objects.filter(**spec).first()
 
 
 class CrontabSchedule(models.Model):
@@ -343,8 +351,7 @@ class CrontabSchedule(models.Model):
         except cls.DoesNotExist:
             return cls(**spec)
         except MultipleObjectsReturned:
-            cls.objects.filter(**spec).delete()
-            return cls(**spec)
+            return cls.objects.filter(**spec).first()
 
 
 class PeriodicTasks(models.Model):
@@ -561,7 +568,7 @@ class PeriodicTask(models.Model):
         verbose_name_plural = _('periodic tasks')
 
     def validate_unique(self, *args, **kwargs):
-        super(PeriodicTask, self).validate_unique(*args, **kwargs)
+        super().validate_unique(*args, **kwargs)
 
         schedule_types = ['interval', 'crontab', 'solar', 'clocked']
         selected_schedule_types = [s for s in schedule_types
@@ -595,7 +602,7 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
-        super(PeriodicTask, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
