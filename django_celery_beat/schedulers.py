@@ -9,7 +9,7 @@ import sys
 
 from celery import current_app
 from celery import schedules
-# noinspection PyProtectedMember 
+# noinspection PyProtectedMember
 from celery.beat import Scheduler, ScheduleEntry, SchedulingError, BeatLazyFunc
 from celery.exceptions import reraise
 # from celery.utils.encoding import safe_str, safe_repr
@@ -387,6 +387,8 @@ class DatabaseScheduler(Scheduler):
         task = entry.task_signature if entry.task_signature is not None else self.app.tasks.get(entry.task)
 
         if hasattr(self.app.conf, 'call_before_run_periodic_task'):
+            # if app.conf has a field call_before_run_periodic_task
+            # then we try to import and run all the specified functions
             for func_ref in self.app.conf.call_before_run_periodic_task:
                 func_ref = func_ref.split('.')
                 callback = importlib.import_module(
