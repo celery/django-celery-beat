@@ -10,8 +10,7 @@ import sys
 from celery import current_app
 from celery import schedules
 # noinspection PyProtectedMember
-from celery.beat import Scheduler, ScheduleEntry, SchedulingError, BeatLazyFunc
-# from celery.utils.encoding import safe_str, safe_repr
+from celery.beat import Scheduler, ScheduleEntry, SchedulingError
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from django.conf import settings
@@ -21,6 +20,8 @@ from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
 from kombu.utils.encoding import safe_str, safe_repr
 from kombu.utils.json import dumps, loads
+# noinspection PyUnresolvedReferences
+from multiprocessing.util import Finalize
 
 from .clockedschedule import clocked
 from .models import (
