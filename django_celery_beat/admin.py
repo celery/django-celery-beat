@@ -69,7 +69,6 @@ class PeriodicTaskForm(forms.ModelForm):
         required=False,
         max_length=200,
     )
-    # todo: add field for task_signature
 
     class Meta:
         """Form metadata."""
@@ -82,7 +81,7 @@ class PeriodicTaskForm(forms.ModelForm):
         regtask = data.get('regtask')
         if regtask:
             data['task'] = regtask
-        if not data['task']:
+        if not data['task'] and not (self.instance and self.instance.task_signature):
             exc = forms.ValidationError(_('Need name of task'))
             self._errors['task'] = self.error_class(exc.messages)
             raise exc

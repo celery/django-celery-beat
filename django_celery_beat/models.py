@@ -602,6 +602,17 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
+
+        if self.task_signature:
+            task = self.get_verified_task_signature().__repr__()
+            pattern = '<serialized-task: {} >'
+            max_length = PeriodicTask.task.field.max_length - len(pattern) + 2 - 3
+
+            if len(task) > max_length:
+                task = pattern.format(task[:max_length] + '...')
+
+            self.task = task
+
         super().save(*args, **kwargs)
 
     def _clean_expires(self):
