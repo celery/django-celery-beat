@@ -4,6 +4,15 @@
  Change history
 ================
 
+2.2.1
+=====
+:release-date: 2021-05-30 9:00 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Enable Django 3.2 CI and add default_auto_field
+- Fix locale in dir tree
+- Do not blindly delete duplicate schedules (#389)
+
 2.2.0
 =====
 :release-date: 2021-01-19 2:30 p.m. UTC+6:00
