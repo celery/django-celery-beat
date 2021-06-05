@@ -390,7 +390,7 @@ class PeriodicTask(models.Model):
             settings,
             'DJANGO_CELERY_BEAT_PERIODICTASK_NAME_MAX_LENGTH',
             200
-        ), 
+        ),
         unique=True,
         verbose_name=_('Name'),
         help_text=_('Short Description For This Task'),
