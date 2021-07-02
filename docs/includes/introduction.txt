@@ -207,9 +207,13 @@ Both the worker and beat services need to be running at the same time.
         $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
 
-  **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help ``)::
+  **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help``)::
 
             $ celery -A [project-name] beat -l info -S django
+            
+  **OR** you can set the scheduler through Django's settings::
+  
+            CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 
 Also, as an alternative, you can run the two steps above (worker and beat services)
