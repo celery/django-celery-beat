@@ -13,7 +13,6 @@
 - Fix locale in dir tree
 - Do not blindly delete duplicate schedules (#389)
 - used python:3.8-slim for lighter builds
-- Do not blindly delete duplicate schedules (#389)
 
 2.2.0
 =====
