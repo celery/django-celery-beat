@@ -177,7 +177,7 @@ msgstr "Longitude"
 #: django_celery_beat/models.py:94
 msgid "Run the task when the event happens at this longitude"
 msgstr ""
-"Démarre cette tâche lorsque cette évènement se produit à cette longitude"
+"Démarre cette tâche lorsque cet évènement se produit à cette longitude"
 
 #: django_celery_beat/models.py:101
 msgid "solar event"
@@ -248,7 +248,7 @@ msgstr "Minute⋅s"
 #: django_celery_beat/models.py:268
 msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
 msgstr ""
-"Minutes Cron pour Démarrer. Utilisez \"*\" pour \"toutes\". (Exemple: "
+"Minutes Cron pour démarrer. Utilisez \"*\" pour \"toutes\". (Exemple: "
 "\"0,30\")"
 
 #: django_celery_beat/models.py:273
@@ -258,12 +258,12 @@ msgstr "Heure⋅s"
 #: django_celery_beat/models.py:275
 msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
 msgstr ""
-"Heures Cron pour Démarrer. Utilisez \"*\" pour \"toutes\". (Exemple: "
+"Heures Cron pour démarrer. Utilisez \"*\" pour \"toutes\". (Exemple: "
 "\"8,20\")"
 
 #: django_celery_beat/models.py:280
 msgid "Day(s) Of The Week"
-msgstr "Jour⋅s De La Semaine"
+msgstr "Jour⋅s de la semaine"
 
 #: django_celery_beat/models.py:282
 msgid "Cron Days Of The Week to Run. Use \"*\" for \"all\". (Example: \"0,5\")"
@@ -273,34 +273,34 @@ msgstr ""
 
 #: django_celery_beat/models.py:288
 msgid "Day(s) Of The Month"
-msgstr "Jour⋅s Du Mois"
+msgstr "Jour⋅s Du mois"
 
 #: django_celery_beat/models.py:290
 msgid ""
 "Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
 msgstr ""
-"Jours Du Mois Cron pour Démarrer. Utilisez \"*\" pour \"tous\". (Exemple: "
+"Jours Du mois Cron pour démarrer. Utilisez \"*\" pour \"tous\". (Exemple: "
 "\"1,15\")"
 
 #: django_celery_beat/models.py:296
 msgid "Month(s) Of The Year"
-msgstr "Mois De L'Année"
+msgstr "Mois De L'année"
 
 #: django_celery_beat/models.py:298
 msgid ""
 "Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
 msgstr ""
-"Mois De L'Année Cron pour Démarrer. Utilisez \"*\" pour \"tous\". (Exemple:"
+"Mois De L'année Cron pour démarrer. Utilisez \"*\" pour \"tous\". (Exemple:"
 " ,6\")"
 
 #: django_celery_beat/models.py:305
 msgid "Cron Timezone"
-msgstr "Fuseau Horaire Cron"
+msgstr "Fuseau horaire Cron"
 
 #: django_celery_beat/models.py:307
 msgid "Timezone to Run the Cron Schedule on. Default is UTC."
 msgstr ""
-"Fuseau Horaire pour lequel démarrer la planification Cron. UTC par défaut."
+"Fuseau horaire pour lequel démarrer la planification Cron. UTC par défaut."
 
 #: django_celery_beat/models.py:313
 msgid "crontab"
@@ -316,14 +316,14 @@ msgstr "Nom"
 
 #: django_celery_beat/models.py:400
 msgid "Short Description For This Task"
-msgstr "Description Courte Pour Cette Tâche"
+msgstr "Description courte pour cette tâche"
 
 #: django_celery_beat/models.py:405
 msgid ""
 "The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
 "import_contacts\")"
 msgstr ""
-"Le Nom de la Tâche Celery qui devrait être démarrée.  (Exemple: \"proj.tasks."
+"Le nom de la tâche Celery qui devrait être démarrée.  (Exemple: \"proj.tasks."
 "import_contacts\")"
 
 #: django_celery_beat/models.py:413
@@ -388,7 +388,7 @@ msgstr "Arguments Nommés"
 
 #: django_celery_beat/models.py:447
 msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
-msgstr "Arguments nommés encodés en JSON (Exemple: {\"argument\": \"valeur\"})"
+msgstr "Arguments Nommés encodés en JSON (Exemple: {\"argument\": \"valeur\"})"
 
 #: django_celery_beat/models.py:453
 msgid "Queue Override"
@@ -414,7 +414,7 @@ msgstr "Clé de routage"
 
 #: django_celery_beat/models.py:470
 msgid "Override Routing Key for low-level AMQP routing"
-msgstr "Surcharge de clé de route pour un routage AMQP bas-niveau"
+msgstr "Surcharge de clé de routage pour un routage AMQP bas-niveau"
 
 #: django_celery_beat/models.py:474
 msgid "AMQP Message Headers"
@@ -433,7 +433,7 @@ msgid ""
 "Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
 "reversed, 0 is highest)."
 msgstr ""
-"Valeur de Priorité entre 0 et 255. Supporté par: RabbitMQ, Redis (priorité "
+"Valeur de priorité entre 0 et 255. Supporté par: RabbitMQ, Redis (priorité "
 "inversé, 0 est plus élevé)."
 
 #: django_celery_beat/models.py:488
@@ -467,6 +467,10 @@ msgstr "Tâche Ponctuelle"
 msgid "If True, the schedule will only run the task a single time"
 msgstr "Si Vrai, la planification ne démarrera la tâche qu'une seule fois"
 
+#: django_celery_beat/models.py:507
+msgid "Enabled"
+msgstr "Activé"
+
 #: django_celery_beat/models.py:509
 msgid "Start Datetime"
 msgstr "Date et heure de démarrage"
@@ -491,7 +495,7 @@ msgstr ""
 
 #: django_celery_beat/models.py:529
 msgid "Total Run Count"
-msgstr "Nombre Total de Démarrage"
+msgstr "Nombre total de démarrages"
 
 #: django_celery_beat/models.py:531
 msgid "Running count of how many times the schedule has triggered the task"
@@ -515,7 +519,7 @@ msgstr "Description détaillée à propos des détails de cette Tâche Périodiq
 
 #: django_celery_beat/models.py:552
 msgid "periodic task"
-msgstr "tâche périodiuqe"
+msgstr "tâche périodique"
 
 #: django_celery_beat/models.py:553
 msgid "periodic tasks"
