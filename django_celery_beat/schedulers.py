@@ -15,7 +15,12 @@ from kombu.utils.encoding import safe_str, safe_repr
 from kombu.utils.json import dumps, loads
 
 from django.conf import settings
-from django.db import transaction, close_old_connections
+from django.db import (
+    DEFAULT_DB_ALIAS,
+    close_old_connections,
+    router,
+    transaction
+)
 from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -258,7 +263,7 @@ class DatabaseScheduler(Scheduler):
             # other transactions until the current transaction is
             # committed (Issue #41).
             try:
-                transaction.commit()
+                transaction.commit(using=self.target_db)
             except transaction.TransactionManagementError:
                 pass  # not in transaction management.
 
@@ -287,7 +292,18 @@ class DatabaseScheduler(Scheduler):
         self._dirty.add(new_entry.name)
         return new_entry
 
-    def sync(self):
+    @property
+    def target_db(self):
+        """Determine if there is a django route"""
+        if not settings.DATABASE_ROUTERS:
+            return DEFAULT_DB_ALIAS
+        # If the project does not actually implement this method, 
+        # DEFAULT_DB_ALIAS will be automatically returned.
+        # The exception will be located to the django routing section
+        db = router.db_for_write(self.Model)
+        return db
+
+    def _sync(self):
         if logger.isEnabledFor(logging.DEBUG):
             debug('Writing entries...')
         _tried = set()
@@ -312,6 +328,10 @@ class DatabaseScheduler(Scheduler):
         finally:
             # retry later, only for the failed ones
             self._dirty |= _failed
+
+    def sync(self):
+        with transaction.atomic(using=self.target_db):
+            self._sync()
 
     def update_from_dict(self, mapping):
         s = {}
