@@ -15,6 +15,7 @@ from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
 from .clockedschedule import clocked
 
+from django.utils.timezone import localtime
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -220,7 +221,8 @@ class ClockedSchedule(models.Model):
         ordering = ['clocked_time']
 
     def __str__(self):
-        return '{}'.format(self.clocked_time)
+        return localtime(self.clocked_time).strftime("%d %B %Y %I:%M %p")
+        # return '{}'.format(self.clocked_time)
 
     @property
     def schedule(self):
