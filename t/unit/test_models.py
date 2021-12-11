@@ -1,15 +1,18 @@
 import os
+import random
+import string
 
+import dill
+import timezone_field
 from celery import schedules
-from django.test import TestCase, override_settings
+from celery.canvas import Signature
 from django.apps import apps
-from django.db.migrations.state import ProjectState
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.db.migrations.state import ProjectState
+from django.test import TestCase, override_settings
 from django.utils import timezone
-
-import timezone_field
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
@@ -17,8 +20,10 @@ from django_celery_beat.models import (
     SolarSchedule,
     CrontabSchedule,
     ClockedSchedule,
+    PeriodicTask,
     IntervalSchedule,
 )
+from django_celery_beat.utils import sign_task_signature
 
 
 class MigrationTests(TestCase):
@@ -146,3 +151,33 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     def test_duplicate_schedules(self):
         kwargs = {'clocked_time': timezone.now()}
         self._test_duplicate_schedules(ClockedSchedule, kwargs)
+
+
+class PeriodicTaskSignatureTestCase(TestCase):
+    test_private_key_path = './test_id_rsa'
+    test_public_key_path = './test_id_rsa.pub'
+
+    def test_periodic_task_with_signatures(self):
+        empty_task_signature = Signature(task='empty_task')
+
+        serialized_empty_task = dill.dumps(empty_task_signature)
+        s = sign_task_signature(serialized_empty_task)
+
+        interval, _ = IntervalSchedule.objects.get_or_create(
+            every=2,
+            period=IntervalSchedule.MINUTES
+        )
+        periodic_task = PeriodicTask.objects.create(
+            name='test-' + ''.join(random.choices(string.ascii_letters, k=20)),
+            task_signature=serialized_empty_task,
+            task_signature_sign=s,
+            callback_signature=serialized_empty_task,
+            callback_signature_sign=s,
+            interval=interval,
+        )
+
+        task_signature = periodic_task.get_verified_callback_signature(raise_exceptions=False)
+        callback_signature = periodic_task.get_verified_callback_signature(raise_exceptions=False)
+
+        self.assertEqual(empty_task_signature, task_signature)
+        self.assertEqual(empty_task_signature, callback_signature)

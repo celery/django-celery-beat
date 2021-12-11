@@ -1,30 +1,34 @@
 """Beat Scheduler Implementation."""
+from __future__ import absolute_import, unicode_literals
+
 import datetime
+import importlib
 import logging
 import math
-
-from multiprocessing.util import Finalize
+import sys
 
 from celery import current_app
 from celery import schedules
-from celery.beat import Scheduler, ScheduleEntry
-
+# noinspection PyProtectedMember
+from celery.beat import Scheduler, ScheduleEntry, SchedulingError
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
-from kombu.utils.encoding import safe_str, safe_repr
-from kombu.utils.json import dumps, loads
-
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+# noinspection PyProtectedMember
 from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
-from django.core.exceptions import ObjectDoesNotExist
+from kombu.utils.encoding import safe_str, safe_repr
+from kombu.utils.json import dumps, loads
+# noinspection PyUnresolvedReferences
+from multiprocessing.util import Finalize
 
+from .clockedschedule import clocked
 from .models import (
     PeriodicTask, PeriodicTasks,
     CrontabSchedule, IntervalSchedule,
     SolarSchedule, ClockedSchedule
 )
-from .clockedschedule import clocked
 from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
@@ -56,6 +60,8 @@ class ModelEntry(ScheduleEntry):
         self.app = app or current_app._get_current_object()
         self.name = model.name
         self.task = model.task
+        self.task_signature = model.get_verified_task_signature()
+
         try:
             self.schedule = model.schedule
         except model.DoesNotExist:
@@ -74,7 +80,10 @@ class ModelEntry(ScheduleEntry):
             )
             self._disable(model)
 
-        self.options = {}
+        self.options = {
+            'link': model.get_verified_callback_signature()
+        }
+
         for option in ['queue', 'exchange', 'routing_key', 'priority']:
             value = getattr(model, option)
             if value is None:
@@ -229,6 +238,7 @@ class DatabaseScheduler(Scheduler):
         """Initialize the database scheduler."""
         self._dirty = set()
         Scheduler.__init__(self, *args, **kwargs)
+        # noinspection PyUnresolvedReferences
         self._finalize = Finalize(self, self.sync, exitpriority=5)
         self.max_interval = (
             kwargs.get('max_interval')
@@ -368,3 +378,33 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+    def apply_async(self, entry, producer=None, advance=True, **kwargs):
+        entry = self.reserve(entry) if advance else entry
+        task = entry.task_signature
+
+        if hasattr(self.app.conf, 'call_before_run_periodic_task'):
+            # if app.conf has a field call_before_run_periodic_task
+            # then we try to import and run all the specified functions
+            for func_ref in self.app.conf.call_before_run_periodic_task:
+                func_ref = func_ref.split('.')
+                callback = importlib.import_module(
+                    '.'.join(func_ref[:-1])
+                ).__getattribute__(func_ref[-1])
+                callback(task=task, entry=entry, producer=producer, advance=advance, **kwargs)
+
+        if entry.task_signature is None:
+            return super(DatabaseScheduler, self).apply_async(entry, producer=producer, advance=advance, **kwargs)
+
+        try:
+            return task.apply_async(producer=producer, **entry.options)
+        except Exception as exc:  # pylint: disable=broad-except
+            e = SchedulingError(
+                "Couldn't apply scheduled task {0.name}: {exc}".format(entry, exc=exc)
+            )
+            raise e.with_traceback(sys.exc_info()[2])
+
+        finally:
+            self._tasks_since_sync += 1
+            if self.should_sync():
+                self._do_sync()

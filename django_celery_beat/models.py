@@ -1,8 +1,10 @@
 """Database models."""
 from datetime import timedelta
 
+import dill
 import timezone_field
 from celery import schedules, current_app
+from celery.utils.log import get_logger
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -11,10 +13,11 @@ from django.db.models import signals
 from django.utils.translation import gettext_lazy as _
 
 from . import managers, validators
-from .tzcrontab import TzAwareCrontab
-from .utils import make_aware, now
 from .clockedschedule import clocked
+from .tzcrontab import TzAwareCrontab
+from .utils import make_aware, now, verify_task_signature
 
+logger = get_logger(__name__)
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -396,6 +399,27 @@ class PeriodicTask(models.Model):
         help_text=_('The Name of the Celery Task that Should be Run.  '
                     '(Example: "proj.tasks.import_contacts")'),
     )
+    task_signature = models.BinaryField(
+        null=True,
+        help_text='Serialized `celery.canvas.Signature` type\'s object of task (or chain, group, '
+                  'etc.) got by https://pypi.org/project/dill/'
+    )
+    callback_signature = models.BinaryField(
+        null=True,
+        help_text='Serialized `celery.canvas.Signature` type\'s callback task got '
+                  'by https://pypi.org/project/dill/ (use as link arg in `.apply_async` method)'
+    )  # todo: add support for error_callback (link_error option)
+    task_signature_sign = models.CharField(
+        null=True,
+        max_length=1028,
+        help_text='Signature (in hex) of serialized `celery.canvas.Signature` type\'s object (see task_signature field)'
+    )
+    callback_signature_sign = models.CharField(
+        null=True,
+        max_length=1028,
+        help_text='Signature (in hex) of serialized `celery.canvas.Signature` type\'s callback '
+                  'task (see callback_signature field)'
+    )
 
     # You can only set ONE of the following schedule FK's
     # TODO: Redo this as a GenericForeignKey
@@ -556,8 +580,8 @@ class PeriodicTask(models.Model):
                 'must be set.'
             )
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
-            'or solar must be set'
+        err_msg = 'Only one of clocked, interval, crontab, ' \
+                  'or solar must be set'
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:
@@ -578,6 +602,17 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
+
+        if self.task_signature:
+            task = self.get_verified_task_signature().__repr__()
+            pattern = '<serialized-task: {} >'
+            max_length = PeriodicTask.task.field.max_length - len(pattern) + 2 - 3
+
+            if len(task) > max_length:
+                task = pattern.format(task[:max_length] + '...')
+
+            self.task = task
+
         super().save(*args, **kwargs)
 
     def _clean_expires(self):
@@ -585,6 +620,53 @@ class PeriodicTask(models.Model):
             raise ValidationError(
                 _('Only one can be set, in expires and expire_seconds')
             )
+
+    def get_verified_task_signature(self, raise_exceptions=True):
+        try:
+            self.get_verified_callback_signature()
+        except ValueError as e:
+            err = 'Wrong callback: {} [{}]'.format(e, self)
+            logger.error(err)
+            if raise_exceptions:
+                raise ValueError(err)
+            return None
+
+        return self._get_verified_obj_signature('task', raise_exceptions)
+
+    def get_verified_callback_signature(self, raise_exceptions=True):
+        return self._get_verified_obj_signature('callback', raise_exceptions)
+
+    def _get_verified_obj_signature(self, object_name, raise_exceptions):
+        assert object_name in ('task', 'callback'), ValueError('Unknown object_name')
+
+        obj_signarute = getattr(self, '{}_signature'.format(object_name), None)
+        obj_signarute_sign = getattr(self, '{}_signature_sign'.format(object_name), None)
+
+        if obj_signarute is None:
+            return None
+
+        if obj_signarute_sign is None:
+            err = 'Not found `{}_signature_sign` for `{}` (use django_celery_be' \
+                  'at.utils.sign to sign). Task disabled.'.format(object_name, self)
+            self.enabled = False
+            self.save(update_fields=['enabled'])
+            logger.error(err)
+            if raise_exceptions:
+                raise ValueError(err)
+            return None
+
+        obj_signarute = bytes(obj_signarute)
+
+        if not verify_task_signature(obj_signarute, obj_signarute_sign):
+            err = 'Wrong sign for `{}`. Task disabled.'.format(self)
+            self.enabled = False
+            self.save(update_fields=['enabled'])
+            logger.error(err)
+            if raise_exceptions:
+                raise ValueError(err)
+            return None
+
+        return dill.loads(obj_signarute)
 
     @property
     def expires_(self):
