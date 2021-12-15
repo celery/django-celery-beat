@@ -315,11 +315,16 @@ class CrontabSchedule(models.Model):
                     'day_of_week', 'hour', 'minute', 'timezone']
 
     def __str__(self):
-        return '{0} {1} {2} {3} {4} {5} (m/h/dM/MY/d) {6}'.format(
-            self.name if self.name else '',
+
+        name = None
+        if self.name:
+            name = '[{}]'.format(self.name)
+
+        return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5} {6}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
-            cronexp(self.day_of_week), str(self.timezone)
+            cronexp(self.day_of_week), str(self.timezone),
+            name if name else '',
         )
 
     @property
