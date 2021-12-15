@@ -15,7 +15,6 @@ from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
 from .clockedschedule import clocked
 
-from django.utils.timezone import localtime
 
 DAYS = 'days'
 HOURS = 'hours'
