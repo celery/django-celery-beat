@@ -299,6 +299,13 @@ class CrontabSchedule(models.Model):
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
 
+    name = models.CharField(
+        max_length=200, unique=False,
+        null=True, blank=True,
+        verbose_name=_('Name'),
+        help_text=_('Short Description For This Cron Schedule'),
+    )
+
     class Meta:
         """Table information."""
 
@@ -308,7 +315,8 @@ class CrontabSchedule(models.Model):
                     'day_of_week', 'hour', 'minute', 'timezone']
 
     def __str__(self):
-        return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5}'.format(
+        return '{0} {1} {2} {3} {4} {5} (m/h/dM/MY/d) {6}'.format(
+            self.name if self.name else '',
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
             cronexp(self.day_of_week), str(self.timezone)
