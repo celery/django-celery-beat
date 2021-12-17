@@ -153,7 +153,7 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year`, so if you want the equivalent
-of a ``30 * * * *`` (execute at 30 minutes past the hour every hour) crontab 
+of a ``30 * * * *`` (execute at 30 minutes past the hour every hour) crontab
 entry you specify::
 
     >>> from django_celery_beat.models import CrontabSchedule, PeriodicTask
@@ -210,9 +210,9 @@ Both the worker and beat services need to be running at the same time.
   **OR** you can use the -S (scheduler flag), for more options see ``celery beat --help``)::
 
             $ celery -A [project-name] beat -l info -S django
-            
+
   **OR** you can set the scheduler through Django's settings::
-  
+
             CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 
@@ -224,3 +224,32 @@ with only one command (recommended for **development environment only**)::
 
 
 3. Now you can add and manage your periodic tasks from the Django Admin interface.
+
+
+
+Working with django-celery-results
+-----------------------------------
+
+Now you can store PeriodicTask.name to django-celery-results (TaskResult.periodic_task_name).
+
+Suppose we have two periodic tasks, their schedules are different, but the tasks are the same.
+
++-----------+------------------+------+---------------+
+|   name    |       task       | args |   schedule    |
++===========+==================+======+===============+
+| schedule1 | some.celery.task | (1,) | every hour    |
+| schedule2 | some.celery.task | (2,) | every 2 hours |
++-----------+------------------+------+---------------+
+
+Now you can distinguish the source of the task from the results by the `periodic_task_name` field.
+
++--------+------------------+--------------------+
+|   id   |    task_name     | periodic_task_name |
++========+==================+====================+
+| uuid1  | some.celery.task | schedule1          |
+| uuid2  | some.celery.task | schedule1          |
+| uuid3  | some.celery.task | schedule2          |
+| uuid4  | some.celery.task | schedule2          |
++--------+------------------+--------------------+
+
+(more technical details here: https://github.com/celery/django-celery-beat/pull/477, https://github.com/celery/django-celery-results/pull/261)
