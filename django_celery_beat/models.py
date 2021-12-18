@@ -220,7 +220,7 @@ class ClockedSchedule(models.Model):
         ordering = ['clocked_time']
 
     def __str__(self):
-        return '{}'.format(self.clocked_time)
+        return '{}'.format(make_aware(self.clocked_time))
 
     @property
     def schedule(self):

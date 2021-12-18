@@ -131,6 +131,7 @@ class test_ModelEntry(SchedulerCase):
         assert e.options['routing_key'] == 'cpu'
         assert e.options['priority'] == 1
         assert e.options['headers'] == {'_schema_name': 'foobar'}
+        assert e.options['periodic_task_name'] == m.name
 
         right_now = self.app.now()
         m2 = self.create_model_interval(
