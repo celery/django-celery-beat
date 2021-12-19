@@ -8,7 +8,8 @@ from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
 from django.utils import timezone
-
+from django.conf import settings
+import pytz, datetime
 import timezone_field
 
 from django_celery_beat import migrations as beat_migrations
@@ -146,3 +147,12 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     def test_duplicate_schedules(self):
         kwargs = {'clocked_time': timezone.now()}
         self._test_duplicate_schedules(ClockedSchedule, kwargs)
+
+    # IMPORTANT: we must have a valid the time-zone (not UTC) to do an accurate testing
+    @override_settings(TIME_ZONE='Africa/Cairo') 
+    def test_timezone_format(self):
+        """Make sure the scheduled time is not shown in UTC when time zone is used"""
+        tz_info = pytz.timezone(settings.TIME_ZONE).localize(datetime.datetime.utcnow())
+        schedule, created = ClockedSchedule.objects.get_or_create(clocked_time=tz_info)
+        # testnig str(schedule) calls make_aware() internally
+        assert str(schedule.clocked_time) == str(schedule)
