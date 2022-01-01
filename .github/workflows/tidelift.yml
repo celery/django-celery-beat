@@ -1,18 +1,24 @@
 name: Tidelift Alignment
-on: [push]
-schedule:
-    - cron: '0 0 * * *'  # every day at midnight
+on:
+  schedule:
+    - cron: "30 2 * * *"  # daily at 02:30 UTC
+  push:
+    paths:
+      - ".github/workflows/tidelift.yml"
+
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Run Tidelift to ensure approved open source packages are in use
+    if: github.repository_owner == 'celery'
+    name: Ensure approved open source packages are in use
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Scan
-        uses: tidelift/scan-action@main
+        uses: tidelift/alignment-action@main
         env:
           TIDELIFT_API_KEY: ${{ secrets.TIDELIFT_API_KEY }}
-          TIDELIFT_ORGANIZATION: ${{ secrets.TIDELIFT_ORGANIZATION }}
-          TIDELIFT_PROJECT: ${{ secrets.TIDELIFT_PROJECT }}
+          TIDELIFT_ORGANIZATION: team/auvipy
+          TIDELIFT_PROJECT: celeryproject
