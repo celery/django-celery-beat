@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 import timezone_field
-from celery import schedules
+from celery import schedules, current_app
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -38,12 +38,38 @@ SINGULAR_PERIODS = (
     (MICROSECONDS, _('Microsecond')),
 )
 
-SOLAR_SCHEDULES = [(x, _(x)) for x in sorted(schedules.solar._all_events)]
+SOLAR_SCHEDULES = [
+    ("dawn_astronomical", _("Astronomical dawn")),
+    ("dawn_civil", _("Civil dawn")),
+    ("dawn_nautical", _("Nautical dawn")),
+    ("dusk_astronomical", _("Astronomical dusk")),
+    ("dusk_civil", _("Civil dusk")),
+    ("dusk_nautical", _("Nautical dusk")),
+    ("solar_noon", _("Solar noon")),
+    ("sunrise", _("Sunrise")),
+    ("sunset", _("Sunset")),
+]
 
 
 def cronexp(field):
     """Representation of cron expression."""
     return field and str(field).replace(' ', '') or '*'
+
+
+def crontab_schedule_celery_timezone():
+    """Return timezone string from Django settings `CELERY_TIMEZONE` variable.
+
+    If is not defined or is not a valid timezone, return `"UTC"` instead.
+    """
+    try:
+        CELERY_TIMEZONE = getattr(
+            settings, '%s_TIMEZONE' % current_app.namespace)
+    except AttributeError:
+        return 'UTC'
+    return CELERY_TIMEZONE if CELERY_TIMEZONE in [
+        choice[0].zone for choice in timezone_field.
+        TimeZoneField.default_choices
+    ] else 'UTC'
 
 
 class SolarSchedule(models.Model):
@@ -186,12 +212,6 @@ class ClockedSchedule(models.Model):
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
     )
-    enabled = models.BooleanField(
-        default=True,
-        editable=False,
-        verbose_name=_('Enabled'),
-        help_text=_('Set to False to disable the schedule'),
-    )
 
     class Meta:
         """Table information."""
@@ -201,18 +221,16 @@ class ClockedSchedule(models.Model):
         ordering = ['clocked_time']
 
     def __str__(self):
-        return '{} {}'.format(self.clocked_time, self.enabled)
+        return '{}'.format(self.clocked_time)
 
     @property
     def schedule(self):
-        c = clocked(clocked_time=self.clocked_time,
-                    enabled=self.enabled, model=self)
+        c = clocked(clocked_time=self.clocked_time)
         return c
 
     @classmethod
     def from_schedule(cls, schedule):
-        spec = {'clocked_time': schedule.clocked_time,
-                'enabled': schedule.enabled}
+        spec = {'clocked_time': schedule.clocked_time}
         try:
             return cls.objects.get(**spec)
         except cls.DoesNotExist:
@@ -277,10 +295,10 @@ class CrontabSchedule(models.Model):
     )
 
     timezone = timezone_field.TimeZoneField(
-        default='UTC',
+        default=crontab_schedule_celery_timezone,
         verbose_name=_('Cron Timezone'),
         help_text=_(
-            'Timezone to Run the Cron Schedule on.  Default is UTC.'),
+            'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
 
     class Meta:

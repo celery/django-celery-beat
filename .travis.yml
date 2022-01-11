@@ -1,5 +1,4 @@
 language: python
-sudo: false
 dist: xenial
 cache: false
 before_install:
@@ -13,32 +12,21 @@ before_install:
   - sudo apt install -y rabbitmq-server
   - sudo /etc/init.d/rabbitmq-server start
 python:
-  - 3.5
   - 3.6
   - 3.7
   - 3.8
-# pypy3.5 not yet supported due to compilation errors with pyephem
-# https://github.com/celery/django-celery-beat/issues/245
-#  - pypy3.5
 env:
   - DJANGO=2.2
   - DJANGO=3.0
+  - DJANGO=3.1
 os:
   - linux
 matrix:
   include:
     - { python: 3.6, env: TOXENV=upgradebeat130 }
     - { python: 3.6, env: TOXENV=upgradebeat140 }
-    - { python: 3.6, env: TOXENV=flake8 }
-    - { python: 3.6, env: TOXENV=pydocstyle }
-    - { python: 3.6, env: TOXENV=cov }
-    # disabled temporarily due to upstream bug
-    # https://github.com/celery/sphinx_celery/issues/9
-    # - { python: 3.5, env: TOXENV=apicheck }
-    # - { python: 3.5, env: TOXENV=linkcheck }
-  exclude:
-    # Django 2.2 is the latest that supports Python 3.5
-    - { python: 3.5, env: DJANGO=3.0 }
+    - { python: 3.8, env: TOXENV=flake8 }
+    - { python: 3.8, env: TOXENV=pydocstyle }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v

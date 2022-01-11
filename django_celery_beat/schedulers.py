@@ -8,9 +8,10 @@ from multiprocessing.util import Finalize
 from celery import current_app
 from celery import schedules
 from celery.beat import Scheduler, ScheduleEntry
-from celery.utils.encoding import safe_str, safe_repr
+
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
+from kombu.utils.encoding import safe_str, safe_repr
 from kombu.utils.json import dumps, loads
 
 from django.conf import settings
@@ -24,11 +25,7 @@ from .models import (
     SolarSchedule, ClockedSchedule
 )
 from .clockedschedule import clocked
-
-try:
-    from celery.utils.time import is_naive
-except ImportError:  # pragma: no cover
-    from celery.utils.timeutils import is_naive  # noqa
+from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -128,7 +125,8 @@ class ModelEntry(ScheduleEntry):
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
             self.model.save()
-            return schedules.schedstate(False, None)  # Don't recheck
+            # Don't recheck
+            return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
         # while maybe_make_aware assumes utc for naive datetimes
@@ -290,7 +288,8 @@ class DatabaseScheduler(Scheduler):
         return new_entry
 
     def sync(self):
-        info('Writing entries...')
+        if logger.isEnabledFor(logging.DEBUG):
+            debug('Writing entries...')
         _tried = set()
         _failed = set()
         try:

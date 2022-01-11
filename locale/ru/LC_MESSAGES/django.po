@@ -251,7 +251,7 @@ msgid "Cron Timezone"
 msgstr "Временная зона для Cron"
 
 #: django_celery_beat/models.py:273
-msgid "Timezone to Run the Cron Schedule on.  Default is UTC."
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
 msgstr "Временная зона для Cron расписания. UTC по умолчанию."
 
 #: django_celery_beat/models.py:279
