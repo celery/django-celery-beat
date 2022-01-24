@@ -247,8 +247,19 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
     )
 
 
+class CrontabScheduleAdmin(admin.ModelAdmin):
+    """Admin-interface for crontab items."""
+    model = CrontabSchedule
+    celery_app = current_app
+    list_display = (
+        'name',
+        '__str__',
+        'timezone',
+    )
+
+
 admin.site.register(IntervalSchedule)
-admin.site.register(CrontabSchedule)
 admin.site.register(SolarSchedule)
+admin.site.register(CrontabSchedule, CrontabScheduleAdmin)
 admin.site.register(ClockedSchedule, ClockedScheduleAdmin)
 admin.site.register(PeriodicTask, PeriodicTaskAdmin)
