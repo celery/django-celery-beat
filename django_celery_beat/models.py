@@ -316,15 +316,11 @@ class CrontabSchedule(models.Model):
 
     def __str__(self):
 
-        name = None
-        if self.name:
-            name = '[{}]'.format(self.name)
-
         return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5} {6}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
             cronexp(self.day_of_week), str(self.timezone),
-            name if name else '',
+            '[{}]'.format(self.name) if self.name else '',
         )
 
     @property
@@ -606,9 +602,9 @@ class PeriodicTask(models.Model):
     def __str__(self):
         fmt = '{0.name}: {{no schedule}}'
         if self.interval:
-            fmt = '{0.name}: {0.interval}'
+            fmt = '{0.name}'
         if self.crontab:
-            fmt = '{0.name}: {0.crontab}'
+            fmt = '{0.name}'
         if self.solar:
             fmt = '{0.name}: {0.solar}'
         if self.clocked:
