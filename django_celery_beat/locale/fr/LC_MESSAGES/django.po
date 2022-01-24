@@ -229,10 +229,6 @@ msgstr "Horaire"
 msgid "Run the task at clocked time"
 msgstr "Démarre la tâche à l'horaire définie"
 
-#: django_celery_beat/models.py:216 django_celery_beat/models.py:516
-msgid "Enabled"
-msgstr "Activée"
-
 #: django_celery_beat/models.py:217 django_celery_beat/models.py:517
 msgid "Set to False to disable the schedule"
 msgstr "Mettre à Faux pour désactiver la planification"
