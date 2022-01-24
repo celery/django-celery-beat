@@ -1,9 +1,9 @@
-from unittest.mock import patch
-
 import pytest
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from itertools import combinations
+from unittest import mock
 
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import \
@@ -128,9 +128,8 @@ class DisableTasksTest(TestCase):
         cls.interval_schedule = IntervalSchedule.objects.create(every=10,
                                                                 period=DAYS)
 
-    @patch(
-        'django_celery_beat.admin.PeriodicTaskAdmin._message_user_about_update'
-    )
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.'
+                '_message_user_about_update')
     def test_disable_tasks(self, mock_message_user):
         PeriodicTask.objects.create(name='name1', task='task1', enabled=True,
                                     interval=self.interval_schedule)
