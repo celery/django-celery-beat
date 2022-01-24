@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -115,3 +117,31 @@ class ValidateUniqueTests(TestCase):
         PeriodicTask(interval=IntervalSchedule()).validate_unique()
         PeriodicTask(solar=SolarSchedule()).validate_unique()
         PeriodicTask(clocked=ClockedSchedule(), one_off=True).validate_unique()
+
+
+@pytest.mark.django_db()
+class DisableTasksTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.interval_schedule = IntervalSchedule.objects.create(every=10,
+                                                                period=DAYS)
+
+    @patch(
+        'django_celery_beat.admin.PeriodicTaskAdmin._message_user_about_update'
+    )
+    def test_disable_tasks(self, mock_message_user):
+        PeriodicTask.objects.create(name='name1', task='task1', enabled=True,
+                                    interval=self.interval_schedule)
+        PeriodicTask.objects.create(name='name2', task='task2', enabled=True,
+                                    interval=self.interval_schedule)
+
+        qs = PeriodicTask.objects.all()
+
+        PeriodicTaskAdmin(PeriodicTask, None).disable_tasks(None, qs)
+
+        for periodic_task in qs:
+            self.assertFalse(periodic_task.enabled)
+            self.assertIsNone(periodic_task.last_run_at)
+        mock_message_user.assert_called_once()
