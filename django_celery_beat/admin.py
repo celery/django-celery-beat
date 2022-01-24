@@ -179,7 +179,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     enable_tasks.short_description = _('Enable selected tasks')
 
     def disable_tasks(self, request, queryset):
-        rows_updated = queryset.update(enabled=False)
+        rows_updated = queryset.update(enabled=False, last_run_at=None)
         PeriodicTasks.update_changed()
         self._message_user_about_update(request, rows_updated, 'disabled')
     disable_tasks.short_description = _('Disable selected tasks')
