@@ -612,19 +612,33 @@ class test_models(SchedulerCase):
             day_of_month='*/2',
             month_of_year='4,6',
         )) == '3 3 */2 4,6 tue (m/h/dM/MY/d) UTC'
+        # No spaces should be present at the end of the string in asserts above!
+        # Check if name is correct and have a space before.
+        assert str(CrontabSchedule(
+            minute=3,
+            hour=3,
+            day_of_week='tue',
+            day_of_month='*/2',
+            month_of_year='4,6',
+            name='Name'
+        )) == '3 3 */2 4,6 tue (m/h/dM/MY/d) UTC [Name]'
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
-        assert str(p) == '{0}: every 10.0 seconds'.format(p.name)
+        assert str(p) == '{0}'.format(p.name)  # Task name is name.
+        assert str(p.interval) == 'every 10.0 seconds'  # But interval is human-readable too.
 
     def test_PeriodicTask_unicode_crontab(self):
+        """
+        No longer show PeriodicTask name + Crontab name.
+        We have a separate column in admin section, so there is no need to duplicate this info in the name.
+        """
         p = self.create_model_crontab(crontab(
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert str(p) == """{0}: * 4,5 * * 4,5 (m/h/dM/MY/d) UTC""".format(
-            p.name
-        )
+        assert str(p) == "{0}".format(p.name)  # Task name is name.
+        assert str(p.crontab) == """* 4,5 * * 4,5 (m/h/dM/MY/d) UTC"""  # But cron is human-readable too.
 
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(
