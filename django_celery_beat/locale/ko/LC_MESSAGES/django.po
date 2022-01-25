@@ -18,15 +18,15 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 #: django_celery_beat/admin.py:64
 msgid "Task (registered)"
-msgstr "등록 테스크 목록"
+msgstr "등록 태스크 목록"
 
 #: django_celery_beat/admin.py:68
 msgid "Task (custom)"
-msgstr "사용자 정의 테스크"
+msgstr "사용자 정의 태스크"
 
 #: django_celery_beat/admin.py:85
 msgid "Need name of task"
-msgstr "테스크 이름이 필요 합니다."
+msgstr "태스크 이름이 필요 합니다."
 
 #: django_celery_beat/admin.py:91 django_celery_beat/models.py:586
 msgid "Only one can be set, in expires and expire_seconds"
@@ -40,7 +40,7 @@ msgstr "해석할 수 없습니다. JSON: %s"
 #: django_celery_beat/admin.py:167
 #, python-brace-format
 msgid "{0} task{1} {2} successfully {3}"
-msgstr "{0} 테스크{1} {2} 성공적으로 {3}"
+msgstr "{0} 태스크{1} {2} 성공적으로 {3}"
 
 #: django_celery_beat/admin.py:170 django_celery_beat/admin.py:233
 msgid "was,were"
@@ -48,33 +48,33 @@ msgstr "가,들이"
 
 #: django_celery_beat/admin.py:179
 msgid "Enable selected tasks"
-msgstr "선택된 테스크들을 활성화 합니다."
+msgstr "선택된 태스크들을 활성화 합니다."
 
 #: django_celery_beat/admin.py:185
 msgid "Disable selected tasks"
-msgstr "선택된 테스크들을 비활성화 합니다."
+msgstr "선택된 태스크들을 비활성화 합니다."
 
 #: django_celery_beat/admin.py:197
 msgid "Toggle activity of selected tasks"
-msgstr "선택된 테스크들의 활성화 상태를 토글 합니다."
+msgstr "선택된 태스크들의 활성화 상태를 토글 합니다."
 
 #: django_celery_beat/admin.py:218
 #, python-brace-format
 msgid "task \"{0}\" not found"
-msgstr "테스크 \"{0}\" 을 찾을 수 없습니다."
+msgstr "태스크 \"{0}\" 을 찾을 수 없습니다."
 
 #: django_celery_beat/admin.py:230
 #, python-brace-format
 msgid "{0} task{1} {2} successfully run"
-msgstr "{0} 테스크{1} {2} 성공적으로 작동했습니다."
+msgstr "{0} 태스크{1} {2} 성공적으로 작동했습니다."
 
 #: django_celery_beat/admin.py:236
 msgid "Run selected tasks"
-msgstr "선택된 테스크들을 실행 합니다."
+msgstr "선택된 태스크들을 실행 합니다."
 
 #: django_celery_beat/apps.py:13
 msgid "Periodic Tasks"
-msgstr "주기적인 테스크들"
+msgstr "주기적인 태스크들"
 
 #: django_celery_beat/models.py:26
 msgid "Days"
@@ -158,7 +158,7 @@ msgstr "Solar Event"
 
 #: django_celery_beat/models.py:85
 msgid "The type of solar event when the job should run"
-msgstr "테스크가 작동 해야 하는 Solar Event"
+msgstr "태스크가 작동 해야 하는 Solar Event"
 
 #: django_celery_beat/models.py:89
 msgid "Latitude"
@@ -166,7 +166,7 @@ msgstr "위도"
 
 #: django_celery_beat/models.py:90
 msgid "Run the task when the event happens at this latitude"
-msgstr "입력된 위도에서 Solar Event 가 발생하면 테스크를 실행합니다."
+msgstr "입력된 위도에서 Solar Event 가 발생하면 태스크를 실행합니다."
 
 #: django_celery_beat/models.py:95
 msgid "Longitude"
@@ -174,7 +174,7 @@ msgstr "경도"
 
 #: django_celery_beat/models.py:96
 msgid "Run the task when the event happens at this longitude"
-msgstr "입력된 경도에서 Solar Event 가 발생하면 테스크를 실행합니다."
+msgstr "입력된 경도에서 Solar Event 가 발생하면 태스크를 실행합니다."
 
 #: django_celery_beat/models.py:103
 msgid "solar event"
@@ -190,7 +190,7 @@ msgstr "매"
 
 #: django_celery_beat/models.py:154
 msgid "Number of interval periods to wait before running the task again"
-msgstr "테스크의 다음 동작까지 몇 번의 간격을 기다릴 것인지 입력합니다."
+msgstr "태스크의 다음 동작까지 몇 번의 간격을 기다릴 것인지 입력합니다."
 
 #: django_celery_beat/models.py:160
 msgid "Interval Period"
@@ -222,7 +222,7 @@ msgstr "Clock Time"
 
 #: django_celery_beat/models.py:212
 msgid "Run the task at clocked time"
-msgstr "Clock Time 기준으로 테스크를 작동합니다."
+msgstr "Clock Time 기준으로 태스크를 작동합니다."
 
 #: django_celery_beat/models.py:218 django_celery_beat/models.py:219
 msgid "clocked"
@@ -288,17 +288,17 @@ msgstr "crontabs"
 
 #: django_celery_beat/models.py:390
 msgid "Name"
-msgstr "테스크 이름"
+msgstr "태스크 이름"
 
 #: django_celery_beat/models.py:391
 msgid "Short Description For This Task"
-msgstr "테스크의 간단한 설명을 작성합니다."
+msgstr "태스크의 간단한 설명을 작성합니다."
 
 #: django_celery_beat/models.py:396
 msgid ""
 "The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
 "import_contacts\")"
-msgstr "실행 되어야 하는 셀러리 테스크의 이름 (예: \"proj.tasks."
+msgstr "실행 되어야 하는 셀러리 태스크의 이름 (예: \"proj.tasks."
 "import_contacts\")"
 
 #: django_celery_beat/models.py:404
@@ -309,7 +309,7 @@ msgstr "Interval Schedule"
 msgid ""
 "Interval Schedule to run the task on.  Set only one schedule type, leave the "
 "others null."
-msgstr "테스크 실행 Interval Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
+msgstr "태스크 실행 Interval Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
 
 #: django_celery_beat/models.py:410
 msgid "Crontab Schedule"
@@ -319,7 +319,7 @@ msgstr "Crontab Schedule"
 msgid ""
 "Crontab Schedule to run the task on.  Set only one schedule type, leave the "
 "others null."
-msgstr "테스크 실행 Crontab Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
+msgstr "태스크 실행 Crontab Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
 
 #: django_celery_beat/models.py:416
 msgid "Solar Schedule"
@@ -329,7 +329,7 @@ msgstr "Solar Schedule"
 msgid ""
 "Solar Schedule to run the task on.  Set only one schedule type, leave the "
 "others null."
-msgstr "테스크 실행을 위한 Solar Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
+msgstr "태스크 실행을 위한 Solar Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
 
 #: django_celery_beat/models.py:422
 msgid "Clocked Schedule"
@@ -339,7 +339,7 @@ msgstr "Clocked Schedule"
 msgid ""
 "Clocked Schedule to run the task on.  Set only one schedule type, leave the "
 "others null."
-msgstr "테스크 실행을 위한 Clocked Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
+msgstr "태스크 실행을 위한 Clocked Schedule. 한 종류의 스케줄 타입을 지정하면 나머지는 빈 값으로 두어야 합니다."
 
 #: django_celery_beat/models.py:429
 msgid "Positional Arguments"
@@ -406,7 +406,7 @@ msgstr "만료 일시"
 #: django_celery_beat/models.py:481
 msgid ""
 "Datetime after which the schedule will no longer trigger the task to run"
-msgstr "만료 일시 이후에는 테스크가 작동하지 않습니다."
+msgstr "만료 일시 이후에는 태스크가 작동하지 않습니다."
 
 #: django_celery_beat/models.py:486
 msgid "Expires timedelta with seconds"
@@ -416,15 +416,15 @@ msgstr "초 단위 만료 시간"
 msgid ""
 "Timedelta with seconds which the schedule will no longer trigger the task to "
 "run"
-msgstr "입력된 만료 초가 지난 뒤에는 테스크가 작동하지 않습니다."
+msgstr "입력된 만료 초가 지난 뒤에는 태스크가 작동하지 않습니다."
 
 #: django_celery_beat/models.py:494
 msgid "One-off Task"
-msgstr "One-off 테스크"
+msgstr "One-off 태스크"
 
 #: django_celery_beat/models.py:496
 msgid "If True, the schedule will only run the task a single time"
-msgstr "체크된 경우, 테스크는 한 번만 실행 됩니다."
+msgstr "체크된 경우, 태스크는 한 번만 실행 됩니다."
 
 #: django_celery_beat/models.py:500
 msgid "Start Datetime"
@@ -432,7 +432,7 @@ msgstr "시작 일시"
 
 #: django_celery_beat/models.py:502
 msgid "Datetime when the schedule should begin triggering the task to run"
-msgstr "테스크 스케줄의 작동 시작 일시"
+msgstr "태스크 스케줄의 작동 시작 일시"
 
 #: django_celery_beat/models.py:507
 msgid "Enabled"
@@ -450,7 +450,7 @@ msgstr "최종 작동 일시"
 msgid ""
 "Datetime that the schedule last triggered the task to run. Reset to None if "
 "enabled is set to False."
-msgstr "테스크가 최종적으로 작동한 시간. 만약 테스크가 비활성화 된 경우 None 으로 지정됩니다."
+msgstr "태스크가 최종적으로 작동한 시간. 만약 테스크가 비활성화 된 경우 None 으로 지정됩니다."
 
 #: django_celery_beat/models.py:520
 msgid "Total Run Count"
@@ -458,7 +458,7 @@ msgstr "실행 횟수"
 
 #: django_celery_beat/models.py:522
 msgid "Running count of how many times the schedule has triggered the task"
-msgstr "테스크의 실행 횟수"
+msgstr "태스크의 실행 횟수"
 
 #: django_celery_beat/models.py:527
 msgid "Last Modified"
@@ -466,7 +466,7 @@ msgstr "최종 변경 일시"
 
 #: django_celery_beat/models.py:528
 msgid "Datetime that this PeriodicTask was last modified"
-msgstr "테스크가 최종적으로 변경된 일시"
+msgstr "태스크가 최종적으로 변경된 일시"
 
 #: django_celery_beat/models.py:532
 msgid "Description"
@@ -474,7 +474,7 @@ msgstr "설명"
 
 #: django_celery_beat/models.py:534
 msgid "Detailed description about the details of this Periodic Task"
-msgstr "테스크에 대한 상세 설명을 작성합니다."
+msgstr "태스크에 대한 상세 설명을 작성합니다."
 
 #: django_celery_beat/models.py:543
 msgid "periodic task"
