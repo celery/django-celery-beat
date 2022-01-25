@@ -4,6 +4,14 @@
  Change history
 ================
 
+2.3.0
+=====
+:release-date:
+:release-by:
+
+- Admin "disable_tasks" action also updates PeriodicTask's last_run_at field
+
+
 2.2.1
 =====
 :release-date: 2021-07-02 11:15 a.m. UTC+6:00
@@ -30,7 +38,7 @@
 
 2.1.0
 =====
-:release-date: 
+:release-date:
 :release-by: Asif Saif Uddin
 - Fix string representation of CrontabSchedule, so it matches UNIX CRON expression format (#318)
 - If no schedule is selected in PeriodicTask form, raise a non-field error instead of an error bounded to the `interval` field (#327)
