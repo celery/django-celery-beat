@@ -83,7 +83,7 @@ class TestDuplicatesMixin:
 
 
 class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
-    FIRST_VALID_TIMEZONE = timezone_field.\
+    FIRST_VALID_TIMEZONE = timezone_field. \
         TimeZoneField.default_choices[0][0].zone
 
     def test_default_timezone_without_settings_config(self):
@@ -105,6 +105,30 @@ class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
         }
         schedule = schedules.crontab(hour="4")
         self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)
+
+    def test_name_crontab(self):
+        """
+        Test usual crontab creation with possible symbols in name.
+        This shouldn't be an issue, since Django form is sorting it out.
+        """
+        valid_names = [
+            "Crontab name",
+            "Crontab name with | and \\ / and '' ",
+            "Name with 123, 56, !@#$%^&*()-+=",  # Any delimiters people want to use
+            "",  # Empty string should be fine too.
+        ]
+        for name in valid_names:
+            kwargs = {
+                "minute": "*",
+                "hour": "4",
+                "day_of_week": "*",
+                "day_of_month": "*",
+                "month_of_year": "*",
+                "name": name
+            }
+            CrontabSchedule.objects.create(**kwargs)
+            named_crontab_get = CrontabSchedule.objects.get(**kwargs)
+            self.assertEqual(named_crontab_get.name, name)
 
 
 class SolarScheduleTestCase(TestCase):
