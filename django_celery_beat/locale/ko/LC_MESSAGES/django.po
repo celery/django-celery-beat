@@ -70,7 +70,7 @@ msgstr "{0} 테스크{1} {2} 성공적으로 작동했습니다."
 
 #: django_celery_beat/admin.py:236
 msgid "Run selected tasks"
-msgstr "선택된 테스크들을 작동시킵니다."
+msgstr "선택된 테스크들을 실행 합니다."
 
 #: django_celery_beat/apps.py:13
 msgid "Periodic Tasks"
