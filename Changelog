@@ -4,6 +4,8 @@
  Change history
 ================
 
+.. _version-2.3.0:
+
 2.3.0
 =====
 :release-date:
@@ -11,6 +13,7 @@
 
 - Admin "disable_tasks" action also updates PeriodicTask's last_run_at field
 
+.. _version-2.2.1:
 
 2.2.1
 =====
@@ -23,6 +26,7 @@
 - Do not blindly delete duplicate schedules (#389)
 - Use `python:3.8-slim` for lighter builds
 
+.. _version-2.2.0:
 
 2.2.0
 =====
@@ -36,10 +40,13 @@
 - Update 'fr' .po file metadata
 - New schema migrations for SolarSchedule events choices changes in models.
 
+.. _version-2.1.0:
+
 2.1.0
 =====
-:release-date:
+:release-date: 2020-10-20
 :release-by: Asif Saif Uddin
+
 - Fix string representation of CrontabSchedule, so it matches UNIX CRON expression format (#318)
 - If no schedule is selected in PeriodicTask form, raise a non-field error instead of an error bounded to the `interval` field (#327)
 - Fix some Spanish translations (#339)
@@ -49,18 +56,23 @@
 - Drop support for Python < 3.6 (#368)
 - Add support for Celery 5 and Django 3.1 (#368)
 
+.. _version-2.0.0:
+
 2.0.0
 =====
-:release-date:
-:release-by:
+:release-date: 2020-03-18
+:release-by: Asif Saif Uddin
+
 - Added support for Django 3.0
 - Dropped support for Django < 2.2 and Python < 3.5
 
+.. _version-1.6.0:
 
 1.6.0
 =====
 :release-date: 2020-02-01 4:30 p.m. UTC+6:00
 :release-by: Asif Saif Uddin
+
 - Fixed invalid long_description (#255)
 - Exposed read-only field PeriodicTask.last_run_at in Django admin (#257)
 - Added docker config to ease development (#260, #261, #264, #288)
@@ -68,18 +80,20 @@
 - Added French translation (#286)
 - Fixed case where last_run_at = None and CELERY_TIMEZONE != TIME_ZONE (#294)
 
+.. _version-1.5.0:
 
 1.5.0
 =====
 :release-date: 2019-05-21 17:00 p.m. UTC+6:00
 :release-by: Asif Saif Uddin
+
 - Fixed delay returned when a task has a start_time in the future. (#208)
 - PeriodicTaskAdmin: Declare some filtering, for usability (#215)
 - fix _default_now is_aware bug (#216)
 - Adds support for message headers for periodic tasks (#98)
 - make last_run_at tz aware before passing to celery (#233)
 
-.. _version-1.5.0:
+.. _version-1.4.0:
 
 1.4.0
 =====
@@ -159,7 +173,6 @@
 - Return schedule for solar periodic tasks so that Celery Beat does not crash when one is scheduled.
 - Adding nowfun to solar and crontab schedulers so that the Django timezone is used.
 
-
 .. _version-1.0.1:
 
 1.0.1
@@ -168,9 +181,7 @@
 :release-by: Ask Solem
 
 - Now depends on Celery 4.0.0.
-
 - Migration modules were not included in the distribution.
-
 - Adds documentation: http://django-celery-beat.readthedocs.io/
 
 .. _version-1.0.0:
