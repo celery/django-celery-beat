@@ -72,7 +72,7 @@ def crontab_schedule_celery_timezone():
     ] else 'UTC'
 
 
-class SolarSchedule(models.Model):
+class AbstractSolarSchedule(models.Model):
     """Schedule following astronomical patterns.
 
     Example: to run every sunrise in New York City:
@@ -104,6 +104,7 @@ class SolarSchedule(models.Model):
         verbose_name_plural = _('solar events')
         ordering = ('event', 'latitude', 'longitude')
         unique_together = ('event', 'latitude', 'longitude')
+        abstract = True
 
     @property
     def schedule(self):
@@ -133,7 +134,7 @@ class SolarSchedule(models.Model):
         )
 
 
-class IntervalSchedule(models.Model):
+class AbstractIntervalSchedule(models.Model):
     """Schedule executing on a regular interval.
 
     Example: execute every 2 days
@@ -167,6 +168,7 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        abstract = True
 
     @property
     def schedule(self):
@@ -204,7 +206,7 @@ class IntervalSchedule(models.Model):
         return self.period[:-1]
 
 
-class ClockedSchedule(models.Model):
+class AbstractClockedSchedule(models.Model):
     """clocked schedule."""
 
     clocked_time = models.DateTimeField(
@@ -218,6 +220,7 @@ class ClockedSchedule(models.Model):
         verbose_name = _('clocked')
         verbose_name_plural = _('clocked')
         ordering = ['clocked_time']
+        abstract = True
 
     def __str__(self):
         return '{}'.format(make_aware(self.clocked_time))
@@ -238,7 +241,7 @@ class ClockedSchedule(models.Model):
             return cls.objects.filter(**spec).first()
 
 
-class CrontabSchedule(models.Model):
+class AbstractCrontabSchedule(models.Model):
     """Timezone Aware Crontab-like schedule.
 
     Example:  Run every hour at 0 minutes for days of month 10-15
@@ -306,6 +309,7 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        abstract = True
 
     def __str__(self):
         return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5}'.format(
@@ -351,7 +355,7 @@ class CrontabSchedule(models.Model):
             return cls.objects.filter(**spec).first()
 
 
-class PeriodicTasks(models.Model):
+class AbstractPeriodicTasks(models.Model):
     """Helper table for tracking updates to periodic tasks.
 
     This stores a single row with ident=1.  last_update is updated
@@ -364,6 +368,9 @@ class PeriodicTasks(models.Model):
     last_update = models.DateTimeField(null=False)
 
     objects = managers.ExtendedManager()
+
+    class Meta:
+        abstract = True
 
     @classmethod
     def changed(cls, instance, **kwargs):
@@ -382,7 +389,7 @@ class PeriodicTasks(models.Model):
             pass
 
 
-class PeriodicTask(models.Model):
+class AbstractPeriodicTask(models.Model):
     """Model representing a periodic task."""
 
     name = models.CharField(
@@ -400,25 +407,25 @@ class PeriodicTask(models.Model):
     # You can only set ONE of the following schedule FK's
     # TODO: Redo this as a GenericForeignKey
     interval = models.ForeignKey(
-        IntervalSchedule, on_delete=models.CASCADE,
+        'IntervalSchedule', on_delete=models.CASCADE,
         null=True, blank=True, verbose_name=_('Interval Schedule'),
         help_text=_('Interval Schedule to run the task on.  '
                     'Set only one schedule type, leave the others null.'),
     )
     crontab = models.ForeignKey(
-        CrontabSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        'CrontabSchedule', on_delete=models.CASCADE, null=True, blank=True,
         verbose_name=_('Crontab Schedule'),
         help_text=_('Crontab Schedule to run the task on.  '
                     'Set only one schedule type, leave the others null.'),
     )
     solar = models.ForeignKey(
-        SolarSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        'SolarSchedule', on_delete=models.CASCADE, null=True, blank=True,
         verbose_name=_('Solar Schedule'),
         help_text=_('Solar Schedule to run the task on.  '
                     'Set only one schedule type, leave the others null.'),
     )
     clocked = models.ForeignKey(
-        ClockedSchedule, on_delete=models.CASCADE, null=True, blank=True,
+        'ClockedSchedule', on_delete=models.CASCADE, null=True, blank=True,
         verbose_name=_('Clocked Schedule'),
         help_text=_('Clocked Schedule to run the task on.  '
                     'Set only one schedule type, leave the others null.'),
@@ -542,6 +549,7 @@ class PeriodicTask(models.Model):
 
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
+        abstract = True
 
     def validate_unique(self, *args, **kwargs):
         super().validate_unique(*args, **kwargs)
@@ -556,8 +564,8 @@ class PeriodicTask(models.Model):
                 'must be set.'
             )
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
-            'or solar must be set'
+        err_msg = 'Only one of clocked, interval, crontab, ' \
+                  'or solar must be set'
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:
@@ -612,6 +620,30 @@ class PeriodicTask(models.Model):
             return self.solar.schedule
         if self.clocked:
             return self.clocked.schedule
+
+
+class PeriodicTask(AbstractPeriodicTask):
+    pass
+
+
+class PeriodicTasks(AbstractPeriodicTasks):
+    pass
+
+
+class CrontabSchedule(AbstractCrontabSchedule):
+    pass
+
+
+class IntervalSchedule(AbstractIntervalSchedule):
+    pass
+
+
+class ClockedSchedule(AbstractClockedSchedule):
+    pass
+
+
+class SolarSchedule(AbstractSolarSchedule):
+    pass
 
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
