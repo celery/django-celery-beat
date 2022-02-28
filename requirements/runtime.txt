@@ -1,1 +1,4 @@
 Django>=2.2,<4.1
+# zoneinfo is preset in Python 3.9 onwards
+# Django 4.x onwards uses zoneinfo by default but not the tzdata
+backports.zoneinfo[tzdata]==0.2.1; python_version < '3.9'
