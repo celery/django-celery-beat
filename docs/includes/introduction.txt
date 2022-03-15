@@ -213,7 +213,7 @@ Both the worker and beat services need to be running at the same time.
 
   **OR** you can set the scheduler through Django's settings::
 
-            CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+            CELERYBEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 
 Also, as an alternative, you can run the two steps above (worker and beat services)
