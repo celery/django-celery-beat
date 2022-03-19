@@ -31,7 +31,7 @@ Important Warning about Time Zones
     task:
 
        >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
-       >>> PeriodicTask.objects.all().update(last_run_at=None)
+       >>> PeriodicTask.objects.update(last_run_at=None)
        >>> PeriodicTasks.changed()
 
     Note that this will reset the state as if the periodic tasks have never run
