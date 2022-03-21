@@ -70,7 +70,9 @@ def crontab_schedule_celery_timezone():
             settings, '%s_TIMEZONE' % current_app.namespace)
     except AttributeError:
         return 'UTC'
-    return CELERY_TIMEZONE if CELERY_TIMEZONE in available_timezones() else 'UTC'
+    if CELERY_TIMEZONE in available_timezones():
+        return CELERY_TIMEZONE
+    return 'UTC'
 
 
 class SolarSchedule(models.Model):

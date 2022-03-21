@@ -1,3 +1,4 @@
 celery>=5.2.3,<6.0
 django-timezone-field>=4.2.3
+tzdata
 python-crontab>=2.3.4
