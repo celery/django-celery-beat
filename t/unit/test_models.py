@@ -1,4 +1,8 @@
 import os
+try:
+    from zoneinfo import available_timezones
+except ImportError:
+    from backports.zoneinfo import available_timezones
 
 from celery import schedules
 from django.test import TestCase, override_settings
@@ -8,8 +12,6 @@ from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
 from django.utils import timezone
-
-import timezone_field
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
@@ -83,8 +85,7 @@ class TestDuplicatesMixin:
 
 
 class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
-    FIRST_VALID_TIMEZONE = timezone_field.\
-        TimeZoneField.default_choices[0][0].zone
+    FIRST_VALID_TIMEZONE = available_timezones().pop()
 
     def test_default_timezone_without_settings_config(self):
         assert crontab_schedule_celery_timezone() == "UTC"
