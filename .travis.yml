@@ -16,11 +16,11 @@ python:
   - 3.7
   - 3.8
   - 3.9
+  - 3.10
 env:
   - DJANGO=2.2
-  - DJANGO=3.0
-  - DJANGO=3.1
   - DJANGO=3.2
+  - DJANGO=4.0
 os:
   - linux
 matrix:
@@ -29,6 +29,8 @@ matrix:
     - { python: 3.6, env: TOXENV=upgradebeat140 }
     - { python: 3.8, env: TOXENV=flake8 }
     - { python: 3.8, env: TOXENV=pydocstyle }
+  exclude:
+    - { python: 3.10, env: DJANGO=2.2 }
 install: travis_retry pip install -U tox-travis
 services: rabbitmq
 script: tox -v -- -v
