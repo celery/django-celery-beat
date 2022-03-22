@@ -147,7 +147,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
-        scheduler = getattr(settings, 'CELERY_BEAT_SCHEDULER', None)
+        scheduler = getattr(settings, 'CELERYBEAT_SCHEDULER', None)
         extra_context['wrong_scheduler'] = not is_database_scheduler(scheduler)
         return super(PeriodicTaskAdmin, self).changelist_view(
             request, extra_context)
