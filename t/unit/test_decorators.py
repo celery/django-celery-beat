@@ -43,6 +43,70 @@ class PeriodicTaskDecoratorTests(TestCase):
         self.assertEqual(fn_test_task_has_kwargs_as_attributes.max_retries, 3)
         self.assertEqual(fn_test_task_has_kwargs_as_attributes.foo, "bar")
 
+    @mock.patch("django_celery_beat.decorators._app.configured", True)
+    @mock.patch("django_celery_beat.decorators._app.add_periodic_task")
+    def test_add_periodic_task_called_with_periodic_task_opts_when_app_ready(self, add_periodic_task_mock):
+        """Test that options in periodic_task_opts are passed to app.add_periodic_task."""
+
+        periodic_task_opts={
+            "description": "test-periodic-task",
+            "enabled": False,
+        }
+
+        @periodic_task(
+            run_every=0,
+            periodic_task_opts=periodic_task_opts,
+            name="test-task",
+            max_retries=3,
+            foo="bar",
+        )
+        def fn_test_add_periodic_task_called_with_periodic_task_opts():
+            pass
+
+        self.assertEqual(add_periodic_task_mock.call_count, 1)
+        self.assertEqual(
+            add_periodic_task_mock.call_args[0], (0, fn_test_add_periodic_task_called_with_periodic_task_opts)
+        )
+        self.assertEqual(add_periodic_task_mock.call_args[1], periodic_task_opts)
+
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.name, "test-task")
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.max_retries, 3)
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.foo, "bar")
+
+    @mock.patch("django_celery_beat.decorators._app.configured", False)
+    @mock.patch("django_celery_beat.decorators._app.add_periodic_task")
+    def test_add_periodic_task_called_with_periodic_task_opts_when_app_not_ready(self, add_periodic_task_mock):
+        """Test that options in periodic_task_opts are passed to app.add_periodic_task."""
+
+        periodic_task_opts={
+            "description": "test-periodic-task",
+            "enabled": False,
+        }
+
+        @periodic_task(
+            run_every=0,
+            periodic_task_opts=periodic_task_opts,
+            name="test-task",
+            max_retries=3,
+            foo="bar",
+        )
+        def fn_test_add_periodic_task_called_with_periodic_task_opts():
+            pass
+
+        self.assertEqual(add_periodic_task_mock.call_count, 0)
+
+        _register_all_periodic_tasks()
+
+        self.assertEqual(add_periodic_task_mock.call_count, 1)
+        self.assertEqual(
+            add_periodic_task_mock.call_args[0], (0, fn_test_add_periodic_task_called_with_periodic_task_opts)
+        )
+        self.assertEqual(add_periodic_task_mock.call_args[1], periodic_task_opts)
+
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.name, "test-task")
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.max_retries, 3)
+        self.assertEqual(fn_test_add_periodic_task_called_with_periodic_task_opts.foo, "bar")
+
     @mock.patch("django_celery_beat.decorators._app.configured", False)
     def test_unbound_task_called_directly(self):
         """Test that an unbound task can be called directly."""
@@ -88,16 +152,26 @@ class PeriodicTaskDecoratorTests(TestCase):
     def test_task_added_to_queue_when_not_ready(self):
         """Test that tasks are added to a queue when the Celery app is not yet configured."""
 
-        @periodic_task(run_every=123, kwarg_test="blah")
+        periodic_task_opts={
+            "description": "test-periodic-task",
+            "enabled": False,
+        }
+
+        @periodic_task(
+            run_every=123,
+            periodic_task_opts=periodic_task_opts,
+            kwarg_test="blah",
+        )
         def fn_test_task_added_to_queue_when_not_ready():
             pass
 
         self.assertEqual(len(_periodic_tasks), 1)
 
-        run_every, fn = _periodic_tasks[0]
+        run_every, fn, opts = _periodic_tasks[0]
 
         self.assertEqual(run_every, 123)
         self.assertEqual(fn, fn_test_task_added_to_queue_when_not_ready)
+        self.assertEqual(opts, periodic_task_opts)
 
     @mock.patch("django_celery_beat.decorators._app.configured", True)
     @mock.patch("django_celery_beat.decorators._app.add_periodic_task")
