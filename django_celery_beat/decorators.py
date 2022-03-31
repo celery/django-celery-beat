@@ -13,7 +13,7 @@ _app = app_or_default()  # type: Celery
 _periodic_tasks = []
 
 
-def _add_periodic_task(run_every, task):
+def _add_periodic_task(run_every, task, periodic_task_opts):
     """
     Queues a periodic task to be registered after Celery has finished initializing,
     or registers it immediately if Celery is ready.
@@ -22,13 +22,13 @@ def _add_periodic_task(run_every, task):
 
     # No need to queue tasks, they can be added immediately.
     if _app.configured:
-        _app.add_periodic_task(run_every, task)
+        _app.add_periodic_task(run_every, task, **periodic_task_opts)
     else:
         # Register the signal callback the first time a task is queued.
         if not _periodic_tasks:
             _app.on_after_configure.connect(_register_all_periodic_tasks)
 
-        _periodic_tasks.append((run_every, task))
+        _periodic_tasks.append((run_every, task, periodic_task_opts))
 
 
 def _register_all_periodic_tasks(*args, **kwargs):
@@ -41,17 +41,20 @@ def _register_all_periodic_tasks(*args, **kwargs):
     global _periodic_tasks
 
     # Add each task.
-    for task in _periodic_tasks:
-        _app.add_periodic_task(task[0], task[1])
+    for run_every, task, periodic_task_opts in _periodic_tasks:
+        _app.add_periodic_task(run_every, task, **periodic_task_opts)
 
     _periodic_tasks.clear()
 
 
-def periodic_task(run_every, **task_kwargs):
+def periodic_task(run_every, periodic_task_opts={}, **task_kwargs):
     """
     Decorator for creating a periodic task.
 
     `run_every` specifies when or how often the periodic task will be scheduled to run.
+
+    `periodic_task_opts` is a dict of configuration options for the periodic task, eg.
+    "description", "enabled", etc. See the documentation for the PeriodicTask model.
 
     `**task_kwargs` are any additional keyword arguments that Celery accepts for tasks.
     See the 'Resources' section for a list of options.
@@ -97,7 +100,7 @@ def periodic_task(run_every, **task_kwargs):
         def wrapped_task(*args, **kwargs):
             return task_func(*args, **kwargs)
 
-        _add_periodic_task(run_every, wrapped_task)
+        _add_periodic_task(run_every, wrapped_task, periodic_task_opts)
 
         return wrapped_task
 
