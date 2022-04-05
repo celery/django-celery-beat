@@ -2,12 +2,7 @@
 
 from celery import schedules
 from celery.utils.time import maybe_make_aware
-from collections import namedtuple
-
-try:
-    from celery.schedules import schedstate  # Celery >=3.1.0
-except ImportError:
-    schedstate = namedtuple('schedstate', ('is_due', 'next'))
+from .utils import NEVER_CHECK_TIMEOUT
 
 
 class clocked(schedules.BaseSchedule):
@@ -16,36 +11,27 @@ class clocked(schedules.BaseSchedule):
     Depends on PeriodicTask one_off=True
     """
 
-    def __init__(self, clocked_time, enabled=True,
-                 model=None, nowfun=None, app=None):
+    def __init__(self, clocked_time, nowfun=None, app=None):
         """Initialize clocked."""
         self.clocked_time = maybe_make_aware(clocked_time)
-        self.enabled = enabled
-        self.model = model
         super(clocked, self).__init__(nowfun=nowfun, app=app)
 
     def remaining_estimate(self, last_run_at):
         return self.clocked_time - self.now()
 
     def is_due(self, last_run_at):
-        if not self.enabled:
-            return schedstate(is_due=False, next=None)
         rem_delta = self.remaining_estimate(None)
         remaining_s = max(rem_delta.total_seconds(), 0)
         if remaining_s == 0:
-            if self.model:
-                self.model.enabled = False
-                self.model.save()
-            return schedstate(is_due=True, next=None)
-        return schedstate(is_due=False, next=remaining_s)
+            return schedules.schedstate(is_due=True, next=NEVER_CHECK_TIMEOUT)
+        return schedules.schedstate(is_due=False, next=remaining_s)
 
     def __repr__(self):
-        return '<clocked: {} {}>'.format(self.clocked_time, self.enabled)
+        return '<clocked: {}>'.format(self.clocked_time)
 
     def __eq__(self, other):
         if isinstance(other, clocked):
-            return self.clocked_time == other.clocked_time and \
-                self.enabled == other.enabled
+            return self.clocked_time == other.clocked_time
         return False
 
     def __ne__(self, other):

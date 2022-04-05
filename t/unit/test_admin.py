@@ -1,5 +1,7 @@
-from itertools import combinations
+import pytest
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+from itertools import combinations
 
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.models import \
@@ -9,9 +11,9 @@ from django_celery_beat.models import \
     IntervalSchedule, \
     SolarSchedule, \
     ClockedSchedule
-from django.core.exceptions import ValidationError
 
 
+@pytest.mark.django_db()
 class ActionsTests(TestCase):
 
     @classmethod
@@ -76,12 +78,13 @@ class ActionsTests(TestCase):
         self.assertTrue(e3)
 
 
+@pytest.mark.django_db()
 class ValidateUniqueTests(TestCase):
 
     def test_validate_unique_raises_if_schedule_not_set(self):
         with self.assertRaises(ValidationError) as cm:
             PeriodicTask(name='task0').validate_unique()
-        self.assertEquals(
+        self.assertEqual(
             cm.exception.args[0],
             'One of clocked, interval, crontab, or solar must be set.',
         )
@@ -103,9 +106,9 @@ class ValidateUniqueTests(TestCase):
             with self.assertRaises(ValidationError) as cm:
                 PeriodicTask(name=name, **options_dict).validate_unique()
             errors = cm.exception.args[0]
-            self.assertEquals(errors.keys(), options_dict.keys())
+            self.assertEqual(errors.keys(), options_dict.keys())
             for error_msg in errors.values():
-                self.assertEquals(error_msg, [expected_error_msg])
+                self.assertEqual(error_msg, [expected_error_msg])
 
     def test_validate_unique_not_raises(self):
         PeriodicTask(crontab=CrontabSchedule()).validate_unique()
