@@ -1,6 +1,6 @@
 ### Summary:
 
-Include a *brief* descrioption of the problem here, and fill out the version info below.  
+Include a *brief* description of the problem here, and fill out the version info below.  
 
 * Celery Version: 
 * Celery-Beat Version: 
