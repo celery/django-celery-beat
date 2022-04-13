@@ -204,6 +204,7 @@ class ModelEntry(ScheduleEntry):
             'priority': priority,
             'headers': dumps(headers or {}),
             'expire_seconds': expire_seconds,
+            **kwargs,
         }
 
     def __repr__(self):

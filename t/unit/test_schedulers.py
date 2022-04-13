@@ -84,7 +84,7 @@ class SchedulerCase:
         clocked.save()
         return self.create_model(clocked=clocked, one_off=True, **kwargs)
 
-    def create_conf_entry(self):
+    def create_conf_entry(self, **options):
         name = 'thefoo{0}'.format(next(_ids))
         return name, dict(
             task='djcelery.unittest.add{0}'.format(next(_ids)),
@@ -92,7 +92,7 @@ class SchedulerCase:
             args=(),
             relative=False,
             kwargs={},
-            options={'queue': 'extra_queue'}
+            options={'queue': 'extra_queue', **options},
         )
 
     def create_model(self, Model=PeriodicTask, **kwargs):
@@ -335,6 +335,20 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert len(sched) == 1
         assert 'celery.backend_cleanup' in sched
         assert self.entry_name not in sched
+
+    def test_periodic_task_model_attributes_set_from_conf(self):
+        start_time = make_aware(datetime.now())
+        entry2_name, entry2 = self.create_conf_entry(
+            description='test-periodic-task',
+            enabled=False,
+            start_time=start_time,
+        )
+        self.app.conf.beat_schedule[entry2_name] = entry2
+        self.Scheduler(app=self.app)
+        periodic_task = PeriodicTask.objects.get(name=entry2_name)
+        assert periodic_task.description == 'test-periodic-task'
+        assert not periodic_task.enabled
+        assert periodic_task.start_time == start_time
 
 
 @pytest.mark.django_db()
