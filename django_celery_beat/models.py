@@ -302,6 +302,13 @@ class CrontabSchedule(models.Model):
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
 
+    name = models.CharField(
+        max_length=200, unique=False,
+        null=True, blank=True,
+        verbose_name=_('Name'),
+        help_text=_('Short Description For This Cron Schedule'),
+    )
+
     class Meta:
         """Table information."""
 
@@ -311,10 +318,12 @@ class CrontabSchedule(models.Model):
                     'day_of_week', 'hour', 'minute', 'timezone']
 
     def __str__(self):
-        return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5}'.format(
+
+        return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5}{6}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
-            cronexp(self.day_of_week), str(self.timezone)
+            cronexp(self.day_of_week), str(self.timezone),
+            ' [{}]'.format(self.name) if self.name else '',
         )
 
     @property
@@ -596,9 +605,9 @@ class PeriodicTask(models.Model):
     def __str__(self):
         fmt = '{0.name}: {{no schedule}}'
         if self.interval:
-            fmt = '{0.name}: {0.interval}'
+            fmt = '{0.name}'
         if self.crontab:
-            fmt = '{0.name}: {0.crontab}'
+            fmt = '{0.name}'
         if self.solar:
             fmt = '{0.name}: {0.solar}'
         if self.clocked:
