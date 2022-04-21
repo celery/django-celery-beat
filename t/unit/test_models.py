@@ -1,9 +1,9 @@
 import datetime
 import os
 try:
-    from zoneinfo import available_timezones
+    from zoneinfo import available_timezones, ZoneInfo
 except ImportError:
-    from backports.zoneinfo import available_timezones
+    from backports.zoneinfo import available_timezones, ZoneInfo
 
 from celery import schedules
 from django.test import TestCase, override_settings
@@ -154,7 +154,7 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     @override_settings(TIME_ZONE='Africa/Cairo')
     def test_timezone_format(self):
         """Make sure the scheduled time is not shown in UTC when time zone is used"""
-        tz_info = datetime.datetime.now(settings.TIME_ZONE)
+        tz_info = datetime.datetime.now(ZoneInfo(settings.TIME_ZONE))
         schedule, created = ClockedSchedule.objects.get_or_create(clocked_time=tz_info)
         # testnig str(schedule) calls make_aware() internally
         assert str(schedule.clocked_time) == str(schedule)
