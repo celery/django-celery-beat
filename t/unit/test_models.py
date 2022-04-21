@@ -1,3 +1,4 @@
+import datetime
 import os
 try:
     from zoneinfo import available_timezones
@@ -13,7 +14,6 @@ from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
 from django.utils import timezone
 from django.conf import settings
-import pytz, datetime
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (
@@ -154,7 +154,7 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     @override_settings(TIME_ZONE='Africa/Cairo')
     def test_timezone_format(self):
         """Make sure the scheduled time is not shown in UTC when time zone is used"""
-        tz_info = pytz.timezone(settings.TIME_ZONE).localize(datetime.datetime.utcnow())
+        tz_info = datetime.datetime.now(settings.TIME_ZONE)
         schedule, created = ClockedSchedule.objects.get_or_create(clocked_time=tz_info)
         # testnig str(schedule) calls make_aware() internally
         assert str(schedule.clocked_time) == str(schedule)
