@@ -19,9 +19,9 @@ services:
       context: .
       dockerfile: docker/django/Dockerfile
     ports:
-      - "127.0.0.1:58000:8000"
+      - "${DJANGO_HOST:-127.0.0.1}:${DJANGO_PORT:-58000}:8000"
     entrypoint: ["/app/docker/django/entrypoint.sh"]
-    command: ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["python3", "manage.py", "runserver", "0.0.0.0:${DJANGO_PORT:-8000}"]
     tty: true
     volumes:
       - './django_celery_beat/:/app/django_celery_beat/'
@@ -36,7 +36,7 @@ services:
       dockerfile: docker/celery-beat/Dockerfile
     entrypoint: ["/app/docker/celery-beat/entrypoint.sh"]
     environment:
-        CELERY_BROKER_URL: 'amqp://guest:guest@rabbit:5672'
+        CELERY_BROKER_URL: 'amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@${RABBITMQ_HOST:-rabbit}:${RABBITMQ_PORT:-5672}'
     command: ["python3", '-m', "celery", "-A", "mysite", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
     tty: true
     volumes:
@@ -45,7 +45,7 @@ services:
   rabbit:
     image: rabbitmq
     ports:
-        - "5672:5672"
+        - "${RABBITMQ_PORT:-5672}:5672"
   postgres:
     image: postgres
     environment:
