@@ -5,7 +5,8 @@ from .generic import (
     IntervalSchedule,
     PeriodicTask,
     PeriodicTasks,
-    SolarSchedule
+    SolarSchedule,
+    crontab_schedule_celery_timezone,
 )
 
 __ALL__ = [
@@ -15,5 +16,6 @@ __ALL__ = [
     "IntervalSchedule",
     "PeriodicTask",
     "PeriodicTasks",
-    "SolarSchedule"
+    "SolarSchedule",
+    "crontab_schedule_celery_timezone",
 ]
