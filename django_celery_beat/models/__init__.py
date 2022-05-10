@@ -1,3 +1,4 @@
+from .abstract import crontab_schedule_celery_timezone
 from .generic import (
     ClockedSchedule,
     ClockScheduler,
@@ -6,7 +7,6 @@ from .generic import (
     PeriodicTask,
     PeriodicTasks,
     SolarSchedule,
-    crontab_schedule_celery_timezone,
 )
 
 __ALL__ = [
