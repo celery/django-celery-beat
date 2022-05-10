@@ -9,10 +9,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from . import managers, validators
+from . import managers
+from .. import validators
+from ..clockedschedule import clocked
 from ..tzcrontab import TzAwareCrontab
 from ..utils import make_aware, now
-from ..clockedschedule import clocked
 
 
 DAYS = 'days'
