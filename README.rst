@@ -86,6 +86,54 @@ manually:
         >>> from django_celery_beat.models import PeriodicTasks
         >>> PeriodicTasks.update_changed()
 
+Custom Models
+=============
+
+It's possible to use your own models instead of the default ones provided by ``django_celery_beat``, to do that just define your models inheriting from the right one from ``django_celery_beat.models.abstract``:
+
+.. code-block:: Python
+
+        # custom_app.models.py
+        from django_celery_beat.models.abstract import (
+            AbstractClockedSchedule,
+            AbstractCrontabSchedule,
+            AbstractIntervalSchedule,
+            AbstractPeriodicTask,
+            AbstractPeriodicTasks,
+            AbstractSolarSchedule,
+        )
+
+        class CustomPeriodicTask(AbstractPeriodicTask):
+            ...
+
+        class CustomPeriodicTasks(AbstractPeriodicTasks):
+            ...
+
+        class CustomCrontabSchedule(AbstractCrontabSchedule):
+            ...
+
+        class CustomIntervalSchedule(AbstractIntervalSchedule):
+            ...
+
+        class CustomSolarSchedule(AbstractSolarSchedule):
+            ...
+
+        class CustomClockedSchedule(AbstractClockedSchedule):
+            ...
+
+To let ``django_celery_beat.scheduler`` make use of your own modules, you must provide the ``app_name.model_name`` of your own custom models as values to the next constants in your settings:
+
+.. code-block:: Python
+
+        # settings.py
+        # CELERY_BEAT_(?:PERIODICTASKS?|(?:CRONTAB|INTERVAL|SOLAR|CLOCKED)SCHEDULE)_MODEL = "app_label.model_name"
+        CELERY_BEAT_PERIODICTASK_MODEL = "custom_app.CustomPeriodicTask"
+        CELERY_BEAT_PERIODICTASKS_MODEL = "custom_app.CustomPeriodicTasks"
+        CELERY_BEAT_CRONTABSCHEDULE_MODEL = "custom_app.CustomCrontabSchedule"
+        CELERY_BEAT_INTERVALSCHEDULE_MODEL = "custom_app.CustomIntervalSchedule"
+        CELERY_BEAT_SOLARSCHEDULE_MODEL = "custom_app.CustomSolarSchedule"
+        CELERY_BEAT_CLOCKEDSCHEDULE_MODEL = "custom_app.CustomClockedSchedule"
+
 Example creating interval-based periodic task
 ---------------------------------------------
 

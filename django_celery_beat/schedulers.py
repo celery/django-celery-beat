@@ -19,12 +19,15 @@ from django.db import transaction, close_old_connections
 from django.db.utils import DatabaseError, InterfaceError
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
-)
 from .clockedschedule import clocked
+from .helpers import (
+    clockedschedule_model,
+    crontabschedule_model,
+    intervalschedule_model,
+    periodictask_model,
+    periodictasks_model,
+    solarschedule_model,
+)
 from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
@@ -38,6 +41,13 @@ Cannot add entry %r to database schedule: %r. Contents: %r
 
 logger = get_logger(__name__)
 debug, info, warning = logger.debug, logger.info, logger.warning
+
+ClockedSchedule = clockedschedule_model()
+CrontabSchedule = crontabschedule_model()
+IntervalSchedule = intervalschedule_model()
+PeriodicTask = periodictask_model()
+PeriodicTasks = periodictasks_model()
+SolarSchedule = solarschedule_model()
 
 
 class ModelEntry(ScheduleEntry):
