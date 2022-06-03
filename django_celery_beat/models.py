@@ -361,8 +361,8 @@ class CrontabSchedule(models.Model):
 class PeriodicTasks(models.Model):
     """Helper table for tracking updates to periodic tasks.
 
-    This stores a single row with ``ident=1``.  ``last_update`` is updated
-    via django signals whenever anything is changed in the :class:`~.PeriodicTask` model.
+    This stores a single row with ``ident=1``. ``last_update`` is updated via
+    signals whenever anything changes in the :class:`~.PeriodicTask` model.
     Basically this acts like a DB data audit trigger.
     Doing this so we also track deletions, and not just insert/update.
     """

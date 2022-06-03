@@ -150,11 +150,12 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
         kwargs = {'clocked_time': timezone.now()}
         self._test_duplicate_schedules(ClockedSchedule, kwargs)
 
-    # IMPORTANT: we must have a valid time-zone (not UTC) to do an accurate testing
+    # IMPORTANT: we must have a valid timezone (not UTC) for accurate testing
     @override_settings(TIME_ZONE='Africa/Cairo')
     def test_timezone_format(self):
-        """Make sure the scheduled time is not shown in UTC when time zone is used"""
+        """Ensure scheduled time is not shown in UTC when timezone is used"""
         tz_info = datetime.datetime.now(ZoneInfo(settings.TIME_ZONE))
-        schedule, created = ClockedSchedule.objects.get_or_create(clocked_time=tz_info)
+        schedule, created = ClockedSchedule.objects.get_or_create(
+            clocked_time=tz_info)
         # testnig str(schedule) calls make_aware() internally
         assert str(schedule.clocked_time) == str(schedule)
