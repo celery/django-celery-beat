@@ -1,4 +1,8 @@
 """Database models."""
+try:
+    from zoneinfo import available_timezones
+except ImportError:
+    from backports.zoneinfo import available_timezones
 from datetime import timedelta
 
 import timezone_field
@@ -66,10 +70,9 @@ def crontab_schedule_celery_timezone():
             settings, '%s_TIMEZONE' % current_app.namespace)
     except AttributeError:
         return 'UTC'
-    return CELERY_TIMEZONE if CELERY_TIMEZONE in [
-        choice[0].zone for choice in timezone_field.
-        TimeZoneField.default_choices
-    ] else 'UTC'
+    if CELERY_TIMEZONE in available_timezones():
+        return CELERY_TIMEZONE
+    return 'UTC'
 
 
 class SolarSchedule(models.Model):
@@ -297,6 +300,7 @@ class CrontabSchedule(models.Model):
 
     timezone = timezone_field.TimeZoneField(
         default=crontab_schedule_celery_timezone,
+        use_pytz=False,
         verbose_name=_('Cron Timezone'),
         help_text=_(
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
@@ -357,8 +361,8 @@ class CrontabSchedule(models.Model):
 class PeriodicTasks(models.Model):
     """Helper table for tracking updates to periodic tasks.
 
-    This stores a single row with ``ident=1``.  ``last_update`` is updated
-    via django signals whenever anything is changed in the :class:`~.PeriodicTask` model.
+    This stores a single row with ``ident=1``. ``last_update`` is updated via
+    signals whenever anything changes in the :class:`~.PeriodicTask` model.
     Basically this acts like a DB data audit trigger.
     Doing this so we also track deletions, and not just insert/update.
     """

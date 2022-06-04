@@ -2,8 +2,7 @@
 from celery import schedules
 
 from collections import namedtuple
-from datetime import datetime
-import pytz
+from datetime import datetime, timezone
 
 
 schedstate = namedtuple('schedstate', ('is_due', 'next'))
@@ -14,7 +13,7 @@ class TzAwareCrontab(schedules.crontab):
 
     def __init__(
             self, minute='*', hour='*', day_of_week='*',
-            day_of_month='*', month_of_year='*', tz=pytz.utc, app=None
+            day_of_month='*', month_of_year='*', tz=timezone.utc, app=None
     ):
         """Overwrite Crontab constructor to include a timezone argument."""
         self.tz = tz
@@ -28,9 +27,7 @@ class TzAwareCrontab(schedules.crontab):
         )
 
     def nowfunc(self):
-        return self.tz.normalize(
-            pytz.utc.localize(datetime.utcnow())
-        )
+        return datetime.now(self.tz)
 
     def is_due(self, last_run_at):
         """Calculate when the next run will take place.

@@ -46,7 +46,7 @@ Important Warning about Time Zones
 
 
 
-.. note:: 
+.. note::
    This will reset the state as if the periodic tasks have never run before.
 
 
@@ -95,7 +95,7 @@ create the interval object:
 .. code-block:: Python
 
         >>> from django_celery_beat.models import PeriodicTask, IntervalSchedule
-        
+
         # executes every 10 seconds.
         >>> schedule, created = IntervalSchedule.objects.get_or_create(
         ...     every=10,
@@ -181,7 +181,7 @@ of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
         ...     day_of_week='*',
         ...     day_of_month='*',
         ...     month_of_year='*',
-        ...     timezone=pytz.timezone('Canada/Pacific')
+        ...     timezone=zoneinfo.ZoneInfo('Canada/Pacific')
         ... )
 
 The crontab schedule is linked to a specific timezone using the 'timezone' input parameter.
@@ -288,7 +288,7 @@ After installation, add ``django_celery_beat`` to Django's settings module:
 Run the ``django_celery_beat`` migrations using:
 
 .. code-block:: bash
-    
+
         $ python manage.py migrate django_celery_beat
 
 

@@ -24,12 +24,12 @@ globals().update(conf.build_config(
     ],
     extlinks={
       'github_project': (
-        f'https://github.com/%s',
-        'GitHub project',
+        'https://github.com/%s',
+        'GitHub project %s',
       ),
       'github_pr': (
-        f'https://github.com/celery/django-celery-beat/pull/%s',
-        'GitHub PR #',
+        'https://github.com/celery/django-celery-beat/pull/%s',
+        'GitHub PR #%s',
       ),
     },
     extra_intersphinx_mapping={
