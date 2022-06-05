@@ -32,7 +32,7 @@ msgstr "任务需要一个名称"
 
 #: .\django_celery_beat\admin.py:91 .\django_celery_beat\models.py:589
 msgid "Only one can be set, in expires and expire_seconds"
-msgstr ""
+msgstr "不可以同时设置 expires 和 expire_seconds 字段"
 
 #: .\django_celery_beat\admin.py:101
 #, python-format
@@ -63,7 +63,7 @@ msgstr "切换选中的任务"
 #: .\django_celery_beat\admin.py:217
 #, python-brace-format
 msgid "task \"{0}\" not found"
-msgstr ""
+msgstr "未找到\"{0}\"任务"
 
 #: .\django_celery_beat\admin.py:229
 #, python-brace-format
