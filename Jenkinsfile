@@ -17,7 +17,7 @@ pipeline {
         }
       }
           steps {
-            publishWheels codeBuildEnv: '[ { RUN_TESTS, false },{ pip_version, pip3.8 } ]'
+            publishWheels codeBuildEnv: '[ { RUN_TESTS, false },{ pip_version, pip3.8 }, { CREATE_SDIST, true } ]'
           }
     }
   }
