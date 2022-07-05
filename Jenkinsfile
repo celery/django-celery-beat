@@ -7,29 +7,13 @@ pipeline {
           branch 'master'
           branch 'production'
           branch 'release_candidate'
+          changeRequest title: ".*JENKINSFILE_TESTING.*", comparator: 'REGEXP'
           buildingTag()
         }
       }
-      parallel {
-        stage('build_trusty') {
           steps {
-            awsCodeBuild projectName: 'build_trusty_python_library',
-                         envVariables: '[ { RUN_TESTS, false }, { CREATE_SDIST, true } ]',
-                         region: 'us-east-1',
-                         sourceControlType: 'jenkins',
-                         credentialsType: 'keys'
+            publishWheels codeBuildEnv: '[ { RUN_TESTS, false },{ pip_version, pip3.8 } ]'
           }
         }
-        stage('build_bionic') {
-          steps {
-            awsCodeBuild projectName: 'build_bionic_python_library',
-                         envVariables: '[ { RUN_TESTS, false }, { CREATE_SDIST, true } ]',
-                         region: 'us-east-1',
-                         sourceControlType: 'jenkins',
-                         credentialsType: 'keys'
-          }
-        }
-      }
     }
-  }
 }
