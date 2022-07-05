@@ -13,7 +13,7 @@ pipeline {
           branch 'production'
           branch 'release_candidate'
           changeRequest title: ".*JENKINSFILE_TESTING.*", comparator: 'REGEXP'
-          tag 'release-*'
+          buildingTag()
         }
       }
           steps {
