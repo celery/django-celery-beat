@@ -1,10 +1,5 @@
-library 'sp-jenkins'
-
 pipeline {
   agent any
-  environment {
-    BUILD_WORKDIR = "/tmp/${env.BUILD_TAG}/"
-  }
   stages {
     stage('build') {
       when {
@@ -12,22 +7,29 @@ pipeline {
           branch 'master'
           branch 'production'
           branch 'release_candidate'
-          changeRequest title: ".*JENKINSFILE_TESTING.*", comparator: 'REGEXP'
           buildingTag()
         }
       }
+      parallel {
+        stage('build_trusty') {
           steps {
-            publishWheels codeBuildEnv: '[{ requirements, requirements/default.txt }, { RUN_TESTS, false }, { pip_version, pip3.8 } ]'
+            awsCodeBuild projectName: 'build_trusty_python_library',
+                         envVariables: '[ { RUN_TESTS, false }, { CREATE_SDIST, true } ]',
+                         region: 'us-east-1',
+                         sourceControlType: 'jenkins',
+                         credentialsType: 'keys'
           }
-    }
-  }
-  post {
-    cleanup {
-      echo "Deleting working directory ${env.BUILD_WORKDIR}"
-      sh 'rm -rf $BUILD_WORKDIR'
-    }
-    always {
-      buildNotification()
+        }
+        stage('build_bionic') {
+          steps {
+            awsCodeBuild projectName: 'build_bionic_python_library',
+                         envVariables: '[ { RUN_TESTS, false }, { CREATE_SDIST, true } ]',
+                         region: 'us-east-1',
+                         sourceControlType: 'jenkins',
+                         credentialsType: 'keys'
+          }
+        }
+      }
     }
   }
 }
