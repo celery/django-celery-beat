@@ -14,7 +14,7 @@ from django.db import models
 from django.db.models import signals
 from django.utils.translation import gettext_lazy as _
 
-from . import managers, validators
+from . import querysets, validators
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
 from .clockedschedule import clocked
@@ -370,8 +370,6 @@ class PeriodicTasks(models.Model):
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
     last_update = models.DateTimeField(null=False)
 
-    objects = managers.ExtendedManager()
-
     @classmethod
     def changed(cls, instance, **kwargs):
         if not instance.no_changes:
@@ -541,7 +539,7 @@ class PeriodicTask(models.Model):
             'Detailed description about the details of this Periodic Task'),
     )
 
-    objects = managers.PeriodicTaskManager()
+    objects = querysets.PeriodicTaskQuerySet.as_manager()
     no_changes = False
 
     class Meta:
