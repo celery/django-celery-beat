@@ -83,6 +83,8 @@ class ModelEntry(ScheduleEntry):
 
         if getattr(model, 'expires_', None):
             self.options['expires'] = getattr(model, 'expires_')
+        if model.expire_seconds:
+            self.options['expire_seconds'] = self.expire_seconds
 
         self.options['headers'] = loads(model.headers or '{}')
         self.options['periodic_task_name'] = model.name
