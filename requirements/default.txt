@@ -1,5 +1,6 @@
 celery>=5.2.3,<6.0
 django-timezone-field>=5.0
 backports.zoneinfo; python_version<"3.9"
+pytz<=2022.1
 tzdata
 python-crontab>=2.3.4
