@@ -585,6 +585,11 @@ class PeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
+        PeriodicTasks.changed(self)
+
+    def delete(self, *args, **kwargs):
+        super(PeriodicTask, self).delete(*args, **kwargs)
+        PeriodicTasks.changed(self)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
