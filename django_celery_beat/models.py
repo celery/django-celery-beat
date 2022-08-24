@@ -588,7 +588,7 @@ class PeriodicTask(models.Model):
         PeriodicTasks.changed(self)
 
     def delete(self, *args, **kwargs):
-        super(PeriodicTask, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
         PeriodicTasks.changed(self)
 
     def _clean_expires(self):
