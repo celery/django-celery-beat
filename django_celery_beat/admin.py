@@ -126,16 +126,16 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
             'classes': ('extrapretty', 'wide'),
         }),
-        ('Schedule', {
+        (_('Schedule'), {
             'fields': ('interval', 'crontab', 'solar', 'clocked',
                        'start_time', 'last_run_at', 'one_off'),
             'classes': ('extrapretty', 'wide'),
         }),
-        ('Arguments', {
+        (_('Arguments'), {
             'fields': ('args', 'kwargs'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
         }),
-        ('Execution Options', {
+        (_('Execution Options'), {
             'fields': ('expires', 'expire_seconds', 'queue', 'exchange',
                        'routing_key', 'priority', 'headers'),
             'classes': ('extrapretty', 'wide', 'collapse', 'in'),
