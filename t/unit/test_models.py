@@ -169,6 +169,10 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
 
 @pytest.mark.django_db()
 class OneToOneRelTestCase(TestCase):
+    """
+    Make sure that when OneToOne relation Model changed, the `PeriodicTasks.last_update`
+    will be update.
+    """
 
     @classmethod
     def setUpTestData(cls):
