@@ -184,4 +184,4 @@ class OneToOneRelTestCase(TestCase):
         o2o_to_periodic_tasks.save()
         has_changed_dt = PeriodicTasks.last_change()
         self.assertTrue(not_changed_dt != has_changed_dt, 'The `PeriodicTasks.last_update` has not be update.')
-        # Check the does `PeriodicTasks` be updated.
+        # Check the `PeriodicTasks` does be updated.
