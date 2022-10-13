@@ -26,6 +26,15 @@ from django_celery_beat.utils import make_aware, NEVER_CHECK_TIMEOUT
 _ids = count(0)
 
 
+class Router:
+    target_db = None
+
+    def db_for_read(self, model, **hints):
+        return self.target_db
+
+    db_for_write = db_for_read
+
+
 @pytest.fixture(autouse=True)
 def no_multiprocessing_finalizers(patching):
     patching('multiprocessing.util.Finalize')
@@ -117,6 +126,10 @@ class SchedulerCase:
 class test_ModelEntry(SchedulerCase):
     Entry = EntryTrackSave
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_entry(self):
         m = self.create_model_interval(schedule(timedelta(seconds=10)))
         e = self.Entry(m, app=self.app)
@@ -149,7 +162,9 @@ class test_ModelEntry(SchedulerCase):
 
     @override_settings(
         USE_TZ=False,
-        DJANGO_CELERY_BEAT_TZ_AWARE=False
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
     )
     @pytest.mark.usefixtures('depends_on_current_app')
     @timezone.override('Europe/Berlin')
@@ -181,7 +196,9 @@ class test_ModelEntry(SchedulerCase):
 
     @override_settings(
         USE_TZ=False,
-        DJANGO_CELERY_BEAT_TZ_AWARE=False
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
     )
     @pytest.mark.usefixtures('depends_on_current_app')
     @timezone.override('Europe/Berlin')
@@ -217,7 +234,9 @@ class test_ModelEntry(SchedulerCase):
         USE_TZ=False,
         DJANGO_CELERY_BEAT_TZ_AWARE=False,
         TIME_ZONE="Europe/Berlin",
-        CELERY_TIMEZONE="America/New_York"
+        CELERY_TIMEZONE="America/New_York",
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
     )
     @pytest.mark.usefixtures('depends_on_current_app')
     @timezone.override('Europe/Berlin')
@@ -248,6 +267,10 @@ class test_ModelEntry(SchedulerCase):
         if hasattr(time, "tzset"):
             time.tzset()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_task_with_start_time(self):
         interval = 10
         right_now = self.app.now()
@@ -269,6 +292,10 @@ class test_ModelEntry(SchedulerCase):
         assert not isdue
         assert delay == math.ceil((tomorrow - right_now).total_seconds())
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_one_off_task(self):
         interval = 10
         right_now = self.app.now()
@@ -297,6 +324,10 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
     Scheduler = TrackingScheduler
 
     @pytest.mark.django_db()
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -306,6 +337,10 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         self.m1 = PeriodicTask(name=self.entry_name,
                                interval=self.create_interval_schedule())
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_constructor(self):
         s = self.Scheduler(app=self.app)
 
@@ -313,6 +348,10 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert s._last_sync is None
         assert s.sync_every
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_periodic_task_model_enabled_schedule(self):
         s = self.Scheduler(app=self.app)
         sched = s.schedule
@@ -326,6 +365,10 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
                 assert e.model.expires is None
                 assert e.model.expire_seconds == 12 * 3600
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_periodic_task_model_disabled_schedule(self):
         self.m1.enabled = False
         self.m1.save()
@@ -343,6 +386,10 @@ class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
     @pytest.mark.django_db()
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -387,11 +434,19 @@ class test_DatabaseScheduler(SchedulerCase):
 
         self.s = self.Scheduler(app=self.app)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_constructor(self):
         assert isinstance(self.s._dirty, set)
         assert self.s._last_sync is None
         assert self.s.sync_every
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_all_as_schedule(self):
         sched = self.s.schedule
         assert sched
@@ -400,6 +455,10 @@ class test_DatabaseScheduler(SchedulerCase):
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
         self.m2.save()
@@ -417,6 +476,10 @@ class test_DatabaseScheduler(SchedulerCase):
         with pytest.raises(KeyError):
             self.s.schedule.__getitem__(self.m3.name)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_should_sync(self):
         assert self.s.should_sync()
         self.s._last_sync = monotonic()
@@ -424,6 +487,10 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s._last_sync -= self.s.sync_every
         assert self.s.should_sync()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_reserve(self):
         e1 = self.s.schedule[self.m1.name]
         self.s.schedule[self.m1.name] = self.s.reserve(e1)
@@ -434,6 +501,10 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 1
         assert self.m2.name in self.s._dirty
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_sync_saves_last_run_at(self):
         e1 = self.s.schedule[self.m2.name]
         last_run = e1.last_run_at
@@ -445,6 +516,10 @@ class test_DatabaseScheduler(SchedulerCase):
         e2 = self.s.schedule[self.m2.name]
         assert e2.last_run_at == last_run2
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_sync_syncs_before_save(self):
         # Get the entry for m2
         e1 = self.s.schedule[self.m2.name]
@@ -467,6 +542,10 @@ class test_DatabaseScheduler(SchedulerCase):
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_periodic_task_disabled_and_enabled(self):
         # Get the entry for m2
         e1 = self.s.schedule[self.m2.name]
@@ -495,6 +574,10 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.m2.name in self.s.schedule
         assert self.s.flushed == 3
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_periodic_task_disabled_while_reserved(self):
         # Get the entry for m2
         e1 = self.s.schedule[self.m2.name]
@@ -519,26 +602,46 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.m2.name not in self.s.schedule
         assert self.s.flushed == 2
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_sync_not_dirty(self):
         self.s._dirty.clear()
         self.s.sync()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_sync_object_gone(self):
         self.s._dirty.add('does-not-exist')
         self.s.sync()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_sync_rollback_on_save_error(self):
         self.s.schedule[self.m1.name] = EntrySaveRaises(self.m1, app=self.app)
         self.s._dirty.add(self.m1.name)
         with pytest.raises(RuntimeError):
             self.s.sync()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_update_scheduler_heap_invalidation(self, monkeypatch):
         # mock "schedule_changed" to always trigger update for
         # all calls to schedule, as a change may occur at any moment
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         self.s.tick()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_heap_size_is_constant(self, monkeypatch):
         # heap size is constant unless the schedule changes
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
@@ -548,6 +651,10 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s.tick()
         assert len(self.s._heap) == expected_heap_size
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_scheduler_schedules_equality_on_change(self, monkeypatch):
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: False)
         assert self.s.schedules_equal(self.s.schedule, self.s.schedule)
@@ -555,6 +662,10 @@ class test_DatabaseScheduler(SchedulerCase):
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
         assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_heap_always_return_the_first_item(self):
         interval = 10
 
@@ -593,12 +704,20 @@ class test_DatabaseScheduler(SchedulerCase):
 @pytest.mark.django_db()
 class test_models(SchedulerCase):
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_IntervalSchedule_unicode(self):
         assert (str(IntervalSchedule(every=1, period='seconds'))
                 == 'every second')
         assert (str(IntervalSchedule(every=10, period='seconds'))
                 == 'every 10 seconds')
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_CrontabSchedule_unicode(self):
         assert str(CrontabSchedule(
             minute=3,
@@ -613,10 +732,18 @@ class test_models(SchedulerCase):
             month_of_year='4,6',
         )) == '3 3 */2 4,6 tue (m/h/dM/MY/d) UTC'
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
         assert str(p) == '{0}: every 10.0 seconds'.format(p.name)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_unicode_crontab(self):
         p = self.create_model_crontab(crontab(
             hour='4, 5',
@@ -626,6 +753,10 @@ class test_models(SchedulerCase):
             p.name
         )
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(
             solar('solar_noon', 48.06, 12.86), name='solar_event'
@@ -634,6 +765,10 @@ class test_models(SchedulerCase):
             'Solar noon', '48.06', '12.86'
         )
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_unicode_clocked(self):
         time = make_aware(datetime.now())
         p = self.create_model_clocked(
@@ -643,6 +778,10 @@ class test_models(SchedulerCase):
             'clocked_event', str(time)
         )
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_schedule_property(self):
         p1 = self.create_model_interval(schedule(timedelta(seconds=10)))
         s1 = p1.schedule
@@ -661,10 +800,18 @@ class test_models(SchedulerCase):
         assert s2.day_of_month == {1, 2, 3, 4, 5, 6, 7}
         assert s2.month_of_year == {1, 4, 7, 10}
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_PeriodicTask_unicode_no_schedule(self):
         p = self.create_model()
         assert str(p) == '{0}: {{no schedule}}'.format(p.name)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_CrontabSchedule_schedule(self):
         s = CrontabSchedule(
             minute='3, 7',
@@ -679,6 +826,10 @@ class test_models(SchedulerCase):
         assert s.schedule.day_of_month == {1, 16}
         assert s.schedule.month_of_year == {1, 7}
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_CrontabSchedule_long_schedule(self):
         s = CrontabSchedule(
             minute=str(list(range(60)))[1:-1],
@@ -700,6 +851,10 @@ class test_models(SchedulerCase):
             field_length = s._meta.get_field(field).max_length
             assert str_length <= field_length
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_SolarSchedule_schedule(self):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
@@ -721,6 +876,10 @@ class test_models(SchedulerCase):
         assert (nextcheck2 > 0) and (isdue2 is True) or \
             (nextcheck2 == s2.max_interval) and (isdue2 is False)
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_ClockedSchedule_schedule(self):
         due_datetime = make_aware(datetime(day=26,
                                            month=7,
@@ -750,6 +909,10 @@ class test_models(SchedulerCase):
 @pytest.mark.django_db()
 class test_model_PeriodicTasks(SchedulerCase):
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_track_changes(self):
         assert PeriodicTasks.last_change() is None
         m1 = self.create_model_interval(schedule(timedelta(seconds=10)))
@@ -766,6 +929,10 @@ class test_model_PeriodicTasks(SchedulerCase):
 @pytest.mark.django_db()
 class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
     @pytest.mark.django_db()
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -786,6 +953,10 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         self.m2.task = 'celery.backend_cleanup'
         self.m2.save()
 
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def patch_request(self, request):
         """patch request to allow for django messages storage"""
         setattr(request, 'session', 'session')
@@ -796,6 +967,10 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
     # don't hang if broker is down
     # https://github.com/celery/celery/issues/4627
     @pytest.mark.timeout(5)
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_run_task(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
@@ -807,6 +982,10 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
     # don't hang if broker is down
     # https://github.com/celery/celery/issues/4627
     @pytest.mark.timeout(5)
+    @override_settings(
+        ROOT_URLCONF=__name__,
+        DATABASE_ROUTERS=['%s.Router' % __name__]
+    )
     def test_run_tasks(self):
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
