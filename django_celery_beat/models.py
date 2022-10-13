@@ -11,7 +11,6 @@ from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import signals
 from django.utils.translation import gettext_lazy as _
 
 from . import managers, validators
@@ -586,6 +585,11 @@ class PeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
+        PeriodicTasks.changed(self)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        PeriodicTasks.changed(self)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
@@ -619,23 +623,3 @@ class PeriodicTask(models.Model):
             return self.solar.schedule
         if self.clocked:
             return self.clocked.schedule
-
-
-signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
-signals.pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
-signals.pre_delete.connect(
-    PeriodicTasks.update_changed, sender=IntervalSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=IntervalSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=CrontabSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=CrontabSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=SolarSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=SolarSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=ClockedSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=ClockedSchedule)
