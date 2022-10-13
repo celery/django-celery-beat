@@ -170,32 +170,46 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
 @pytest.mark.django_db()
 class OneToOneRelTestCase(TestCase):
     """
-    Make sure that when OneToOne relation Model changed, the `PeriodicTasks.last_update`
-    will be update.
+    Make sure that when OneToOne relation Model changed,
+    the `PeriodicTasks.last_update` will be update.
     """
 
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.interval_schedule = IntervalSchedule.objects.create(every=10, period=DAYS)
+        cls.interval_schedule = IntervalSchedule.objects.create(
+            every=10, period=DAYS
+        )
 
     def test_trigger_update_when_saved(self):
         o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
-            name='name1', task='task1', enabled=True, interval=self.interval_schedule
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
         )
         not_changed_dt = PeriodicTasks.last_change()
         o2o_to_periodic_tasks.enabled = True  # Change something on instance.
         o2o_to_periodic_tasks.save()
         has_changed_dt = PeriodicTasks.last_change()
-        self.assertTrue(not_changed_dt != has_changed_dt, 'The `PeriodicTasks.last_update` has not be update.')
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
         # Check the `PeriodicTasks` does be updated.
 
     def test_trigger_update_when_deleted(self):
         o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
-            name='name1', task='task1', enabled=True, interval=self.interval_schedule
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
         )
         not_changed_dt = PeriodicTasks.last_change()
         o2o_to_periodic_tasks.delete()
         has_changed_dt = PeriodicTasks.last_change()
-        self.assertTrue(not_changed_dt != has_changed_dt, 'The `PeriodicTasks.last_update` has not be update.')
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
         # Check the `PeriodicTasks` does be updated.
