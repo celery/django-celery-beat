@@ -173,9 +173,10 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def from_entry(cls, name, app=None, **entry):
-        return cls(PeriodicTask._default_manager.update_or_create(
+        obj, created = PeriodicTask._default_manager.update_or_create(
             name=name, defaults=cls._unpack_fields(**entry),
-        ), app=app)
+        )
+        return cls(obj, app=app)
 
     @classmethod
     def _unpack_fields(cls, schedule,

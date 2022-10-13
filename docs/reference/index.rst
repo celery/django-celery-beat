@@ -13,7 +13,7 @@
     django-celery-beat
     django-celery-beat.models
     django-celery-beat.tzcrontab
-    django-celery-beat.managers
+    django-celery-beat.querysets
     django-celery-beat.schedulers
     django-celery-beat.admin
     django-celery-beat.utils
