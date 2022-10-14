@@ -3,10 +3,11 @@ try:
     from zoneinfo import available_timezones
 except ImportError:
     from backports.zoneinfo import available_timezones
+
 from datetime import timedelta
 
 import timezone_field
-from celery import schedules, current_app
+from celery import current_app, schedules
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -14,10 +15,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from . import querysets, validators
+from .clockedschedule import clocked
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
-from .clockedschedule import clocked
-
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -129,7 +129,7 @@ class SolarSchedule(models.Model):
             return cls(**spec)
 
     def __str__(self):
-        return '{0} ({1}, {2})'.format(
+        return '{} ({}, {})'.format(
             self.get_event_display(),
             self.latitude,
             self.longitude
@@ -224,7 +224,7 @@ class ClockedSchedule(models.Model):
         ordering = ['clocked_time']
 
     def __str__(self):
-        return '{}'.format(make_aware(self.clocked_time))
+        return f'{make_aware(self.clocked_time)}'
 
     @property
     def schedule(self):
@@ -314,7 +314,7 @@ class CrontabSchedule(models.Model):
                     'day_of_week', 'hour', 'minute', 'timezone']
 
     def __str__(self):
-        return '{0} {1} {2} {3} {4} (m/h/dM/MY/d) {5}'.format(
+        return '{} {} {} {} {} (m/h/dM/MY/d) {}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
             cronexp(self.day_of_week), str(self.timezone)

@@ -1,16 +1,12 @@
+"""Django Application signals."""
+
+
 def signals_connect():
-    """
-    Connect to signals.
-    """
+    """Connect to signals."""
     from django.db.models import signals
-    from .models import (
-        ClockedSchedule,
-        PeriodicTask,
-        PeriodicTasks,
-        IntervalSchedule,
-        CrontabSchedule,
-        SolarSchedule
-    )
+
+    from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
+                         PeriodicTask, PeriodicTasks, SolarSchedule)
 
     signals.pre_save.connect(
         PeriodicTasks.changed, sender=PeriodicTask
