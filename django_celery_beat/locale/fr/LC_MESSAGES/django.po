@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # <flow.gunso@gmail.com>, 2019.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-11-10 14:36+0000\n"
-"PO-Revision-Date: 2020-06-09 10:30\n"
+"PO-Revision-Date: 2022-10-14 23:48+0200\n"
 "Last-Translator: Álvaro Mondéjar <mondejar1994@gmail.com>\n"
 "Language-Team: n"
 "Language: fr\n"
@@ -176,8 +175,7 @@ msgstr "Longitude"
 
 #: django_celery_beat/models.py:94
 msgid "Run the task when the event happens at this longitude"
-msgstr ""
-"Démarre cette tâche lorsque cet évènement se produit à cette longitude"
+msgstr "Démarre cette tâche lorsque cet évènement se produit à cette longitude"
 
 #: django_celery_beat/models.py:101
 msgid "solar event"
