@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.5.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-06-14 17:06+1000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2022-10-14 23:48+0200\n"
 "Last-Translator: Daniil Kharkov <fadeddexofan@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: ru\n"
@@ -231,20 +230,16 @@ msgid "Day(s) Of The Month"
 msgstr "Дни"
 
 #: django_celery_beat/models.py:256
-msgid ""
-"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
-msgstr ""
-"Cron дни. Используйте \"*\" для \"каждый\". (Например: \"1,15\")"
+msgid "Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr "Cron дни. Используйте \"*\" для \"каждый\". (Например: \"1,15\")"
 
 #: django_celery_beat/models.py:262
 msgid "Month(s) Of The Year"
 msgstr "Месяцы"
 
 #: django_celery_beat/models.py:264
-msgid ""
-"Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
-msgstr ""
-"Cron месяцы. Используйте \"*\" для \"каждый\". (Например: \"0,6\")"
+msgid "Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
+msgstr "Cron месяцы. Используйте \"*\" для \"каждый\". (Например: \"0,6\")"
 
 #: django_celery_beat/models.py:271
 msgid "Cron Timezone"
@@ -272,11 +267,9 @@ msgstr "Краткое описание для этой задачи"
 
 #: django_celery_beat/models.py:372
 msgid ""
-"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
-"import_contacts\")"
-msgstr ""
-"Имя запускаемой Celery задачи.  (Например: \"proj.tasks."
-"import_contacts\")"
+"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks.import_contacts"
+"\")"
+msgstr "Имя запускаемой Celery задачи.  (Например: \"proj.tasks.import_contacts\")"
 
 #: django_celery_beat/models.py:380
 msgid "Interval Schedule"
@@ -284,10 +277,10 @@ msgstr "Интервал"
 
 #: django_celery_beat/models.py:381
 msgid ""
-"Interval Schedule to run the task on.  Set only one schedule type, leave the "
-"others null."
-msgstr "Интервальное расписание для запуска задачи. Выберите только один тип "
-"расписания, остальные оставьте пустыми."
+"Interval Schedule to run the task on.  Set only one schedule type, leave the others null."
+msgstr ""
+"Интервальное расписание для запуска задачи. Выберите только один тип расписания, "
+"остальные оставьте пустыми."
 
 #: django_celery_beat/models.py:386
 msgid "Crontab Schedule"
@@ -295,10 +288,10 @@ msgstr "Crontab"
 
 #: django_celery_beat/models.py:387
 msgid ""
-"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
-"others null."
-msgstr "Crontab расписание для запуска задачи. Выберите только один тип "
-"расписания, остальные оставьте пустыми."
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the others null."
+msgstr ""
+"Crontab расписание для запуска задачи. Выберите только один тип расписания, остальные "
+"оставьте пустыми."
 
 #: django_celery_beat/models.py:392
 msgid "Solar Schedule"
@@ -306,10 +299,10 @@ msgstr "Астрономическое"
 
 #: django_celery_beat/models.py:393
 msgid ""
-"Solar Schedule to run the task on.  Set only one schedule type, leave the "
-"others null."
-msgstr "Астрономическое расписание для запуска задачи. Выберите только один "
-"тип расписания, остальные оставьте пустыми."
+"Solar Schedule to run the task on.  Set only one schedule type, leave the others null."
+msgstr ""
+"Астрономическое расписание для запуска задачи. Выберите только один тип расписания, "
+"остальные оставьте пустыми."
 
 #: django_celery_beat/models.py:398
 msgid "Clocked Schedule"
@@ -317,10 +310,10 @@ msgstr "Хронометрическое"
 
 #: django_celery_beat/models.py:399
 msgid ""
-"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
-"others null."
-msgstr "Хронометрическое расписание для запуска задачи. Выберите только один "
-"тип расписания, остальные оставьте пустыми."
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the others null."
+msgstr ""
+"Хронометрическое расписание для запуска задачи. Выберите только один тип расписания, "
+"остальные оставьте пустыми."
 
 #: django_celery_beat/models.py:405
 msgid "Positional Arguments"
@@ -376,19 +369,18 @@ msgstr "Приоритет"
 
 #: django_celery_beat/models.py:450
 msgid ""
-"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
-"reversed, 0 is highest)."
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority reversed, 0 "
+"is highest)."
 msgstr ""
-"Число между 0 и 255. Поддерживается в: RabbitMQ, Redis (приоритет "
-"по убыванию, 0 наивысший)."
+"Число между 0 и 255. Поддерживается в: RabbitMQ, Redis (приоритет по убыванию, 0 "
+"наивысший)."
 
 #: django_celery_beat/models.py:455
 msgid "Expires Datetime"
 msgstr "Истекает"
 
 #: django_celery_beat/models.py:457
-msgid ""
-"Datetime after which the schedule will no longer trigger the task to run"
+msgid "Datetime after which the schedule will no longer trigger the task to run"
 msgstr "Время, после которого расписание больше не будет запускать задачу"
 
 #: django_celery_beat/models.py:462
@@ -413,10 +405,9 @@ msgstr "Последний запуск"
 
 #: django_celery_beat/models.py:483
 msgid ""
-"Datetime that the schedule last triggered the task to run. Reset to None if "
-"enabled is set to False."
-msgstr ""
-"Время последнего вызова задачи. None если задача выключена."
+"Datetime that the schedule last triggered the task to run. Reset to None if enabled is "
+"set to False."
+msgstr "Время последнего вызова задачи. None если задача выключена."
 
 #: django_celery_beat/models.py:488
 msgid "Total Run Count"
