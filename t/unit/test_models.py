@@ -2,32 +2,26 @@ import datetime
 import os
 
 try:
-    from zoneinfo import available_timezones, ZoneInfo
+    from zoneinfo import ZoneInfo, available_timezones
 except ImportError:
     from backports.zoneinfo import available_timezones, ZoneInfo
 
 import pytest
-
 from celery import schedules
-from django.test import TestCase, override_settings
 from django.apps import apps
-from django.db.migrations.state import ProjectState
+from django.conf import settings
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.db.migrations.state import ProjectState
+from django.test import TestCase, override_settings
 from django.utils import timezone
-from django.conf import settings
 
 from django_celery_beat import migrations as beat_migrations
-from django_celery_beat.models import (
-    crontab_schedule_celery_timezone,
-    SolarSchedule,
-    CrontabSchedule,
-    ClockedSchedule,
-    IntervalSchedule,
-    PeriodicTasks,
-    DAYS,
-)
+from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
+                                       IntervalSchedule, PeriodicTasks,
+                                       SolarSchedule,
+                                       crontab_schedule_celery_timezone)
 from t.proj.models import O2OToPeriodicTasks
 
 

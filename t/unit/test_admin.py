@@ -1,18 +1,14 @@
-import pytest
-
-from django.core.exceptions import ValidationError
-from django.test import TestCase
 from itertools import combinations
 from unittest import mock
 
+import pytest
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import \
-    DAYS, \
-    PeriodicTask, \
-    CrontabSchedule, \
-    IntervalSchedule, \
-    SolarSchedule, \
-    ClockedSchedule
+from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
+                                       IntervalSchedule, PeriodicTask,
+                                       SolarSchedule)
 
 
 @pytest.mark.django_db()
@@ -103,7 +99,7 @@ class ValidateUniqueTests(TestCase):
             'must be set'
         )
         for i, options in enumerate(combinations(schedules, 2)):
-            name = 'task{}'.format(i)
+            name = f'task{i}'
             options_dict = dict(options)
             with self.assertRaises(ValidationError) as cm:
                 PeriodicTask(name=name, **options_dict).validate_unique()

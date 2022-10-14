@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 from sphinx_celery import conf
@@ -23,16 +22,19 @@ globals().update(conf.build_config(
         r'django_celery_beat.migrations.*',
     ],
     extlinks={
-      'github_project': (
-        'https://github.com/%s',
-        'GitHub project %s',
-      ),
-      'github_pr': (
-        'https://github.com/celery/django-celery-beat/pull/%s',
-        'GitHub PR #%s',
-      ),
+        'github_project': (
+            'https://github.com/%s',
+            'GitHub project %s',
+        ),
+        'github_pr': (
+            'https://github.com/celery/django-celery-beat/pull/%s',
+            'GitHub PR #%s',
+        ),
     },
     extra_intersphinx_mapping={
-        'django-celery-results': ('https://django-celery-results.readthedocs.io/en/latest/', None),
+        'django-celery-results': (
+            'https://django-celery-results.readthedocs.io/en/latest/',
+            None
+        ),
     },
 ))
