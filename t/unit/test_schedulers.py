@@ -109,6 +109,9 @@ class SchedulerCase:
     def create_interval_schedule(self):
         return IntervalSchedule.objects.create(every=10, period=DAYS)
 
+    def create_crontab_schedule(self):
+        return CrontabSchedule.objects.create()
+
 
 @pytest.mark.django_db()
 class test_ModelEntry(SchedulerCase):
@@ -333,6 +336,16 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert len(sched) == 1
         assert 'celery.backend_cleanup' in sched
         assert self.entry_name not in sched
+
+    def test_periodic_task_model_schedule_type_change(self):
+        self.m1.interval = None
+        self.m1.crontab = self.create_crontab_schedule()
+        self.m1.save()
+
+        self.Scheduler(app=self.app)
+        self.m1.refresh_from_db()
+        assert self.m1.interval
+        assert self.m1.crontab is None
 
 
 @pytest.mark.django_db()
