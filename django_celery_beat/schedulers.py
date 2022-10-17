@@ -175,9 +175,13 @@ class ModelEntry(ScheduleEntry):
     def _unpack_fields(cls, schedule,
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
+        entry_schedules = {
+            model_field: None for _, _, model_field in cls.model_schedules
+        }
         model_schedule, model_field = cls.to_model_schedule(schedule)
+        entry_schedules[model_field] = model_schedule
         entry.update(
-            {model_field: model_schedule},
+            entry_schedules,
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
             **cls._unpack_options(**options or {})
