@@ -3,6 +3,7 @@
 # -- a recursive loader import!
 from django.conf import settings
 from django.utils import timezone
+import time
 
 is_aware = timezone.is_aware
 # celery schedstate return None will make it not work
@@ -24,7 +25,15 @@ def make_aware(value):
     else:
         # naive datetimes are assumed to be in local timezone.
         if timezone.is_naive(value):
-            value = timezone.make_aware(value, timezone.get_default_timezone())
+            tm_isdst = time.localtime().tm_isdst
+
+            # tm_isdst may return -1 if it cannot be determined
+            if tm_isdst == -1:
+                is_dst = None
+            else:
+                is_dst = bool(tm_isdst)
+
+            value = timezone.make_aware(value, timezone.get_default_timezone(), is_dst=is_dst)
     return value
 
 
