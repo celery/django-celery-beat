@@ -111,6 +111,7 @@ class UtilsTest(TestCase):
         mock_localtime_1.assert_called_with()
         mock_make_aware.assert_called_with(dt, "America/Los_Angeles", is_dst=None)
         mock_get_default_timezone.assert_called()
+
     @mock.patch('django_celery_beat.utils.timezone.localtime')
     @mock.patch('django_celery_beat.utils.timezone.get_default_timezone')
     @mock.patch('django_celery_beat.utils.timezone.make_aware')
