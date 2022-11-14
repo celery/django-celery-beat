@@ -1,9 +1,10 @@
 """Utilities."""
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
+import time
+
 from django.conf import settings
 from django.utils import timezone
-import time
 
 is_aware = timezone.is_aware
 # celery schedstate return None will make it not work

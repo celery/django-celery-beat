@@ -1,10 +1,12 @@
-from unittest import mock
-from django.test import TestCase
-from datetime import datetime
 import time
+from datetime import datetime
+from unittest import mock
+
+from django.test import TestCase
+from django.utils import timezone
 
 from django_celery_beat import utils
-from django.utils import timezone
+
 
 class UtilsTest(TestCase):
 
@@ -22,7 +24,7 @@ class UtilsTest(TestCase):
         mock_localtime_2.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), mock_localtime_2.return_value)
+        self.assertEqual(utils.make_aware(dt), mock_localtime_2.return_value)
 
         mock_localtime_1.assert_not_called()
         mock_make_aware.assert_called_with(dt, timezone.utc)
@@ -43,7 +45,7 @@ class UtilsTest(TestCase):
         mock_localtime_2.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), mock_localtime_2.return_value)
+        self.assertEqual(utils.make_aware(dt), mock_localtime_2.return_value)
 
         mock_localtime_1.assert_not_called()
         mock_make_aware.assert_not_called()
@@ -64,7 +66,7 @@ class UtilsTest(TestCase):
         mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 1])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), dt)
+        self.assertEqual(utils.make_aware(dt), dt)
 
         mock_localtime_1.assert_called_with()
         mock_make_aware.assert_called_with(dt, "America/Los_Angeles", is_dst=True)
@@ -85,7 +87,7 @@ class UtilsTest(TestCase):
         mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), dt)
+        self.assertEqual(utils.make_aware(dt), dt)
 
         mock_localtime_1.assert_called_with()
         mock_make_aware.assert_called_with(dt, "America/Los_Angeles", is_dst=False)
@@ -106,7 +108,7 @@ class UtilsTest(TestCase):
         mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, -1])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), dt)
+        self.assertEqual(utils.make_aware(dt), dt)
 
         mock_localtime_1.assert_called_with()
         mock_make_aware.assert_called_with(dt, "America/Los_Angeles", is_dst=None)
@@ -126,7 +128,7 @@ class UtilsTest(TestCase):
         mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
         mock_make_aware.return_value = dt
 
-        self.assertEquals(utils.make_aware(dt), dt)
+        self.assertEqual(utils.make_aware(dt), dt)
 
         mock_localtime_1.assert_not_called()
         mock_make_aware.assert_not_called()
