@@ -1,27 +1,24 @@
 import math
 import os
 import time
-import pytest
-
 from datetime import datetime, timedelta
 from itertools import count
 from time import monotonic
 
+import pytest
+from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 
-from celery.schedules import schedule, crontab, solar
-
 from django_celery_beat import schedulers
-from django_celery_beat.clockedschedule import clocked
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import (
-    PeriodicTask, PeriodicTasks, IntervalSchedule, CrontabSchedule,
-    SolarSchedule, ClockedSchedule, DAYS
-)
-from django_celery_beat.utils import make_aware, NEVER_CHECK_TIMEOUT
+from django_celery_beat.clockedschedule import clocked
+from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
+                                       IntervalSchedule, PeriodicTask,
+                                       PeriodicTasks, SolarSchedule)
+from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
 
 _ids = count(0)
 
@@ -85,9 +82,9 @@ class SchedulerCase:
         return self.create_model(clocked=clocked, one_off=True, **kwargs)
 
     def create_conf_entry(self):
-        name = 'thefoo{0}'.format(next(_ids))
+        name = f'thefoo{next(_ids)}'
         return name, dict(
-            task='djcelery.unittest.add{0}'.format(next(_ids)),
+            task=f'djcelery.unittest.add{next(_ids)}',
             schedule=timedelta(0, 600),
             args=(),
             relative=False,
@@ -97,8 +94,8 @@ class SchedulerCase:
 
     def create_model(self, Model=PeriodicTask, **kwargs):
         entry = dict(
-            name='thefoo{0}'.format(next(_ids)),
-            task='djcelery.unittest.add{0}'.format(next(_ids)),
+            name=f'thefoo{next(_ids)}',
+            task=f'djcelery.unittest.add{next(_ids)}',
             args='[2, 2]',
             kwargs='{"callback": "foo"}',
             queue='xaz',
@@ -111,6 +108,9 @@ class SchedulerCase:
 
     def create_interval_schedule(self):
         return IntervalSchedule.objects.create(every=10, period=DAYS)
+
+    def create_crontab_schedule(self):
+        return CrontabSchedule.objects.create()
 
 
 @pytest.mark.django_db()
@@ -336,6 +336,16 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert len(sched) == 1
         assert 'celery.backend_cleanup' in sched
         assert self.entry_name not in sched
+
+    def test_periodic_task_model_schedule_type_change(self):
+        self.m1.interval = None
+        self.m1.crontab = self.create_crontab_schedule()
+        self.m1.save()
+
+        self.Scheduler(app=self.app)
+        self.m1.refresh_from_db()
+        assert self.m1.interval
+        assert self.m1.crontab is None
 
 
 @pytest.mark.django_db()
@@ -587,7 +597,7 @@ class test_DatabaseScheduler(SchedulerCase):
                 time.sleep(tick_interval)
                 if s.should_sync():
                     s.sync()
-        assert len(tried) == 1 and tried == set([e1.name])
+        assert len(tried) == 1 and tried == {e1.name}
 
 
 @pytest.mark.django_db()
@@ -615,14 +625,14 @@ class test_models(SchedulerCase):
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
-        assert str(p) == '{0}: every 10.0 seconds'.format(p.name)
+        assert str(p) == f'{p.name}: every 10.0 seconds'
 
     def test_PeriodicTask_unicode_crontab(self):
         p = self.create_model_crontab(crontab(
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert str(p) == """{0}: * 4,5 * * 4,5 (m/h/dM/MY/d) UTC""".format(
+        assert str(p) == """{}: * 4,5 * * 4,5 (m/h/dM/MY/d) UTC""".format(
             p.name
         )
 
@@ -630,7 +640,7 @@ class test_models(SchedulerCase):
         p = self.create_model_solar(
             solar('solar_noon', 48.06, 12.86), name='solar_event'
         )
-        assert str(p) == 'solar_event: {0} ({1}, {2})'.format(
+        assert str(p) == 'solar_event: {} ({}, {})'.format(
             'Solar noon', '48.06', '12.86'
         )
 
@@ -639,7 +649,7 @@ class test_models(SchedulerCase):
         p = self.create_model_clocked(
             clocked(time), name='clocked_event'
         )
-        assert str(p) == '{0}: {1}'.format(
+        assert str(p) == '{}: {}'.format(
             'clocked_event', str(time)
         )
 
@@ -663,7 +673,7 @@ class test_models(SchedulerCase):
 
     def test_PeriodicTask_unicode_no_schedule(self):
         p = self.create_model()
-        assert str(p) == '{0}: {{no schedule}}'.format(p.name)
+        assert str(p) == f'{p.name}: {{no schedule}}'
 
     def test_CrontabSchedule_schedule(self):
         s = CrontabSchedule(

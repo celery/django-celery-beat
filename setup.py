@@ -18,7 +18,7 @@ except (AttributeError, ImportError):
 NAME = 'django-celery-beat'
 PACKAGE = 'django_celery_beat'
 
-E_UNSUPPORTED_PYTHON = '%s 1.0 requires %%s %%s or later!' % (NAME,)
+E_UNSUPPORTED_PYTHON = f'{NAME} 1.0 requires %s %s or later!'
 
 PYIMP = _pyimp()
 PY37_OR_LESS = sys.version_info < (3, 7)
@@ -44,6 +44,7 @@ classes = """
     Framework :: Django
     Framework :: Django :: 3.2
     Framework :: Django :: 4.0
+    Framework :: Django :: 4.1
     Operating System :: OS Independent
     Topic :: Communications
     Topic :: System :: Distributed Computing
@@ -65,6 +66,7 @@ def add_default(m):
 def add_doc(m):
     return (('doc', m.groups()[0]),)
 
+
 pats = {re_meta: add_default,
         re_doc: add_doc}
 here = os.path.abspath(os.path.dirname(__file__))
@@ -80,8 +82,9 @@ with open(os.path.join(here, PACKAGE, '__init__.py')) as meta_fh:
 
 # -*- Installation Requires -*-
 
-def strip_comments(l):
-    return l.split('#', 1)[0].strip()
+
+def strip_comments(line):
+    return line.split('#', 1)[0].strip()
 
 
 def _pip_requirement(req):
@@ -94,7 +97,7 @@ def _pip_requirement(req):
 def _reqs(*f):
     return [
         _pip_requirement(r) for r in (
-            strip_comments(l) for l in open(
+            strip_comments(line) for line in open(
                 os.path.join(os.getcwd(), 'requirements', *f)).readlines()
         ) if r]
 
@@ -104,11 +107,12 @@ def reqs(*f):
 
 # -*- Long Description -*-
 
+
 if os.path.exists('README.rst'):
     long_description = codecs.open('README.rst', 'r', 'utf-8').read()
     long_description_content_type = 'text/x-rst'
 else:
-    long_description = 'See http://pypi.python.org/pypi/%s' % (NAME,)
+    long_description = f'See http://pypi.python.org/pypi/{NAME}'
     long_description_content_type = 'text/markdown'
 
 # -*- %%% -*-
@@ -124,6 +128,7 @@ class pytest(setuptools.command.test.test):
     def run_tests(self):
         import pytest
         sys.exit(pytest.main(self.pytest_args))
+
 
 setuptools.setup(
     name=NAME,

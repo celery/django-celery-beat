@@ -1,0 +1,544 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-08-28 01:05+0000\n"
+"PO-Revision-Date: 2022-08-28 03:29+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: admin.py:60
+msgid "Task (registered)"
+msgstr "Aufgabe (registriert)"
+
+#: admin.py:64
+msgid "Task (custom)"
+msgstr "Aufgabe (benutzerdefiniert)"
+
+#: admin.py:81
+msgid "Need name of task"
+msgstr "Name der Aufgabe benötigt"
+
+#: admin.py:87 models.py:593
+msgid "Only one can be set, in expires and expire_seconds"
+msgstr ""
+"Es kann nur eine festgelegt werden, \"Ablaufdatum\" oder \"Ablauf-Timedelta "
+"in Sekunden\""
+
+#: admin.py:97
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "Ausserstande JSON zu parsen: %s"
+
+#: admin.py:125
+msgid "Schedule"
+msgstr "Zeitplan"
+
+#: admin.py:130
+msgid "Arguments"
+msgstr "Argumente"
+
+#: admin.py:134
+msgid "Execution Options"
+msgstr "Ausführungsoptionen"
+
+#: admin.py:163
+#, python-brace-format
+msgid "{0} task{1} {2} successfully {3}"
+msgstr "{0} Aufgabe{1} {2} erfolgreich {3}"
+
+#: admin.py:166 admin.py:233
+msgid "was,were"
+msgstr "war,waren"
+
+#: admin.py:175
+msgid "Enable selected tasks"
+msgstr "Ausgewählte Aufgaben aktivieren"
+
+#: admin.py:181
+msgid "Disable selected tasks"
+msgstr "Ausgewählte Aufgaben deaktivieren"
+
+#: admin.py:193
+msgid "Toggle activity of selected tasks"
+msgstr "Aktivität ausgewählter Aufgaben ein-/ausschalten"
+
+#: admin.py:214
+#, python-brace-format
+msgid "task \"{0}\" not found"
+msgstr "Aufgabe \"{0}\" nicht gefunden"
+
+#: admin.py:230
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} Aufgabe{1} {2} erfolgreich ausgeführt"
+
+#: admin.py:236
+msgid "Run selected tasks"
+msgstr "Ausgewählte Aufgaben ausführen"
+
+#: apps.py:13
+msgid "Periodic Tasks"
+msgstr "Periodische Aufgaben"
+
+#: models.py:30
+msgid "Days"
+msgstr "Tage"
+
+#: models.py:31
+msgid "Hours"
+msgstr "Stunden"
+
+#: models.py:32
+msgid "Minutes"
+msgstr "Minuten"
+
+#: models.py:33
+msgid "Seconds"
+msgstr "Sekunden"
+
+#: models.py:34
+msgid "Microseconds"
+msgstr "Mikrosekunden"
+
+#: models.py:38
+msgid "Day"
+msgstr "Tag"
+
+#: models.py:39
+msgid "Hour"
+msgstr "Stunde"
+
+#: models.py:40
+msgid "Minute"
+msgstr "Minute"
+
+#: models.py:41
+msgid "Second"
+msgstr "Sekunde"
+
+#: models.py:42
+msgid "Microsecond"
+msgstr "Mikrosekunde"
+
+#: models.py:46
+msgid "Astronomical dawn"
+msgstr "Astronomische Morgendämmerung"
+
+#: models.py:47
+msgid "Civil dawn"
+msgstr "Zivile Morgendämmerung"
+
+#: models.py:48
+msgid "Nautical dawn"
+msgstr "Nautische Morgendämmerung"
+
+#: models.py:49
+msgid "Astronomical dusk"
+msgstr "Astronomische Dämmerung"
+
+#: models.py:50
+msgid "Civil dusk"
+msgstr "Zivile Dämmerung"
+
+#: models.py:51
+msgid "Nautical dusk"
+msgstr "Nautische Dämmerung"
+
+#: models.py:52
+msgid "Solar noon"
+msgstr "Sonnenmittag"
+
+#: models.py:53
+msgid "Sunrise"
+msgstr "Sonnenaufgang"
+
+#: models.py:54
+msgid "Sunset"
+msgstr "Sonnenuntergang"
+
+#: models.py:88
+msgid "Solar Event"
+msgstr "Sonnenereigniss"
+
+#: models.py:89
+msgid "The type of solar event when the job should run"
+msgstr "Die Art des Solarereignisses, wenn die Aufgabe ausgeführt werden soll"
+
+#: models.py:93
+msgid "Latitude"
+msgstr "Breitengrad"
+
+#: models.py:94
+msgid "Run the task when the event happens at this latitude"
+msgstr ""
+"Führen Sie diese Aufgabe aus, wenn das Ereignis in diesem Breitengrad "
+"auftritt"
+
+#: models.py:99
+msgid "Longitude"
+msgstr "Längengrad"
+
+#: models.py:100
+msgid "Run the task when the event happens at this longitude"
+msgstr ""
+"Führen Sie diese Aufgabe aus, wenn das Ereignis in diesem Längengrad auftritt"
+
+#: models.py:107
+msgid "solar event"
+msgstr "Sonnenereigniss"
+
+#: models.py:108
+msgid "solar events"
+msgstr "Sonnenereignisse"
+
+#: models.py:158
+msgid "Number of Periods"
+msgstr "Anzahl der Perioden"
+
+#: models.py:159
+msgid "Number of interval periods to wait before running the task again"
+msgstr ""
+"Anzahl der Intervallperioden, die gewartet werden sollen, bevor der Task "
+"erneut ausgeführt wird"
+
+#: models.py:165
+msgid "Interval Period"
+msgstr "Intervallperiode"
+
+#: models.py:166
+msgid "The type of period between task runs (Example: days)"
+msgstr "Der Typ des Zeitraums zwischen den Taskläufen (Beispiel: Tage)"
+
+#: models.py:172
+msgid "interval"
+msgstr "Intervall"
+
+#: models.py:173
+msgid "intervals"
+msgstr "Intervalle"
+
+#: models.py:200
+msgid "every {}"
+msgstr "jede {}"
+
+#: models.py:205
+msgid "every {} {}"
+msgstr "jede {} {}"
+
+#: models.py:216
+msgid "Clock Time"
+msgstr "Uhrzeit"
+
+#: models.py:217
+msgid "Run the task at clocked time"
+msgstr "Die Aufgabe zur Uhrzeit ausführen"
+
+#: models.py:223 models.py:224
+msgid "clocked"
+msgstr "Getaktet"
+
+#: models.py:264
+msgid "Minute(s)"
+msgstr "Minute(n)"
+
+#: models.py:266
+msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
+msgstr ""
+"Cron Minuten zur Ausführung. Verwenden Sie \"*\" für \"alle\". (Beispiel: "
+"\"0,30\")"
+
+#: models.py:271
+msgid "Hour(s)"
+msgstr "Stunde(n)"
+
+#: models.py:273
+msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
+msgstr ""
+"Cron Stunden zur Ausführung. Verwenden Sie \"*\" für \"alle\". (Beispiel: "
+"„8,20“)"
+
+#: models.py:278
+msgid "Day(s) Of The Week"
+msgstr "Tag(e) der Woche"
+
+#: models.py:280
+msgid "Cron Days Of The Week to Run. Use \"*\" for \"all\". (Example: \"0,5\")"
+msgstr ""
+"Cron Tage der Woche zur Ausführung. Verwenden Sie \"*\" für \"alle\". "
+"(Beispiel: \"0,5\")"
+
+#: models.py:286
+msgid "Day(s) Of The Month"
+msgstr "Tag(e) des Monats"
+
+#: models.py:288
+msgid ""
+"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr ""
+"Cron Tage des Monats zur Ausführung. Verwenden Sie \"*\" für \"alle\". "
+"(Beispiel: \"1,15\")"
+
+#: models.py:294
+msgid "Month(s) Of The Year"
+msgstr "Monat(e) des Jahres"
+
+#: models.py:296
+msgid ""
+"Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
+msgstr ""
+"Cron Monate des Jahres zur Ausführung. Verwenden Sie \"*\" für \"alle\". "
+"(Beispiel: \"0,6\")"
+
+#: models.py:304
+msgid "Cron Timezone"
+msgstr "Cron Zeitzone"
+
+#: models.py:306
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
+msgstr ""
+"Zeitzone, in der der Cron-Zeitplan ausgeführt werden soll. Der Standardwert "
+"ist UTC."
+
+#: models.py:312
+msgid "crontab"
+msgstr "Crontab"
+
+#: models.py:313
+msgid "crontabs"
+msgstr "Crontabs"
+
+#: models.py:397
+msgid "Name"
+msgstr "Name"
+
+#: models.py:398
+msgid "Short Description For This Task"
+msgstr "Kurzbeschreibung für diese Aufgabe"
+
+#: models.py:403
+msgid ""
+"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
+"import_contacts\")"
+msgstr ""
+"Der Name des Celery-Tasks, der ausgeführt werden soll. (Beispiel: \"proj."
+"tasks.import_contacts\")"
+
+#: models.py:411
+msgid "Interval Schedule"
+msgstr "Intervall-Zeitplan"
+
+#: models.py:412
+msgid ""
+"Interval Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Intervallzeitplan zum Ausführen der Aufgabe. Legen Sie nur einen Zeitplantyp "
+"fest und lassen Sie die anderen null."
+
+#: models.py:417
+msgid "Crontab Schedule"
+msgstr "Crontab-Zeitplan"
+
+#: models.py:418
+msgid ""
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Crontab Zeitplan zum Ausführen der Aufgabe. Legen Sie nur einen Zeitplantyp "
+"fest und lassen Sie die anderen null."
+
+#: models.py:423
+msgid "Solar Schedule"
+msgstr "Solar-Zeitplan"
+
+#: models.py:424
+msgid ""
+"Solar Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Solarzeitplan, um die Aufgabe auszuführen. Legen Sie nur einen Zeitplantyp "
+"fest und lassen Sie die anderen auf null."
+
+#: models.py:429
+msgid "Clocked Schedule"
+msgstr "Getakteter-Zeitplan"
+
+#: models.py:430
+msgid ""
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Getakteter Zeitplan zum Ausführen der Aufgabe. Legen Sie nur einen "
+"Zeitplantyp fest und lassen Sie die anderen null."
+
+#: models.py:436
+msgid "Positional Arguments"
+msgstr "Positionsargumente"
+
+#: models.py:438
+msgid "JSON encoded positional arguments (Example: [\"arg1\", \"arg2\"])"
+msgstr "JSON-Codierte Positionsargumente (Beispiel: [\"arg1\", \"arg2\"])"
+
+#: models.py:443
+msgid "Keyword Arguments"
+msgstr "Schlüsselwort-Argumente"
+
+#: models.py:445
+msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
+msgstr ""
+"JSON-Codierte Schlüsselwortargumente (Beispiel: {\"argument\": \"wert\"})"
+
+#: models.py:451
+msgid "Queue Override"
+msgstr "Warteschlangenüberschreibung"
+
+#: models.py:453
+msgid "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
+msgstr ""
+"In CELERY_TASK_QUEUES definierte Warteschlange. Auf None lassen, für die "
+"Standardwarteschlange."
+
+#: models.py:462
+msgid "Exchange"
+msgstr "Exchange"
+
+#: models.py:463
+msgid "Override Exchange for low-level AMQP routing"
+msgstr "Override Exchange für Low-Level-AMQP-Routing"
+
+#: models.py:467
+msgid "Routing Key"
+msgstr "Routing-Schlüssel"
+
+#: models.py:468
+msgid "Override Routing Key for low-level AMQP routing"
+msgstr "Override Routing Key für Low-Level-AMQP-Routing"
+
+#: models.py:472
+msgid "AMQP Message Headers"
+msgstr "AMQP-Nachrichtenheader"
+
+#: models.py:473
+msgid "JSON encoded message headers for the AMQP message."
+msgstr "JSON-Codierte Nachrichtenheader für die AMQP-Nachricht."
+
+#: models.py:479
+msgid "Priority"
+msgstr "Priorität"
+
+#: models.py:481
+msgid ""
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
+"reversed, 0 is highest)."
+msgstr ""
+"Prioritätsnummer zwischen 0 und 255. Unterstützt von: RabbitMQ, Redis "
+"(Priorität umgekehrt, 0 ist am höchsten)."
+
+#: models.py:486
+msgid "Expires Datetime"
+msgstr "Ablaufdatum"
+
+#: models.py:488
+msgid ""
+"Datetime after which the schedule will no longer trigger the task to run"
+msgstr ""
+"Zeitpunkt, nach dem der Zeitplan die Ausführung die Aufgabe nicht mehr "
+"auslöst"
+
+#: models.py:493
+msgid "Expires timedelta with seconds"
+msgstr "Ablauf-Timedelta in Sekunden"
+
+#: models.py:495
+msgid ""
+"Timedelta with seconds which the schedule will no longer trigger the task to "
+"run"
+msgstr ""
+"Timedelta in Sekunden, die der Zeitplan nicht mehr auslöst, um die Aufgabe "
+"auszuführen"
+
+#: models.py:501
+msgid "One-off Task"
+msgstr "Einmalige Aufgabe"
+
+#: models.py:503
+msgid "If True, the schedule will only run the task a single time"
+msgstr "Wenn aktiv, wird die Aufgabe im Zeitplan nur einmal ausgeführt"
+
+#: models.py:507
+msgid "Start Datetime"
+msgstr "Start-Datum"
+
+#: models.py:509
+msgid "Datetime when the schedule should begin triggering the task to run"
+msgstr ""
+"Zeitpunkt, zu der der Zeitplan beginnen soll, die Ausführung der Aufgabe "
+"auszulösen"
+
+#: models.py:514
+msgid "Enabled"
+msgstr "Aktiviert"
+
+#: models.py:515
+msgid "Set to False to disable the schedule"
+msgstr "Deaktivieren zum deaktivieren -_-"
+
+#: models.py:520
+msgid "Last Run Datetime"
+msgstr "Uhrzeit der letzten Ausführung"
+
+#: models.py:522
+msgid ""
+"Datetime that the schedule last triggered the task to run. Reset to None if "
+"enabled is set to False."
+msgstr ""
+"Uhrzeit, zu der der letzte Zeitplan die Ausführung die Aufgabe ausgelöst "
+"hat. Setzt auf Keine zurück, wenn \"Aktiviert\" ist auf False gesetzt wird."
+
+#: models.py:527
+msgid "Total Run Count"
+msgstr "Gesamtzahl der Durchgänge"
+
+#: models.py:529
+msgid "Running count of how many times the schedule has triggered the task"
+msgstr "Laufende Zählung, wie oft der Zeitplan die Aufgabe ausgelöst hat"
+
+#: models.py:534
+msgid "Last Modified"
+msgstr "Zuletzt geändert"
+
+#: models.py:535
+msgid "Datetime that this PeriodicTask was last modified"
+msgstr "Uhrzeit zu dem diese periodische Aufgabe zuletzt modifiziert wurde"
+
+#: models.py:539
+msgid "Description"
+msgstr "Beschreibung"
+
+#: models.py:541
+msgid "Detailed description about the details of this Periodic Task"
+msgstr "Detaillierte Beschreibung der Details dieser periodischen Aufgabe"
+
+#: models.py:550
+msgid "periodic task"
+msgstr "Periodische Aufgabe"
+
+#: models.py:551
+msgid "periodic tasks"
+msgstr "Periodische Aufgaben"
+
+#: templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr "Start"

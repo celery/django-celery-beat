@@ -1,28 +1,28 @@
 import datetime
 import os
+
 try:
-    from zoneinfo import available_timezones, ZoneInfo
+    from zoneinfo import ZoneInfo, available_timezones
 except ImportError:
     from backports.zoneinfo import available_timezones, ZoneInfo
 
+import pytest
 from celery import schedules
-from django.test import TestCase, override_settings
 from django.apps import apps
-from django.db.migrations.state import ProjectState
+from django.conf import settings
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.db.migrations.state import ProjectState
+from django.test import TestCase, override_settings
 from django.utils import timezone
-from django.conf import settings
 
 from django_celery_beat import migrations as beat_migrations
-from django_celery_beat.models import (
-    crontab_schedule_celery_timezone,
-    SolarSchedule,
-    CrontabSchedule,
-    ClockedSchedule,
-    IntervalSchedule,
-)
+from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
+                                       IntervalSchedule, PeriodicTasks,
+                                       SolarSchedule,
+                                       crontab_schedule_celery_timezone)
+from t.proj.models import O2OToPeriodicTasks
 
 
 class MigrationTests(TestCase):
@@ -159,3 +159,51 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
             clocked_time=tz_info)
         # testnig str(schedule) calls make_aware() internally
         assert str(schedule.clocked_time) == str(schedule)
+
+
+@pytest.mark.django_db()
+class OneToOneRelTestCase(TestCase):
+    """
+    Make sure that when OneToOne relation Model changed,
+    the `PeriodicTasks.last_update` will be update.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.interval_schedule = IntervalSchedule.objects.create(
+            every=10, period=DAYS
+        )
+
+    def test_trigger_update_when_saved(self):
+        o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
+        )
+        not_changed_dt = PeriodicTasks.last_change()
+        o2o_to_periodic_tasks.enabled = True  # Change something on instance.
+        o2o_to_periodic_tasks.save()
+        has_changed_dt = PeriodicTasks.last_change()
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
+        # Check the `PeriodicTasks` does be updated.
+
+    def test_trigger_update_when_deleted(self):
+        o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
+        )
+        not_changed_dt = PeriodicTasks.last_change()
+        o2o_to_periodic_tasks.delete()
+        has_changed_dt = PeriodicTasks.last_change()
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
+        # Check the `PeriodicTasks` does be updated.
