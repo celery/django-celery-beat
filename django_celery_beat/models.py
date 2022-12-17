@@ -292,8 +292,8 @@ class CrontabSchedule(models.Model):
         max_length=64, default='*',
         verbose_name=_('Month(s) Of The Year'),
         help_text=_(
-            'Cron Months (1-12) Of The Year to Run. Use "*" for "all". '
-            '(Example: "1,12")'),
+            'Cron Months Of The Year to Run. Use "*" for "all". '
+            '(Example: "0,6")'),
         validators=[validators.month_of_year_validator],
     )
 
