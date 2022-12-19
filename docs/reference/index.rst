@@ -19,3 +19,4 @@
     django-celery-beat.utils
     django-celery-beat.validators
     django-celery-beat.clockedschedule
+    django-celery-beat.signals
