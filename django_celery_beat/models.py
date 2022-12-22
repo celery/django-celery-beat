@@ -13,6 +13,7 @@ from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from cron_descriptor import get_description
 
 from . import querysets, validators
 from .clockedschedule import clocked
@@ -312,6 +313,15 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+
+    @property
+    def human_readable(self):
+        human_readable = get_description('{} {} {} {} {}'.format(
+            cronexp(self.minute), cronexp(self.hour),
+            cronexp(self.day_of_month), cronexp(self.month_of_year),
+            cronexp(self.day_of_week)
+        ))
+        return '{} {}'.format(human_readable, str(self.timezone))
 
     def __str__(self):
         return '{} {} {} {} {} (m/h/dM/MY/d) {}'.format(
@@ -616,7 +626,7 @@ class PeriodicTask(models.Model):
         if self.interval:
             return self.interval.schedule
         if self.crontab:
-            return self.crontab.schedule
+            return self.crontab
         if self.solar:
             return self.solar.schedule
         if self.clocked:
