@@ -610,14 +610,17 @@ class PeriodicTask(models.Model):
         if self.clocked:
             fmt = '{0.name}: {0.clocked}'
         return fmt.format(self)
+    @property
+    def scheduler(self):
+        if self.interval:
+            return self.interval
+        if self.crontab:
+            return self.crontab
+        if self.solar:
+            return self.solar
+        if self.clocked:
+            return self.clocked
 
     @property
     def schedule(self):
-        if self.interval:
-            return self.interval.schedule
-        if self.crontab:
-            return self.crontab.schedule
-        if self.solar:
-            return self.solar.schedule
-        if self.clocked:
-            return self.clocked.schedule
+        return self.scheduler.schedule
