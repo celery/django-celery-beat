@@ -610,6 +610,7 @@ class PeriodicTask(models.Model):
         if self.clocked:
             fmt = '{0.name}: {0.clocked}'
         return fmt.format(self)
+
     @property
     def scheduler(self):
         if self.interval:
