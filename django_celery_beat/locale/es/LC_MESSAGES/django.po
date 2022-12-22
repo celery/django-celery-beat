@@ -257,9 +257,9 @@ msgid "Day(s) Of The Week"
 msgstr "Día(s) de la semana"
 
 #: django_celery_beat/models.py:274
-msgid "Cron Days Of The Week to Run. Use \"*\" for \"all\". (Example: \"0,5\")"
+msgid "Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, Monday is 1. (Example: \"0,5\")"
 msgstr ""
-"Días de la semana Cron cuando ejecutar. Usa \"*\" para \"todos\". (Ejemplo: "
+"Días de la semana Cron cuando ejecutar. Usa \"*\" para \"todos\", Domingo es 0 o 7, Lunes es 1. (Ejemplo: "
 "\"0,5\")"
 
 #: django_celery_beat/models.py:280
