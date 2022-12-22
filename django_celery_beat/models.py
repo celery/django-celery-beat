@@ -277,8 +277,8 @@ class CrontabSchedule(models.Model):
         max_length=64, default='*',
         verbose_name=_('Day(s) Of The Week'),
         help_text=_(
-            'Cron Days Of The Week to Run. Use "*" for "all", Sunday is 0 or 7, Monday is 1. '
-            '(Example: "0,5")'),
+            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
+            'is 0 or 7, Monday is 1. (Example: "0,5")'),
         validators=[validators.day_of_week_validator],
     )
     day_of_month = models.CharField(
