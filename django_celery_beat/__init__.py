@@ -3,12 +3,11 @@
 #             All rights reserved.
 # :license:   BSD (3 Clause), see LICENSE for more details.
 import re
-
 from collections import namedtuple
 
 import django
 
-__version__ = '2.3.0'
+__version__ = '2.4.0'
 __author__ = 'Asif Saif Uddin, Ask Solem'
 __contact__ = 'auvipy@gmail.com, ask@celeryproject.org'
 __homepage__ = 'https://github.com/celery/django-celery-beat'

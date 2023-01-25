@@ -1,7 +1,6 @@
 .DS_Store
 *.pyc
 *$py.class
-*.mo
 *~
 .*.sw[pon]
 dist/

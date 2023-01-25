@@ -2,6 +2,7 @@
 
 from celery import schedules
 from celery.utils.time import maybe_make_aware
+
 from .utils import NEVER_CHECK_TIMEOUT
 
 
@@ -27,7 +28,7 @@ class clocked(schedules.BaseSchedule):
         return schedules.schedstate(is_due=False, next=remaining_s)
 
     def __repr__(self):
-        return '<clocked: {}>'.format(self.clocked_time)
+        return f'<clocked: {self.clocked_time}>'
 
     def __eq__(self, other):
         if isinstance(other, clocked):

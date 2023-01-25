@@ -1,9 +1,8 @@
 """Timezone aware Cron schedule Implementation."""
-from celery import schedules
-
 from collections import namedtuple
 from datetime import datetime, timezone
 
+from celery import schedules
 
 schedstate = namedtuple('schedstate', ('is_due', 'next'))
 

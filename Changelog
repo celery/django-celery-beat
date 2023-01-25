@@ -4,6 +4,22 @@
  Change history
 ================
 
+.. _version-2.4.0:
+
+2.4.0
+=====
+:release-date: 2022-10-19 7:15 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Fixed error path for zh-Hans translate (#548).
+- Django>=3.2,<4.2 (#567).
+- fix: downgrade importlib-metadata<5.0 until celery 5.3.0 release.
+- Fixed signals can not connect to OneToOneField (#572) (#573).
+- Remove superseded ExtendedQuerySet as it's functionality is built in.
+- Wrapped fieldset labels of PeriodicTaskAdmin around gettext_lazy.
+- fix: update PeriodicTask from entry (#344).
+
+
 .. _version-2.3.0:
 
 2.3.0

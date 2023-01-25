@@ -1,11 +1,11 @@
 =====================================================
- ``django_celery_beat.managers``
+ ``django_celery_beat.signals``
 =====================================================
 
 .. contents::
     :local:
-.. currentmodule:: django_celery_beat.managers
+.. currentmodule:: django_celery_beat.signals
 
-.. automodule:: django_celery_beat.managers
+.. automodule:: django_celery_beat.signals
     :members:
     :undoc-members:

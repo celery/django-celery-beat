@@ -2,29 +2,22 @@
 import datetime
 import logging
 import math
-
 from multiprocessing.util import Finalize
 
-from celery import current_app
-from celery import schedules
-from celery.beat import Scheduler, ScheduleEntry
-
+from celery import current_app, schedules
+from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
-from kombu.utils.encoding import safe_str, safe_repr
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import close_old_connections, transaction
+from django.db.utils import DatabaseError, InterfaceError
+from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
-from django.conf import settings
-from django.db import transaction, close_old_connections
-from django.db.utils import DatabaseError, InterfaceError
-from django.core.exceptions import ObjectDoesNotExist
-
-from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
-)
 from .clockedschedule import clocked
+from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
+                     PeriodicTask, PeriodicTasks, SolarSchedule)
 from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
@@ -169,21 +162,26 @@ class ModelEntry(ScheduleEntry):
                 model_schedule.save()
                 return model_schedule, model_field
         raise ValueError(
-            'Cannot convert schedule type {0!r} to model'.format(schedule))
+            f'Cannot convert schedule type {schedule!r} to model')
 
     @classmethod
     def from_entry(cls, name, app=None, **entry):
-        return cls(PeriodicTask._default_manager.update_or_create(
+        obj, created = PeriodicTask._default_manager.update_or_create(
             name=name, defaults=cls._unpack_fields(**entry),
-        ), app=app)
+        )
+        return cls(obj, app=app)
 
     @classmethod
     def _unpack_fields(cls, schedule,
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
+        entry_schedules = {
+            model_field: None for _, _, model_field in cls.model_schedules
+        }
         model_schedule, model_field = cls.to_model_schedule(schedule)
+        entry_schedules[model_field] = model_schedule
         entry.update(
-            {model_field: model_schedule},
+            entry_schedules,
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
             **cls._unpack_options(**options or {})
@@ -204,7 +202,7 @@ class ModelEntry(ScheduleEntry):
         }
 
     def __repr__(self):
-        return '<ModelEntry: {0} {1}(*{2}, **{3}) {4}>'.format(
+        return '<ModelEntry: {} {}(*{}, **{}) {}>'.format(
             safe_str(self.name), self.task, safe_repr(self.args),
             safe_repr(self.kwargs), self.schedule,
         )
