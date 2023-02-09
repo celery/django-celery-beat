@@ -578,8 +578,6 @@ class PeriodicTask(models.Model):
         self.routing_key = self.routing_key or None
         self.queue = self.queue or None
         self.headers = self.headers or None
-        if not self.enabled:
-            self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
