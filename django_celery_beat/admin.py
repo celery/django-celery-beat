@@ -123,8 +123,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             'classes': ('extrapretty', 'wide'),
         }),
         (_('Schedule'), {
-            'fields': ('interval', 'crontab', 'solar', 'clocked',
-                       'start_time', 'last_run_at', 'one_off'),
+            'fields': ('interval', 'crontab', 'crontab_translation', 'solar',
+                       'clocked', 'start_time', 'last_run_at', 'one_off'),
             'classes': ('extrapretty', 'wide'),
         }),
         (_('Arguments'), {
@@ -138,8 +138,24 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = (
-        'last_run_at',
+        'last_run_at', 'crontab_translation',
     )
+
+    def crontab_translation(self, obj):
+        return obj.crontab.human_readable
+
+    change_form_template = 'admin/djcelery/change_periodictask_form.html'
+
+    def changeform_view(self, request, object_id=None, form_url='',
+                        extra_context=None):
+        extra_context = extra_context or {}
+        crontabs = CrontabSchedule.objects.all()
+        crontab_dict = {}
+        for crontab in crontabs:
+            crontab_dict[crontab.id] = crontab.human_readable
+        extra_context['readable_crontabs'] = crontab_dict
+        return super().changeform_view(request, object_id,
+                                       extra_context=extra_context)
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
@@ -247,8 +263,12 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
     )
 
 
+class CrontabScheduleAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'human_readable')
+
+
 admin.site.register(IntervalSchedule)
-admin.site.register(CrontabSchedule)
+admin.site.register(CrontabSchedule, CrontabScheduleAdmin)
 admin.site.register(SolarSchedule)
 admin.site.register(ClockedSchedule, ClockedScheduleAdmin)
 admin.site.register(PeriodicTask, PeriodicTaskAdmin)
