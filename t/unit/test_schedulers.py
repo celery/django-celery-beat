@@ -608,7 +608,10 @@ class test_DatabaseScheduler(SchedulerCase):
         m1.save()
         s.tick()
         assert len(s._heap) == 2
-        m2 = self.create_model_interval(schedule(timedelta(days=1)), start_time=make_aware(datetime.now() + timedelta(seconds=2)))
+        m2 = self.create_model_interval(
+            schedule(timedelta(days=1)),
+            start_time=make_aware(
+                datetime.now() + timedelta(seconds=2)))
         m2.save()
         s.tick()
         assert s._heap[0][2].name == m2.name
