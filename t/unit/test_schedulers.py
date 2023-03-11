@@ -600,6 +600,7 @@ class test_DatabaseScheduler(SchedulerCase):
         assert len(tried) == 1 and tried == {e1.name}
 
     def test_starttime_trigger(self, monkeypatch):
+        # Ensure there is no heap block in case of new task with start_time
         PeriodicTask.objects.all().delete()
         s = self.Scheduler(app=self.app)
         assert not s._heap
