@@ -84,7 +84,11 @@ class ModelEntry(ScheduleEntry):
         self.model = model
 
         if not model.last_run_at:
-            model.last_run_at = self._default_now() - datetime.timedelta(days=365*30)
+            model.last_run_at = self._default_now()
+            # if last_run_at is not set and model.start_time last_run_at should be in way past.
+            # This will trigger the job to run at start_time and avoid the heap block.
+            if self.model.start_time:
+                model.last_run_at = model.last_run_at - datetime.timedelta(days=365*30)
 
         self.last_run_at = model.last_run_at
 
