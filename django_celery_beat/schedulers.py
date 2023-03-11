@@ -91,7 +91,7 @@ class ModelEntry(ScheduleEntry):
             # and avoid the heap block.
             if self.model.start_time:
                 model.last_run_at = model.last_run_at \
-                                    - datetime.timedelta(days=365 * 30)
+                    - datetime.timedelta(days=365 * 30)
 
         self.last_run_at = model.last_run_at
 
