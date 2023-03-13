@@ -2,9 +2,9 @@
 import datetime
 import logging
 import math
-import pytz
 from multiprocessing.util import Finalize
 
+import pytz
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
