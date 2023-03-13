@@ -599,6 +599,29 @@ class test_DatabaseScheduler(SchedulerCase):
                     s.sync()
         assert len(tried) == 1 and tried == {e1.name}
 
+    def test_starttime_trigger(self, monkeypatch):
+        # Ensure there is no heap block in case of new task with start_time
+        PeriodicTask.objects.all().delete()
+        s = self.Scheduler(app=self.app)
+        assert not s._heap
+        m1 = self.create_model_interval(schedule(timedelta(seconds=3)))
+        m1.save()
+        s.tick()
+        assert len(s._heap) == 2
+        m2 = self.create_model_interval(
+            schedule(timedelta(days=1)),
+            start_time=make_aware(
+                datetime.now() + timedelta(seconds=2)))
+        m2.save()
+        s.tick()
+        assert s._heap[0][2].name == m2.name
+        assert len(s._heap) == 3
+        assert s._heap[0]
+        time.sleep(2)
+        s.tick()
+        assert s._heap[0]
+        assert s._heap[0][2].name == m1.name
+
 
 @pytest.mark.django_db()
 class test_models(SchedulerCase):
