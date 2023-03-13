@@ -3,33 +3,23 @@ import datetime
 import logging
 import math
 import pytz
-
 from multiprocessing.util import Finalize
 
-from celery import current_app
-from celery import schedules
-from celery.beat import Scheduler, ScheduleEntry
-from celery.utils.encoding import safe_str, safe_repr
+from celery import current_app, schedules
+from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import close_old_connections, transaction
+from django.db.utils import DatabaseError, InterfaceError
+from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
-from django.conf import settings
-from django.db import transaction, close_old_connections
-from django.db.utils import DatabaseError, InterfaceError
-from django.core.exceptions import ObjectDoesNotExist
-
-from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
-)
 from .clockedschedule import clocked
-
-try:
-    from celery.utils.time import is_naive
-except ImportError:  # pragma: no cover
-    from celery.utils.timeutils import is_naive  # noqa
+from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
+                     PeriodicTask, PeriodicTasks, SolarSchedule)
+from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -89,12 +79,20 @@ class ModelEntry(ScheduleEntry):
             self.options['expires'] = getattr(model, 'expires_')
 
         self.options['headers'] = loads(model.headers or '{}')
+        self.options['periodic_task_name'] = model.name
 
         self.total_run_count = model.total_run_count
         self.model = model
 
         if not model.last_run_at:
             model.last_run_at = self._default_now()
+            # if last_run_at is not set and
+            # model.start_time last_run_at should be in way past.
+            # This will trigger the job to run at start_time
+            # and avoid the heap block.
+            if self.model.start_time:
+                model.last_run_at = model.last_run_at \
+                    - datetime.timedelta(days=365 * 30)
 
         self.last_run_at = model.last_run_at
 
@@ -129,7 +127,8 @@ class ModelEntry(ScheduleEntry):
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
             self.model.save()
-            return schedules.schedstate(False, None)  # Don't recheck
+            # Don't recheck
+            return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # When Django settings USE_TZ is False and Django settings TIME_ZONE is set
         # value of TIME_ZINE is the time zone in which Django will store all datetimes.
@@ -153,12 +152,8 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        # The PyTZ datetime must be localised for the Django-Celery-Beat
-        # scheduler to work. Keep in mind that timezone arithmatic
-        # with a localized timezone may be inaccurate.
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = self.app.now()
-            now = now.tzinfo.localize(now.replace(tzinfo=None))
+            now = datetime.datetime.now(self.app.timezone)
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
@@ -190,21 +185,26 @@ class ModelEntry(ScheduleEntry):
                 model_schedule.save()
                 return model_schedule, model_field
         raise ValueError(
-            'Cannot convert schedule type {0!r} to model'.format(schedule))
+            f'Cannot convert schedule type {schedule!r} to model')
 
     @classmethod
     def from_entry(cls, name, app=None, **entry):
-        return cls(PeriodicTask._default_manager.update_or_create(
+        obj, created = PeriodicTask._default_manager.update_or_create(
             name=name, defaults=cls._unpack_fields(**entry),
-        ), app=app)
+        )
+        return cls(obj, app=app)
 
     @classmethod
     def _unpack_fields(cls, schedule,
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
+        entry_schedules = {
+            model_field: None for _, _, model_field in cls.model_schedules
+        }
         model_schedule, model_field = cls.to_model_schedule(schedule)
+        entry_schedules[model_field] = model_schedule
         entry.update(
-            {model_field: model_schedule},
+            entry_schedules,
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
             **cls._unpack_options(**options or {})
@@ -225,7 +225,7 @@ class ModelEntry(ScheduleEntry):
         }
 
     def __repr__(self):
-        return '<ModelEntry: {0} {1}(*{2}, **{3}) {4}>'.format(
+        return '<ModelEntry: {} {}(*{}, **{}) {}>'.format(
             safe_str(self.name), self.task, safe_repr(self.args),
             safe_repr(self.kwargs), self.schedule,
         )
@@ -306,7 +306,8 @@ class DatabaseScheduler(Scheduler):
         return new_entry
 
     def sync(self):
-        info('Writing entries...')
+        if logger.isEnabledFor(logging.DEBUG):
+            debug('Writing entries...')
         _tried = set()
         _failed = set()
         try:
@@ -360,7 +361,7 @@ class DatabaseScheduler(Scheduler):
         if self._heap_invalidated:
             self._heap_invalidated = False
             return False
-        return super(DatabaseScheduler, self).schedules_equal(*args, **kwargs)
+        return super().schedules_equal(*args, **kwargs)
 
     @property
     def schedule(self):

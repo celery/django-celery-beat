@@ -1,0 +1,538 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.5.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-22 19:03+0000\n"
+"PO-Revision-Date: 2022-10-14 23:48+0200\n"
+"Last-Translator: Daniil Kharkov <fadeddexofan@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: django_celery_beat/admin.py:60
+msgid "Task (registered)"
+msgstr "Задача (зарегистрированные)"
+
+#: django_celery_beat/admin.py:64
+msgid "Task (custom)"
+msgstr "Задача (пользовательская)"
+
+#: django_celery_beat/admin.py:81
+msgid "Need name of task"
+msgstr "Укажите название задачи"
+
+#: django_celery_beat/admin.py:87 django_celery_beat/models.py:605
+msgid "Only one can be set, in expires and expire_seconds"
+msgstr ""
+
+#: django_celery_beat/admin.py:97
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "Невозможно проанализировать JSON: %s"
+
+#: django_celery_beat/admin.py:125
+#, fuzzy
+#| msgid "Solar Schedule"
+msgid "Schedule"
+msgstr "Астрономическое"
+
+#: django_celery_beat/admin.py:130
+#, fuzzy
+#| msgid "Keyword Arguments"
+msgid "Arguments"
+msgstr "Именованные аргументы"
+
+#: django_celery_beat/admin.py:134
+msgid "Execution Options"
+msgstr ""
+
+#: django_celery_beat/admin.py:177
+#, python-brace-format
+msgid "{0} task{1} {2} successfully {3}"
+msgstr "{0} задача {1} {2} успешно {3}"
+
+#: django_celery_beat/admin.py:180 django_celery_beat/admin.py:247
+msgid "was,were"
+msgstr "был, были"
+
+#: django_celery_beat/admin.py:189
+msgid "Enable selected tasks"
+msgstr "Включить выбранные задачи"
+
+#: django_celery_beat/admin.py:195
+msgid "Disable selected tasks"
+msgstr "Выключить выбранные задачи"
+
+#: django_celery_beat/admin.py:207
+msgid "Toggle activity of selected tasks"
+msgstr "Переключить активность выбранных задач"
+
+#: django_celery_beat/admin.py:228
+#, fuzzy, python-brace-format
+#| msgid "task \"{0}\" not found"
+msgid "task \"{not_found_task_name}\" not found"
+msgstr "задача \"{0}\" не найдена"
+
+#: django_celery_beat/admin.py:244
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} задача{1} {2} успешно выполнена"
+
+#: django_celery_beat/admin.py:250
+msgid "Run selected tasks"
+msgstr "Запустить выбранные задачи"
+
+#: django_celery_beat/apps.py:13
+msgid "Periodic Tasks"
+msgstr "Периодические Задачи"
+
+#: django_celery_beat/models.py:30
+msgid "Days"
+msgstr "Дни"
+
+#: django_celery_beat/models.py:31
+msgid "Hours"
+msgstr "Часы"
+
+#: django_celery_beat/models.py:32
+msgid "Minutes"
+msgstr "Минуты"
+
+#: django_celery_beat/models.py:33
+msgid "Seconds"
+msgstr "Секунды"
+
+#: django_celery_beat/models.py:34
+msgid "Microseconds"
+msgstr "Микросекунды"
+
+#: django_celery_beat/models.py:38
+msgid "Day"
+msgstr "день"
+
+#: django_celery_beat/models.py:39
+msgid "Hour"
+msgstr "время"
+
+#: django_celery_beat/models.py:40
+msgid "Minute"
+msgstr "минут"
+
+#: django_celery_beat/models.py:41
+msgid "Second"
+msgstr "Секунды"
+
+#: django_celery_beat/models.py:42
+msgid "Microsecond"
+msgstr "Микросекунды"
+
+#: django_celery_beat/models.py:46
+msgid "Astronomical dawn"
+msgstr ""
+
+#: django_celery_beat/models.py:47
+msgid "Civil dawn"
+msgstr ""
+
+#: django_celery_beat/models.py:48
+msgid "Nautical dawn"
+msgstr ""
+
+#: django_celery_beat/models.py:49
+msgid "Astronomical dusk"
+msgstr ""
+
+#: django_celery_beat/models.py:50
+msgid "Civil dusk"
+msgstr ""
+
+#: django_celery_beat/models.py:51
+msgid "Nautical dusk"
+msgstr ""
+
+#: django_celery_beat/models.py:52
+#, fuzzy
+#| msgid "Solar Event"
+msgid "Solar noon"
+msgstr "Астрономическое"
+
+#: django_celery_beat/models.py:53
+msgid "Sunrise"
+msgstr ""
+
+#: django_celery_beat/models.py:54
+msgid "Sunset"
+msgstr ""
+
+#: django_celery_beat/models.py:88
+msgid "Solar Event"
+msgstr "Астрономическое"
+
+#: django_celery_beat/models.py:89
+msgid "The type of solar event when the job should run"
+msgstr "Тип астрономического события для запуска задачи"
+
+#: django_celery_beat/models.py:93
+msgid "Latitude"
+msgstr "Широта"
+
+#: django_celery_beat/models.py:94
+msgid "Run the task when the event happens at this latitude"
+msgstr "Запуск задачи, когда событие происходит на данной широте"
+
+#: django_celery_beat/models.py:99
+msgid "Longitude"
+msgstr "Долгота"
+
+#: django_celery_beat/models.py:100
+msgid "Run the task when the event happens at this longitude"
+msgstr "Запуск задачи, когда событие происходит на данной долготе"
+
+#: django_celery_beat/models.py:107
+msgid "solar event"
+msgstr "астрономическое событие"
+
+#: django_celery_beat/models.py:108
+msgid "solar events"
+msgstr "астрономические события"
+
+#: django_celery_beat/models.py:158
+msgid "Number of Periods"
+msgstr "Число периодов"
+
+#: django_celery_beat/models.py:159
+msgid "Number of interval periods to wait before running the task again"
+msgstr "Количество периодов интервала перед новым запуском задачи"
+
+#: django_celery_beat/models.py:165
+msgid "Interval Period"
+msgstr "Интервальный период"
+
+#: django_celery_beat/models.py:166
+msgid "The type of period between task runs (Example: days)"
+msgstr "Тип периода между запусками задачи (Например: дни)"
+
+#: django_celery_beat/models.py:172
+msgid "interval"
+msgstr "интервал"
+
+#: django_celery_beat/models.py:173
+msgid "intervals"
+msgstr "интервалы"
+
+#: django_celery_beat/models.py:200
+msgid "every {}"
+msgstr "каждые {}"
+
+#: django_celery_beat/models.py:205
+msgid "every {} {}"
+msgstr "каждые {} {}"
+
+#: django_celery_beat/models.py:216
+msgid "Clock Time"
+msgstr "Время"
+
+#: django_celery_beat/models.py:217
+msgid "Run the task at clocked time"
+msgstr "Запуск задачи в указанное время"
+
+#: django_celery_beat/models.py:223 django_celery_beat/models.py:224
+msgid "clocked"
+msgstr "время"
+
+#: django_celery_beat/models.py:264
+msgid "Minute(s)"
+msgstr "Минуты"
+
+#: django_celery_beat/models.py:266
+msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
+msgstr "Cron минуты. Используйте \"*\" для \"каждую\". (Например: \"0,30\")"
+
+#: django_celery_beat/models.py:271
+msgid "Hour(s)"
+msgstr "Часы"
+
+#: django_celery_beat/models.py:273
+msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
+msgstr "Cron часы. Используйте \"*\" для \"каждый\". (Например: \"8,20\")"
+
+#: django_celery_beat/models.py:278
+msgid "Day(s) Of The Week"
+msgstr "Дни недели"
+
+#: django_celery_beat/models.py:280
+#, fuzzy
+#| msgid ""
+#| "Cron Days Of The Week to Run. Use \"*\" for \"all\". (Example: \"0,5\")"
+msgid ""
+"Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, "
+"Monday is 1. (Example: \"0,5\")"
+msgstr "Cron дни недели. Используйте \"*\" для \"каждый\". (Например: \"0,5\")"
+
+#: django_celery_beat/models.py:286
+msgid "Day(s) Of The Month"
+msgstr "Дни"
+
+#: django_celery_beat/models.py:288
+msgid ""
+"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr "Cron дни. Используйте \"*\" для \"каждый\". (Например: \"1,15\")"
+
+#: django_celery_beat/models.py:294
+msgid "Month(s) Of The Year"
+msgstr "Месяцы"
+
+#: django_celery_beat/models.py:296
+#, fuzzy
+#| msgid ""
+#| "Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
+msgid ""
+"Cron Months (1-12) Of The Year to Run. Use \"*\" for \"all\". (Example: "
+"\"1,12\")"
+msgstr "Cron месяцы. Используйте \"*\" для \"каждый\". (Например: \"0,6\")"
+
+#: django_celery_beat/models.py:304
+msgid "Cron Timezone"
+msgstr "Временная зона для Cron"
+
+#: django_celery_beat/models.py:306
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
+msgstr "Временная зона для Cron расписания. UTC по умолчанию."
+
+#: django_celery_beat/models.py:312
+msgid "crontab"
+msgstr "crontab"
+
+#: django_celery_beat/models.py:313
+msgid "crontabs"
+msgstr "crontab"
+
+#: django_celery_beat/models.py:404
+msgid "Name"
+msgstr "Название"
+
+#: django_celery_beat/models.py:405
+msgid "Short Description For This Task"
+msgstr "Краткое описание для этой задачи"
+
+#: django_celery_beat/models.py:410
+msgid ""
+"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
+"import_contacts\")"
+msgstr ""
+"Имя запускаемой Celery задачи.  (Например: \"proj.tasks.import_contacts\")"
+
+#: django_celery_beat/models.py:418
+msgid "Interval Schedule"
+msgstr "Интервал"
+
+#: django_celery_beat/models.py:419
+msgid ""
+"Interval Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Интервальное расписание для запуска задачи. Выберите только один тип "
+"расписания, остальные оставьте пустыми."
+
+#: django_celery_beat/models.py:424
+msgid "Crontab Schedule"
+msgstr "Crontab"
+
+#: django_celery_beat/models.py:425
+msgid ""
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Crontab расписание для запуска задачи. Выберите только один тип расписания, "
+"остальные оставьте пустыми."
+
+#: django_celery_beat/models.py:430
+msgid "Solar Schedule"
+msgstr "Астрономическое"
+
+#: django_celery_beat/models.py:431
+msgid ""
+"Solar Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Астрономическое расписание для запуска задачи. Выберите только один тип "
+"расписания, остальные оставьте пустыми."
+
+#: django_celery_beat/models.py:436
+msgid "Clocked Schedule"
+msgstr "Хронометрическое"
+
+#: django_celery_beat/models.py:437
+msgid ""
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Хронометрическое расписание для запуска задачи. Выберите только один тип "
+"расписания, остальные оставьте пустыми."
+
+#: django_celery_beat/models.py:443
+msgid "Positional Arguments"
+msgstr "Позиционные аргументы"
+
+#: django_celery_beat/models.py:445
+msgid "JSON encoded positional arguments (Example: [\"arg1\", \"arg2\"])"
+msgstr ""
+"Закодированные в JSON позиционные аргументы (Например: [\"arg1\", \"arg2\"])"
+
+#: django_celery_beat/models.py:450
+msgid "Keyword Arguments"
+msgstr "Именованные аргументы"
+
+#: django_celery_beat/models.py:452
+msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
+msgstr ""
+"Закодированные в JSON именованные аргументы (Например: {\"argument\": "
+"\"value\"})"
+
+#: django_celery_beat/models.py:458
+msgid "Queue Override"
+msgstr "Переопределение очереди"
+
+#: django_celery_beat/models.py:460
+msgid "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
+msgstr ""
+"Очередь задана в CELERY_TASK_QUEUES. Оставьте None для стандартного "
+"распределения."
+
+#: django_celery_beat/models.py:469
+msgid "Exchange"
+msgstr "Exchange"
+
+#: django_celery_beat/models.py:470
+msgid "Override Exchange for low-level AMQP routing"
+msgstr "Override Exchange for low-level AMQP routing"
+
+#: django_celery_beat/models.py:474
+msgid "Routing Key"
+msgstr "Ключ маршрутизации"
+
+#: django_celery_beat/models.py:475
+msgid "Override Routing Key for low-level AMQP routing"
+msgstr "Override Routing Key for low-level AMQP routing"
+
+#: django_celery_beat/models.py:479
+msgid "AMQP Message Headers"
+msgstr "Заголовки сообщения AMQP"
+
+#: django_celery_beat/models.py:480
+msgid "JSON encoded message headers for the AMQP message."
+msgstr "Закодированные в JSON заголовки для AMQP сообщения."
+
+#: django_celery_beat/models.py:486
+msgid "Priority"
+msgstr "Приоритет"
+
+#: django_celery_beat/models.py:488
+msgid ""
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
+"reversed, 0 is highest)."
+msgstr ""
+"Число между 0 и 255. Поддерживается в: RabbitMQ, Redis (приоритет по "
+"убыванию, 0 наивысший)."
+
+#: django_celery_beat/models.py:493
+msgid "Expires Datetime"
+msgstr "Истекает"
+
+#: django_celery_beat/models.py:495
+msgid ""
+"Datetime after which the schedule will no longer trigger the task to run"
+msgstr "Время, после которого расписание больше не будет запускать задачу"
+
+#: django_celery_beat/models.py:500
+msgid "Expires timedelta with seconds"
+msgstr ""
+
+#: django_celery_beat/models.py:502
+#, fuzzy
+#| msgid ""
+#| "Datetime after which the schedule will no longer trigger the task to run"
+msgid ""
+"Timedelta with seconds which the schedule will no longer trigger the task to "
+"run"
+msgstr "Время, после которого расписание больше не будет запускать задачу"
+
+#: django_celery_beat/models.py:508
+msgid "One-off Task"
+msgstr "Одноразовая задача"
+
+#: django_celery_beat/models.py:510
+msgid "If True, the schedule will only run the task a single time"
+msgstr "Если включено, то задача будет запущена только один раз"
+
+#: django_celery_beat/models.py:514
+msgid "Start Datetime"
+msgstr "Время начала"
+
+#: django_celery_beat/models.py:516
+msgid "Datetime when the schedule should begin triggering the task to run"
+msgstr "Время начала вызовов задачи расписанием"
+
+#: django_celery_beat/models.py:521
+msgid "Enabled"
+msgstr "Активна"
+
+#: django_celery_beat/models.py:522
+msgid "Set to False to disable the schedule"
+msgstr "Выключите для отключения расписания"
+
+#: django_celery_beat/models.py:527
+msgid "Last Run Datetime"
+msgstr "Последний запуск"
+
+#: django_celery_beat/models.py:529
+msgid ""
+"Datetime that the schedule last triggered the task to run. Reset to None if "
+"enabled is set to False."
+msgstr "Время последнего вызова задачи. None если задача выключена."
+
+#: django_celery_beat/models.py:534
+msgid "Total Run Count"
+msgstr "Запусков всего"
+
+#: django_celery_beat/models.py:536
+msgid "Running count of how many times the schedule has triggered the task"
+msgstr "Количество запусков задачи этим расписанием"
+
+#: django_celery_beat/models.py:541
+msgid "Last Modified"
+msgstr "Последнее изменение"
+
+#: django_celery_beat/models.py:542
+msgid "Datetime that this PeriodicTask was last modified"
+msgstr "Время последнего изменения этой задачи"
+
+#: django_celery_beat/models.py:546
+msgid "Description"
+msgstr "Описание"
+
+#: django_celery_beat/models.py:548
+msgid "Detailed description about the details of this Periodic Task"
+msgstr "Подробное описание того, что делает эта задача"
+
+#: django_celery_beat/models.py:557
+msgid "periodic task"
+msgstr "периодическая задача"
+
+#: django_celery_beat/models.py:558
+msgid "periodic tasks"
+msgstr "периодические задачи"
+
+#: django_celery_beat/templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr ""

@@ -4,17 +4,98 @@
  Change history
 ================
 
+.. _version-2.4.0:
+
+2.4.0
+=====
+:release-date: 2022-10-19 7:15 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Fixed error path for zh-Hans translate (#548).
+- Django>=3.2,<4.2 (#567).
+- fix: downgrade importlib-metadata<5.0 until celery 5.3.0 release.
+- Fixed signals can not connect to OneToOneField (#572) (#573).
+- Remove superseded ExtendedQuerySet as it's functionality is built in.
+- Wrapped fieldset labels of PeriodicTaskAdmin around gettext_lazy.
+- fix: update PeriodicTask from entry (#344).
+
+
+.. _version-2.3.0:
+
+2.3.0
+=====
+:release-date:
+:release-by:
+
+- Admin "disable_tasks" action also updates PeriodicTask's last_run_at field
+- feat: add periodic_task_name in favor of celery/django-celery-results
+- Fix ClockedSchedule and PeriodicTasks showing UTC time when Time Zone
+- Change last_run_at=None when using disable tasks admin action (#501)
+- fix the conflict with celery configuration (#525)
+- A unit Test to make sure ClockedSchedule and PeriodicTasks are shown
+- Django 4.0 and Python 3.10 support (#528)
+
+
+.. _version-2.2.1:
+
+2.2.1
+=====
+:release-date: 2021-07-02 11:15 a.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Require celery>=5.0,<6.0
+- Enable Django 3.2 CI and add default_auto_field
+- Fix locale in dir tree
+- Do not blindly delete duplicate schedules (#389)
+- Use `python:3.8-slim` for lighter builds
+
+.. _version-2.2.0:
+
+2.2.0
+=====
+:release-date: 2021-01-19 2:30 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Fixed compatibility with django-timezone-field>=4.1.0
+- Fixed deprecation warnings: 'assertEquals' in tests.
+- Fixed SolarSchedule event choices i18n support.
+- Updated 'es' .po file metadata
+- Update 'fr' .po file metadata
+- New schema migrations for SolarSchedule events choices changes in models.
+
+.. _version-2.1.0:
+
+2.1.0
+=====
+:release-date: 2020-10-20
+:release-by: Asif Saif Uddin
+
+- Fix string representation of CrontabSchedule, so it matches UNIX CRON expression format (#318)
+- If no schedule is selected in PeriodicTask form, raise a non-field error instead of an error bounded to the `interval` field (#327)
+- Fix some Spanish translations (#339)
+- Log "Writing entries..." message as DEBUG instead of INFO (#342)
+- Use CELERY_TIMEZONE setting as `CrontabSchedule.timezone` default instead of UTC (#346)
+- Fix bug in ClockedSchedule that made the schedule stuck after a clocked task was executed. The `enabled` field of ClockedSchedule has been dropped (#341)
+- Drop support for Python < 3.6 (#368)
+- Add support for Celery 5 and Django 3.1 (#368)
+
+.. _version-2.0.0:
+
 2.0.0
 =====
-:release-date: 
-:release-by: 
+:release-date: 2020-03-18
+:release-by: Asif Saif Uddin
+
 - Added support for Django 3.0
 - Dropped support for Django < 2.2 and Python < 3.5
+
+.. _version-1.6.0:
 
 1.6.0
 =====
 :release-date: 2020-02-01 4:30 p.m. UTC+6:00
 :release-by: Asif Saif Uddin
+
 - Fixed invalid long_description (#255)
 - Exposed read-only field PeriodicTask.last_run_at in Django admin (#257)
 - Added docker config to ease development (#260, #261, #264, #288)
@@ -22,18 +103,20 @@
 - Added French translation (#286)
 - Fixed case where last_run_at = None and CELERY_TIMEZONE != TIME_ZONE (#294)
 
+.. _version-1.5.0:
 
 1.5.0
 =====
 :release-date: 2019-05-21 17:00 p.m. UTC+6:00
 :release-by: Asif Saif Uddin
+
 - Fixed delay returned when a task has a start_time in the future. (#208)
 - PeriodicTaskAdmin: Declare some filtering, for usability (#215)
 - fix _default_now is_aware bug (#216)
 - Adds support for message headers for periodic tasks (#98)
 - make last_run_at tz aware before passing to celery (#233)
 
-.. _version-1.5.0:
+.. _version-1.4.0:
 
 1.4.0
 =====
@@ -113,7 +196,6 @@
 - Return schedule for solar periodic tasks so that Celery Beat does not crash when one is scheduled.
 - Adding nowfun to solar and crontab schedulers so that the Django timezone is used.
 
-
 .. _version-1.0.1:
 
 1.0.1
@@ -122,9 +204,7 @@
 :release-by: Ask Solem
 
 - Now depends on Celery 4.0.0.
-
 - Migration modules were not included in the distribution.
-
 - Adds documentation: http://django-celery-beat.readthedocs.io/
 
 .. _version-1.0.0:

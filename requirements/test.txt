@@ -1,6 +1,5 @@
 case>=1.3.1
-pytest-django
-pytz>dev
-pytest<4.0.0
+pytest-django>=2.2,<5.0
+pytest>=6.2.5,<8.0
 pytest-timeout
 ephem

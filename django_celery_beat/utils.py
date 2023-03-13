@@ -5,6 +5,8 @@ from django.conf import settings
 from django.utils import timezone
 
 is_aware = timezone.is_aware
+# celery schedstate return None will make it not work
+NEVER_CHECK_TIMEOUT = 100000000
 
 # see Issue #222
 now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
@@ -39,6 +41,7 @@ def is_database_scheduler(scheduler):
     if not scheduler:
         return False
     from kombu.utils import symbol_by_name
+
     from .schedulers import DatabaseScheduler
     return (
         scheduler == 'django'

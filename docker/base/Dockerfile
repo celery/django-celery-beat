@@ -1,7 +1,7 @@
 # Copyright (C) 2019 Sebastian Pipping <sebastian@pipping.org>
 # Licensed under the BSD License (3 clause, also known as the new BSD license)
 
-FROM python:3.7
+FROM python:3.9-slim
 
 ENV PATH=${PATH}:/root/.local/bin
 
@@ -29,7 +29,7 @@ RUN django-admin startproject mysite
 
 WORKDIR /mysite/
 
-RUN echo 'DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "postgres", "USER": "postgres", "HOST": "postgres", "PORT": 5432}}' >> mysite/settings.py
+RUN echo 'DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "postgres", "USER": "postgres","PASSWORD": "s3cr3t", "HOST": "postgres", "PORT": 5432}}' >> mysite/settings.py
 RUN echo 'ALLOWED_HOSTS = ["*"]' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_celery_beat", )' >> mysite/settings.py
 RUN echo 'INSTALLED_APPS += ("django_createsuperuserwithpassword", )' >> mysite/settings.py

@@ -11,3 +11,8 @@ class BeatConfig(AppConfig):
     name = 'django_celery_beat'
     label = 'django_celery_beat'
     verbose_name = _('Periodic Tasks')
+    default_auto_field = 'django.db.models.AutoField'
+
+    def ready(self):
+        from .signals import signals_connect
+        signals_connect()

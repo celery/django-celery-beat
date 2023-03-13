@@ -1,3 +1,0 @@
-# for python3, install latest stuff
-https://github.com/celery/celery/zipball/master#egg=celery
-https://github.com/celery/kombu/zipball/master#egg=kombu
