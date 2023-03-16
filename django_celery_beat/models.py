@@ -8,6 +8,7 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
+from cron_descriptor import get_description
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -276,8 +277,8 @@ class CrontabSchedule(models.Model):
         max_length=64, default='*',
         verbose_name=_('Day(s) Of The Week'),
         help_text=_(
-            'Cron Days Of The Week to Run. Use "*" for "all". '
-            '(Example: "0,5")'),
+            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
+            'is 0 or 7, Monday is 1. (Example: "0,5")'),
         validators=[validators.day_of_week_validator],
     )
     day_of_month = models.CharField(
@@ -292,8 +293,8 @@ class CrontabSchedule(models.Model):
         max_length=64, default='*',
         verbose_name=_('Month(s) Of The Year'),
         help_text=_(
-            'Cron Months Of The Year to Run. Use "*" for "all". '
-            '(Example: "0,6")'),
+            'Cron Months (1-12) Of The Year to Run. Use "*" for "all". '
+            '(Example: "1,12")'),
         validators=[validators.month_of_year_validator],
     )
 
@@ -312,6 +313,15 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+
+    @property
+    def human_readable(self):
+        human_readable = get_description('{} {} {} {} {}'.format(
+            cronexp(self.minute), cronexp(self.hour),
+            cronexp(self.day_of_month), cronexp(self.month_of_year),
+            cronexp(self.day_of_week)
+        ))
+        return f'{human_readable} {str(self.timezone)}'
 
     def __str__(self):
         return '{} {} {} {} {} (m/h/dM/MY/d) {}'.format(
@@ -612,12 +622,16 @@ class PeriodicTask(models.Model):
         return fmt.format(self)
 
     @property
-    def schedule(self):
+    def scheduler(self):
         if self.interval:
-            return self.interval.schedule
+            return self.interval
         if self.crontab:
-            return self.crontab.schedule
+            return self.crontab
         if self.solar:
-            return self.solar.schedule
+            return self.solar
         if self.clocked:
-            return self.clocked.schedule
+            return self.clocked
+
+    @property
+    def schedule(self):
+        return self.scheduler.schedule

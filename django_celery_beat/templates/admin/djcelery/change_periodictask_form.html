@@ -1,0 +1,22 @@
+{% extends 'admin/change_form.html' %}
+
+{% block admin_change_form_document_ready %}
+    {{ block.super }}
+
+    {{ readable_crontabs|json_script:"readable-crontabs" }}
+    <script id="periodic-task-overrides">
+        const readableCrontabs = JSON.parse(django.jQuery("#readable-crontabs").text());
+        var originalCrontabHelp = "{{ adminform.form.fields.crontab.help_text }}";
+
+        var updateCrontabHelp = function(additional) {
+            django.jQuery(".field-crontab .help").html(
+                `${originalCrontabHelp}<br/>Translation: ${additional}`);
+        };
+
+        django.jQuery(".field-crontab_translation").hide()
+        django.jQuery(".field-crontab").change(function() {
+            updateCrontabHelp(readableCrontabs[django.jQuery("#id_crontab").val()]);
+        });
+
+    </script>
+{% endblock %}

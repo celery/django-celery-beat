@@ -4,6 +4,20 @@
  Change history
 ================
 
+.. _version-2.5.0:
+
+2.5.0
+=====
+:release-date: 2023-03-14 4:00 p.m. UTC+6:00
+:release-by: Asif Saif Uddin
+
+- Prefetch_related on PeriodicTaskQuerySet.enabled (#608).
+- Clarify month range (#615).
+- Declare support for Django 4.2 & Python 3.11.
+- Adding human readable descriptions of crontab schedules (#622).
+- Start time heap block fix (#636).
+
+
 .. _version-2.4.0:
 
 2.4.0
