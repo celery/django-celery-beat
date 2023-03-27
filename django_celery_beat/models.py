@@ -8,7 +8,8 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import get_description
+from cron_descriptor import (FormatException, MissingFieldException,
+                             WrongArgumentException, get_description)
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -316,11 +317,19 @@ class CrontabSchedule(models.Model):
 
     @property
     def human_readable(self):
-        human_readable = get_description('{} {} {} {} {}'.format(
+        cron_expression = '{} {} {} {} {}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
             cronexp(self.day_of_week)
-        ))
+        )
+        try:
+            human_readable = get_description(cron_expression)
+        except (
+            MissingFieldException,
+            FormatException,
+            WrongArgumentException
+        ):
+            return f'{cron_expression} {str(self.timezone)}'
         return f'{human_readable} {str(self.timezone)}'
 
     def __str__(self):

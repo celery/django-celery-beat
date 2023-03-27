@@ -207,3 +207,40 @@ class OneToOneRelTestCase(TestCase):
             'The `PeriodicTasks.last_update` has not be update.'
         )
         # Check the `PeriodicTasks` does be updated.
+
+
+class HumanReadableTestCase(TestCase):
+    def test_good(self):
+        """Valid crontab display."""
+        cron = CrontabSchedule.objects.create(
+            hour="2",
+            minute="0",
+            day_of_week="mon",
+        )
+        self.assertNotEqual(
+            cron.human_readable, "0 2 * * mon UTC"
+        )
+
+    def test_invalid(self):
+        """Invalid crontab display."""
+        cron = CrontabSchedule.objects.create(
+            hour="2",
+            minute="0",
+            day_of_week="monxxx",
+        )
+        self.assertEqual(
+            cron.human_readable, "0 2 * * monxxx UTC"
+        )
+
+    def test_long_name(self):
+        """Long day name display."""
+        # TODO: this should eventually work, but probably needs conversion
+        # before passing data to cron_description
+        cron = CrontabSchedule.objects.create(
+            hour="2",
+            minute="0",
+            day_of_week="monday",
+        )
+        self.assertEqual(
+            cron.human_readable, "0 2 * * monday UTC"
+        )
