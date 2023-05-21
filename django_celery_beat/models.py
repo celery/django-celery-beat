@@ -174,10 +174,12 @@ class PeriodicTask(models.Model):
     interval = models.ForeignKey(
         IntervalSchedule,
         null=True, blank=True, verbose_name=_('interval'),
+        on_delete=models.CASCADE
     )
     crontab = models.ForeignKey(
         CrontabSchedule, null=True, blank=True, verbose_name=_('crontab'),
         help_text=_('Use one of interval/crontab'),
+        on_delete=models.CASCADE
     )
     args = models.TextField(
         _('Arguments'), blank=True, default='[]',
