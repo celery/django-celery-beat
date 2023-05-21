@@ -15,7 +15,7 @@ from .models import PeriodicTask, IntervalSchedule, CrontabSchedule
 from .utils import is_database_scheduler
 
 try:
-    from django.utils.encoding import force_text
+    from django.utils.encoding import force_str as force_text
 except ImportError:
     from django.utils.encoding import force_unicode as force_text  # noqa
 
