@@ -54,7 +54,8 @@ class UtilsTest(TestCase):
         mock_getattr.return_value = True
         mock_is_naive.return_value = False
         mock_get_default_timezone.return_value = "America/Los_Angeles"
-        mock_localtime_2.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
+        test_time = [2022, 11, 6, 1, 15, 0, 0, 310, 0]
+        mock_localtime_2.return_value = time.struct_time(test_time)
         mock_make_aware.return_value = dt
 
         self.assertEqual(utils.make_aware(dt), mock_localtime_2.return_value)
@@ -81,7 +82,8 @@ class UtilsTest(TestCase):
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
         mock_get_default_timezone.return_value = "America/Los_Angeles"
-        mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 1])
+        test_time = [2022, 11, 6, 1, 15, 0, 0, 310, 1]
+        mock_localtime_1.return_value = time.struct_time(test_time)
         mock_make_aware.return_value = dt
 
         self.assertEqual(utils.make_aware(dt), dt)
@@ -108,7 +110,8 @@ class UtilsTest(TestCase):
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
         mock_get_default_timezone.return_value = "America/Los_Angeles"
-        mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
+        test_time = [2022, 11, 6, 1, 15, 0, 0, 310, 0]
+        mock_localtime_1.return_value = time.struct_time(test_time)
         mock_make_aware.return_value = dt
 
         self.assertEqual(utils.make_aware(dt), dt)
@@ -135,7 +138,8 @@ class UtilsTest(TestCase):
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
         mock_get_default_timezone.return_value = "America/Los_Angeles"
-        mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, -1])
+        test_time = [2022, 11, 6, 1, 15, 0, 0, 310, -1]
+        mock_localtime_1.return_value = time.struct_time(test_time)
         mock_make_aware.return_value = dt
 
         self.assertEqual(utils.make_aware(dt), dt)
@@ -161,7 +165,8 @@ class UtilsTest(TestCase):
         mock_getattr.return_value = False
         mock_is_naive.return_value = False
         mock_get_default_timezone.return_value = "America/Los_Angeles"
-        mock_localtime_1.return_value = time.struct_time([2022, 11, 6, 1, 15, 0, 0, 310, 0])
+        test_time = [2022, 11, 6, 1, 15, 0, 0, 310, 0]
+        mock_localtime_1.return_value = time.struct_time(test_time)
         mock_make_aware.return_value = dt
 
         self.assertEqual(utils.make_aware(dt), dt)
