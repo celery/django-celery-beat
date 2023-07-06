@@ -34,7 +34,9 @@ def make_aware(value):
             else:
                 is_dst = bool(tm_isdst)
 
-            value = timezone.make_aware(value, timezone.get_default_timezone(), is_dst=is_dst)
+            value = timezone.make_aware(value,
+                                        timezone.get_default_timezone(),
+                                        is_dst=is_dst)
     return value
 
 

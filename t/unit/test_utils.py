@@ -16,7 +16,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_use_tz_naive(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_use_tz_naive(self,
+                                     mock_getattr,
+                                     mock_is_naive,
+                                     mock_localtime_1,
+                                     mock_make_aware,
+                                     mock_get_default_timezone,
+                                     mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = True
         mock_is_naive.return_value = True
@@ -37,7 +43,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_use_tz_not_naive(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_use_tz_not_naive(self,
+                                         mock_getattr,
+                                         mock_is_naive,
+                                         mock_localtime_1,
+                                         mock_make_aware,
+                                         mock_get_default_timezone,
+                                         mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = True
         mock_is_naive.return_value = False
@@ -58,7 +70,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_not_use_tz_naive_dst(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_not_use_tz_naive_dst(self,
+                                             mock_getattr,
+                                             mock_is_naive,
+                                             mock_localtime_1,
+                                             mock_make_aware,
+                                             mock_get_default_timezone,
+                                             mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
@@ -79,7 +97,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_not_use_tz_naive_not_dst(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_not_use_tz_naive_not_dst(self,
+                                                 mock_getattr,
+                                                 mock_is_naive,
+                                                 mock_localtime_1,
+                                                 mock_make_aware,
+                                                 mock_get_default_timezone,
+                                                 mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
@@ -100,7 +124,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_not_use_tz_naive_negative_dst(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_not_use_tz_naive_negative_dst(self,
+                                                      mock_getattr,
+                                                      mock_is_naive,
+                                                      mock_localtime_1,
+                                                      mock_make_aware,
+                                                      mock_get_default_timezone,
+                                                      mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = False
         mock_is_naive.return_value = True
@@ -120,7 +150,13 @@ class UtilsTest(TestCase):
     @mock.patch('django_celery_beat.utils.time.localtime')
     @mock.patch('django_celery_beat.utils.timezone.is_naive')
     @mock.patch('django_celery_beat.utils.getattr')
-    def test_make_aware_not_use_tz_not_naive_dst(self, mock_getattr, mock_is_naive, mock_localtime_1, mock_make_aware, mock_get_default_timezone, mock_localtime_2):
+    def test_make_aware_not_use_tz_not_naive_dst(self,
+                                                 mock_getattr,
+                                                 mock_is_naive,
+                                                 mock_localtime_1,
+                                                 mock_make_aware,
+                                                 mock_get_default_timezone,
+                                                 mock_localtime_2):
         dt = datetime(2022, 11, 6, 1, 15, 0)
         mock_getattr.return_value = False
         mock_is_naive.return_value = False
