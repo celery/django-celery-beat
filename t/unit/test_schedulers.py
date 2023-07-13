@@ -159,7 +159,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'Europe/Berlin'
+        assert self.app.timezone.key == 'Europe/Berlin'
 
         # simulate last_run_at from DB - not TZ aware but localtime
         right_now = datetime.utcnow()
@@ -191,7 +191,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'Europe/Berlin'
+        assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
         right_now = datetime.utcnow()
         # make sure to use fixed date time
@@ -227,7 +227,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'America/New_York'
+        assert self.app.timezone.key == 'America/New_York'
 
         # simulate last_run_at all none, doing the same thing that
         # _default_now() would do
