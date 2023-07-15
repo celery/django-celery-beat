@@ -40,5 +40,6 @@ globals().update(conf.build_config(
 ))
 
 intersphinx_mapping = globals().get('intersphinx_mapping', {})
-intersphinx_mapping['celery'] = ('https://celery.readthedocs.io/en/main/', None)
+intersphinx_mapping['celery'] = (
+    'https://celery.readthedocs.io/en/main/', None)
 globals().update({'intersphinx_mapping': intersphinx_mapping})
