@@ -264,6 +264,8 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
 
 
 class CrontabScheduleAdmin(admin.ModelAdmin):
+    """Admin class for CrontabSchedule."""
+
     list_display = ('__str__', 'human_readable')
 
 
