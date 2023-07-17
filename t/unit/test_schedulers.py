@@ -444,6 +444,28 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 1
         assert self.m2.name in self.s._dirty
 
+    def test_sync_not_saves_last_run_at_while_schedule_changed(self):
+        # Update e1 last_run_at and add to dirty
+        e1 = self.s.schedule[self.m2.name]
+        time.sleep(3)
+        e1.model.last_run_at = e1._default_now()
+        self.s._dirty.add(e1.model.name)
+
+        # Record e1 pre sync last_run_at
+        e1_pre_sync_last_run_at = e1.model.last_run_at
+
+        # Set schedule_changed() == True
+        self.s._last_timestamp = monotonic()
+        # Do sync
+        self.s.sync()
+
+        # Record e1 post sync last_run_at
+        e1_m = PeriodicTask.objects.get(pk=e1.model.pk)
+        e1_post_sync_last_run_at = e1_m.last_run_at
+
+        # Check
+        assert e1_pre_sync_last_run_at == e1_post_sync_last_run_at
+
     def test_sync_saves_last_run_at(self):
         e1 = self.s.schedule[self.m2.name]
         last_run = e1.last_run_at
