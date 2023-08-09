@@ -298,12 +298,12 @@ Using the development version
 With pip
 ~~~~~~~~
 
-You can install the latest snapshot of django-celery-beat using the following
+You can install the latest main version of django-celery-beat using the following
 pip command:
 
 .. code-block:: bash
 
-        $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+        $ pip install git+https://github.com/celery/django-celery-beat#egg=django-celery-beat
 
 
 Developing django-celery-beat
