@@ -341,15 +341,8 @@ class CrontabSchedule(models.Model):
 
     @property
     def schedule(self):
-        crontab = schedules.crontab(
-            minute=self.minute,
-            hour=self.hour,
-            day_of_week=self.day_of_week,
-            day_of_month=self.day_of_month,
-            month_of_year=self.month_of_year,
-        )
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            crontab = TzAwareCrontab(
+            return TzAwareCrontab(
                 minute=self.minute,
                 hour=self.hour,
                 day_of_week=self.day_of_week,
@@ -357,7 +350,14 @@ class CrontabSchedule(models.Model):
                 month_of_year=self.month_of_year,
                 tz=self.timezone
             )
-        return crontab
+
+        return schedules.crontab(
+            minute=self.minute,
+            hour=self.hour,
+            day_of_week=self.day_of_week,
+            day_of_month=self.day_of_month,
+            month_of_year=self.month_of_year,
+        )
 
     @classmethod
     def from_schedule(cls, schedule):
