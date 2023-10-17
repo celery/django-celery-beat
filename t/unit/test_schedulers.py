@@ -19,6 +19,7 @@ from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
                                        IntervalSchedule, PeriodicTask,
                                        PeriodicTasks, SolarSchedule)
 from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
+from django_celery_beat.tzcrontab import TzAwareCrontab
 
 _ids = count(0)
 
@@ -667,6 +668,20 @@ class test_models(SchedulerCase):
             day_of_month='*/2',
             month_of_year='4,6',
         )) == '3 3 */2 4,6 tue (m/h/dM/MY/d) UTC'
+
+    @override_settings(
+        DJANGO_CELERY_BEAT_TZ_AWARE=False
+    )
+    def test_CrontabSchedule_schedule_crontab(self):
+        s = CrontabSchedule()
+        assert isinstance(s.schedule, crontab)
+
+    @override_settings(
+        DJANGO_CELERY_BEAT_TZ_AWARE=True
+    )
+    def test_CrontabSchedule_schedule_TzAwareCrontab(self):
+        s = CrontabSchedule()
+        assert isinstance(s.schedule, TzAwareCrontab)
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
