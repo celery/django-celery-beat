@@ -18,8 +18,8 @@ from django_celery_beat.clockedschedule import clocked
 from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
                                        IntervalSchedule, PeriodicTask,
                                        PeriodicTasks, SolarSchedule)
-from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
 from django_celery_beat.tzcrontab import TzAwareCrontab
+from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
 
 _ids = count(0)
 
