@@ -170,7 +170,7 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year``, so if you want the equivalent
-of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
+of a ``30 * * * *`` (execute 30 minutes past every hour) crontab entry you specify:
 
 .. code-block:: Python
 
