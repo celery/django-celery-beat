@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 # we have to import the pytest plugin fixtures here,
 # in case user did not do the `python setup.py develop` yet,
@@ -40,3 +42,11 @@ def test_cases_shortcuts(request, app, patching):
     yield
     if request.instance:
         request.instance.app = None
+
+
+@pytest.fixture
+def patching(monkeypatch):
+    def _patching(attr):
+        monkeypatch.setattr(attr, MagicMock())
+
+    return _patching
