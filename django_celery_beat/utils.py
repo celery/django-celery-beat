@@ -1,6 +1,8 @@
 """Utilities."""
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
+from datetime import timezone as datetime_timezone
+
 from django.conf import settings
 from django.utils import timezone
 
@@ -17,7 +19,7 @@ def make_aware(value):
     if getattr(settings, 'USE_TZ', False):
         # naive datetimes are assumed to be in UTC.
         if timezone.is_naive(value):
-            value = timezone.make_aware(value, timezone.utc)
+            value = timezone.make_aware(value, datetime_timezone.utc)
         # then convert to the Django configured timezone.
         default_tz = timezone.get_default_timezone()
         value = timezone.localtime(value, default_tz)
