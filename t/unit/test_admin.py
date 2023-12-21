@@ -6,9 +6,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from django_celery_beat.admin import PeriodicTaskAdmin
-from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTask,
-                                       SolarSchedule)
+from django_celery_beat.models import DAYS, ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, SolarSchedule
 
 
 @pytest.mark.django_db()

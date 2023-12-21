@@ -19,7 +19,7 @@ class _CronSlices(crontab.CronSlices):
     def validate(cls, *args):
         try:
             cls(*args)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             raise ValueError(e)
 
 
@@ -59,7 +59,7 @@ class _CronRange(crontab.CronRange):
                     self.dangling = 0
                 self.vto = self.slice.parse_value(vto, sunday=6)
             if self.vto < self.vfrom:
-                raise ValueError("Bad range '{0.vfrom}-{0.vto}'".format(self))
+                raise ValueError(f"Bad range '{self.vfrom}-{self.vto}'")
         elif value == '*':
             self.all()
         else:

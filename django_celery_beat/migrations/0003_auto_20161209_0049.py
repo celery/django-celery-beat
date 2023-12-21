@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='solarschedule',
-            unique_together=set([('event', 'latitude', 'longitude')]),
+            unique_together={('event', 'latitude', 'longitude')},
         ),
     ]

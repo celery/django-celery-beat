@@ -2,22 +2,6 @@
 exclude: "migrations"
 
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
-    hooks:
-      - id: pyupgrade
-        args: ["--py37-plus"]
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-
-  - repo: https://github.com/asottile/yesqa
-    rev: v1.5.0
-    hooks:
-      - id: yesqa
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -26,7 +10,11 @@ repos:
       - id: check-yaml
       - id: mixed-line-ending
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.8
     hooks:
-      - id: isort
+      # Run the linter.
+      - id: ruff
+        # args: [ --fix ]
+      # Run the formatter.
+      # - id: ruff-format

@@ -23,10 +23,9 @@ def make_aware(value):
         # then convert to the Django configured timezone.
         default_tz = timezone.get_default_timezone()
         value = timezone.localtime(value, default_tz)
-    else:
+    elif timezone.is_naive(value):
         # naive datetimes are assumed to be in local timezone.
-        if timezone.is_naive(value):
-            value = timezone.make_aware(value, timezone.get_default_timezone())
+        value = timezone.make_aware(value, timezone.get_default_timezone())
     return value
 
 

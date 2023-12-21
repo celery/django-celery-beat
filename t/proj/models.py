@@ -5,4 +5,3 @@ class O2OToPeriodicTasks(PeriodicTask):
     """
     The test-case model of OneToOne relation.
     """
-    pass

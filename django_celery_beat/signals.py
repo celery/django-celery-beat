@@ -5,8 +5,7 @@ def signals_connect():
     """Connect to signals."""
     from django.db.models import signals
 
-    from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
-                         PeriodicTask, PeriodicTasks, SolarSchedule)
+    from .models import ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, PeriodicTasks, SolarSchedule
 
     signals.pre_save.connect(
         PeriodicTasks.changed, sender=PeriodicTask

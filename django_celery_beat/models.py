@@ -8,8 +8,7 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import (FormatException, MissingFieldException,
-                             WrongArgumentException, get_description)
+from cron_descriptor import FormatException, MissingFieldException, WrongArgumentException, get_description
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -131,11 +130,7 @@ class SolarSchedule(models.Model):
             return cls(**spec)
 
     def __str__(self):
-        return '{} ({}, {})'.format(
-            self.get_event_display(),
-            self.latitude,
-            self.longitude
-        )
+        return f'{self.get_event_display()} ({self.latitude}, {self.longitude})'
 
 
 class IntervalSchedule(models.Model):
@@ -317,11 +312,7 @@ class CrontabSchedule(models.Model):
 
     @property
     def human_readable(self):
-        cron_expression = '{} {} {} {} {}'.format(
-            cronexp(self.minute), cronexp(self.hour),
-            cronexp(self.day_of_month), cronexp(self.month_of_year),
-            cronexp(self.day_of_week)
-        )
+        cron_expression = f'{cronexp(self.minute)} {cronexp(self.hour)} {cronexp(self.day_of_month)} {cronexp(self.month_of_year)} {cronexp(self.day_of_week)}'
         try:
             human_readable = get_description(cron_expression)
         except (
@@ -333,11 +324,7 @@ class CrontabSchedule(models.Model):
         return f'{human_readable} {str(self.timezone)}'
 
     def __str__(self):
-        return '{} {} {} {} {} (m/h/dM/MY/d) {}'.format(
-            cronexp(self.minute), cronexp(self.hour),
-            cronexp(self.day_of_month), cronexp(self.month_of_year),
-            cronexp(self.day_of_week), str(self.timezone)
-        )
+        return f'{cronexp(self.minute)} {cronexp(self.hour)} {cronexp(self.day_of_month)} {cronexp(self.month_of_year)} {cronexp(self.day_of_week)} (m/h/dM/MY/d) {str(self.timezone)}'
 
     @property
     def schedule(self):
@@ -579,8 +566,7 @@ class PeriodicTask(models.Model):
                 'must be set.'
             )
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
-            'or solar must be set'
+        err_msg = 'Only one of clocked, interval, crontab, or solar must be set'
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:

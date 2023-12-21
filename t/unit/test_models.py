@@ -4,7 +4,7 @@ import os
 try:
     from zoneinfo import ZoneInfo, available_timezones
 except ImportError:
-    from backports.zoneinfo import available_timezones, ZoneInfo
+    from backports.zoneinfo import ZoneInfo, available_timezones
 
 import pytest
 from celery import schedules
@@ -18,10 +18,7 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from django_celery_beat import migrations as beat_migrations
-from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTasks,
-                                       SolarSchedule,
-                                       crontab_schedule_celery_timezone)
+from django_celery_beat.models import DAYS, ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTasks, SolarSchedule, crontab_schedule_celery_timezone
 from t.proj.models import O2OToPeriodicTasks
 
 
@@ -104,7 +101,7 @@ class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
             "day_of_week": "*",
             "day_of_month": "*",
             "month_of_year": "*",
-            "day_of_week": "*",
+            "day_of_week": "*",  # noqa: F601
         }
         schedule = schedules.crontab(hour="4")
         self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)

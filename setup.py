@@ -98,7 +98,7 @@ def _pip_requirement(req):
 def _reqs(*f):
     return [
         _pip_requirement(r) for r in (
-            strip_comments(line) for line in open(
+            strip_comments(line) for line in open(  # noqa: SIM115
                 os.path.join(os.getcwd(), 'requirements', *f)).readlines()
         ) if r]
 

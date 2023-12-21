@@ -1,4 +1,5 @@
 """Beat Scheduler Implementation."""
+import contextlib
 import datetime
 import logging
 import math
@@ -16,8 +17,7 @@ from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .clockedschedule import clocked
-from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
-                     PeriodicTask, PeriodicTasks, SolarSchedule)
+from .models import ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, PeriodicTasks, SolarSchedule
 from .utils import NEVER_CHECK_TIMEOUT
 
 # This scheduler must wake up more frequently than the
@@ -136,12 +136,12 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):  # noqa: SIM108
             now = datetime.datetime.now(self.app.timezone)
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.utcnow()  # utcnow() is deprecated in Python 3.12
         return now
 
     def __next__(self):
@@ -149,7 +149,7 @@ class ModelEntry(ScheduleEntry):
         self.model.total_run_count += 1
         self.model.no_changes = True
         return self.__class__(self.model)
-    next = __next__  # for 2to3
+    next = __next__  # for 2to3  # noqa: A003
 
     def save(self):
         # Object may not be synchronized, so only
@@ -209,10 +209,7 @@ class ModelEntry(ScheduleEntry):
         }
 
     def __repr__(self):
-        return '<ModelEntry: {} {}(*{}, **{}) {}>'.format(
-            safe_str(self.name), self.task, safe_repr(self.args),
-            safe_repr(self.kwargs), self.schedule,
-        )
+        return f'<ModelEntry: {safe_str(self.name)} {self.task}(*{safe_repr(self.args)}, **{safe_repr(self.kwargs)}) {self.schedule}>'
 
 
 class DatabaseScheduler(Scheduler):
@@ -245,10 +242,8 @@ class DatabaseScheduler(Scheduler):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
         for model in self.Model.objects.enabled():
-            try:
+            with contextlib.suppress(ValueError):
                 s[model.name] = self.Entry(model, app=self.app)
-            except ValueError:
-                pass
         return s
 
     def schedule_changed(self):
@@ -259,10 +254,8 @@ class DatabaseScheduler(Scheduler):
             # REPEATABLE-READ (default), then we won't see changes done by
             # other transactions until the current transaction is
             # committed (Issue #41).
-            try:
+            with contextlib.suppress(transaction.TransactionManagementError):
                 transaction.commit()
-            except transaction.TransactionManagementError:
-                pass  # not in transaction management.
 
             last, ts = self._last_timestamp, self.Changes.last_change()
         except DatabaseError as exc:
@@ -325,7 +318,7 @@ class DatabaseScheduler(Scheduler):
                 if entry.model.enabled:
                     s[name] = entry
 
-            except Exception as exc:
+            except Exception as exc:  # noqa: PERF203
                 logger.exception(ADD_ENTRY_ERROR, name, exc, entry_fields)
         self.schedule.update(s)
 

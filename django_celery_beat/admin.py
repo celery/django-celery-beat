@@ -10,8 +10,7 @@ from django.template.defaultfilters import pluralize
 from django.utils.translation import gettext_lazy as _
 from kombu.utils.json import loads
 
-from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
-                     PeriodicTask, PeriodicTasks, SolarSchedule)
+from .models import ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, PeriodicTasks, SolarSchedule
 from .utils import is_database_scheduler
 
 
@@ -23,8 +22,8 @@ class TaskSelectWidget(Select):
 
     def tasks_as_choices(self):
         _ = self._modules
-        tasks = list(sorted(name for name in self.celery_app.tasks
-                            if not name.startswith('celery.')))
+        tasks = sorted(name for name in self.celery_app.tasks
+                            if not name.startswith('celery.'))
         return (('', ''), ) + tuple(zip(tasks, tasks))
 
     @property

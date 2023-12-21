@@ -5,9 +5,7 @@ PYTEST=pytest
 GIT=git
 TOX=tox
 ICONV=iconv
-FLAKE8=flake8
-FLAKEPLUS=flakeplus
-PYDOCSTYLE=pydocstyle
+RUFF=ruff
 SPHINX2RST=sphinx2rst
 
 SPHINX_DIR=docs/
@@ -18,7 +16,6 @@ CONTRIBUTING=CONTRIBUTING.rst
 CONTRIBUTING_SRC="docs/contributing.rst"
 SPHINX_HTMLDIR="${SPHINX_BUILDDIR}/html"
 DOCUMENTATION=Documentation
-FLAKEPLUSTARGET=2.7
 
 TESTDIR=t
 
@@ -34,10 +31,7 @@ help:
 	@echo "    configcheck      - Check configuration reference coverage."
 	@echo "    readmecheck      - Check README.rst encoding."
 	@echo "    contribcheck     - Check CONTRIBUTING.rst encoding"
-	@echo "    flakes --------  - Check code for syntax and style errors."
-	@echo "      flakecheck     - Run flake8 on the source code."
-	@echo "      flakepluscheck - Run flakeplus on the source code."
-	@echo "      pep257check    - Run flakeplus on the source code."
+	@echo "    ruff ----------  - Check code for syntax and style errors."
 	@echo "readme               - Regenerate README.rst file."
 	@echo "contrib              - Regenerate CONTRIBUTING.rst file"
 	@echo "clean-dist --------- - Clean all distribution build artifacts."
@@ -76,7 +70,7 @@ docs: Documentation
 clean-docs:
 	-rm -rf "$(SPHINX_BUILDDIR)"
 
-lint: flakecheck apicheck configcheck readmecheck
+lint: ruff apicheck configcheck readmecheck
 
 apicheck:
 	(cd "$(SPHINX_DIR)"; $(MAKE) apicheck)
@@ -84,22 +78,8 @@ apicheck:
 configcheck:
 	true
 
-flakecheck:
-	$(FLAKE8) "$(PROJ)" "$(TESTDIR)"
-
-flakediag:
-	-$(MAKE) flakecheck
-
-flakepluscheck:
-	$(FLAKEPLUS) --$(FLAKEPLUSTARGET) "$(PROJ)" "$(TESTDIR)"
-
-flakeplusdiag:
-	-$(MAKE) flakepluscheck
-
-pep257check:
-	$(PYDOCSTYLE) "$(PROJ)"
-
-flakes: flakediag flakeplusdiag pep257check
+ruff:
+	$(RUFF) .
 
 clean-readme:
 	-rm -f $(README)

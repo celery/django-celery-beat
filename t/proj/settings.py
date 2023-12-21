@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(BASE_DIR, os.pardir)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'u($kbs9$irs0)436gbo9%!b&#zyd&70tx!n7!i&fl6qun@z1_l'
+SECRET_KEY = 'u($kbs9$irs0)436gbo9%!b&#zyd&70tx!n7!i&fl6qun@z1_l'  # noqa: S105
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

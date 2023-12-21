@@ -15,9 +15,7 @@ from django.utils import timezone
 from django_celery_beat import schedulers
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.clockedschedule import clocked
-from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTask,
-                                       PeriodicTasks, SolarSchedule)
+from django_celery_beat.models import DAYS, ClockedSchedule, CrontabSchedule, IntervalSchedule, PeriodicTask, PeriodicTasks, SolarSchedule
 from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
 
 _ids = count(0)
@@ -83,27 +81,27 @@ class SchedulerCase:
 
     def create_conf_entry(self):
         name = f'thefoo{next(_ids)}'
-        return name, dict(
-            task=f'djcelery.unittest.add{next(_ids)}',
-            schedule=timedelta(0, 600),
-            args=(),
-            relative=False,
-            kwargs={},
-            options={'queue': 'extra_queue'}
-        )
+        return name, {
+            'task': f'djcelery.unittest.add{next(_ids)}',
+            'schedule': timedelta(0, 600),
+            'args': (),
+            'relative': False,
+            'kwargs': {},
+            'options': {'queue': 'extra_queue'}
+        }
 
     def create_model(self, Model=PeriodicTask, **kwargs):
-        entry = dict(
-            name=f'thefoo{next(_ids)}',
-            task=f'djcelery.unittest.add{next(_ids)}',
-            args='[2, 2]',
-            kwargs='{"callback": "foo"}',
-            queue='xaz',
-            routing_key='cpu',
-            priority=1,
-            headers='{"_schema_name": "foobar"}',
-            exchange='foo',
-        )
+        entry = {
+            'name': f'thefoo{next(_ids)}',
+            'task': f'djcelery.unittest.add{next(_ids)}',
+            'args': '[2, 2]',
+            'kwargs': '{"callback": "foo"}',
+            'queue': 'xaz',
+            'routing_key': 'cpu',
+            'priority': 1,
+            'headers': '{"_schema_name": "foobar"}',
+            'exchange': 'foo',
+        }
         return Model(**dict(entry, **kwargs))
 
     def create_interval_schedule(self):
@@ -407,7 +405,7 @@ class test_DatabaseScheduler(SchedulerCase):
         assert sched
         assert len(sched) == 6
         assert 'celery.backend_cleanup' in sched
-        for n, e in sched.items():
+        for e in sched.values():
             assert isinstance(e, self.s.Entry)
 
     def test_schedule_changed(self):
@@ -619,7 +617,8 @@ class test_DatabaseScheduler(SchedulerCase):
                 time.sleep(tick_interval)
                 if s.should_sync():
                     s.sync()
-        assert len(tried) == 1 and tried == {e1.name}
+        assert len(tried) == 1
+        assert tried == {e1.name}
 
     def test_starttime_trigger(self, monkeypatch):
         # Ensure there is no heap block in case of new task with start_time
@@ -677,9 +676,7 @@ class test_models(SchedulerCase):
             hour='4, 5',
             day_of_week='4, 5',
         ))
-        assert str(p) == """{}: * 4,5 * * 4,5 (m/h/dM/MY/d) UTC""".format(
-            p.name
-        )
+        assert str(p) == f"""{p.name}: * 4,5 * * 4,5 (m/h/dM/MY/d) UTC"""
 
     def test_PeriodicTask_unicode_solar(self):
         p = self.create_model_solar(
@@ -799,7 +796,8 @@ class test_models(SchedulerCase):
         assert s.schedule is not None
         isdue2, nextcheck2 = s.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
-        assert (nextcheck2 == NEVER_CHECK_TIMEOUT) and (isdue2 is True)
+        assert (nextcheck2 == NEVER_CHECK_TIMEOUT)
+        assert (isdue2 is True)
 
 
 @pytest.mark.django_db()

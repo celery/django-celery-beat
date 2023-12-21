@@ -1,4 +1,4 @@
-import os
+import os  # noqa: INP001
 
 from sphinx_celery import conf
 
