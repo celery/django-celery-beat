@@ -1,0 +1,88 @@
+[tool.ruff]
+select = [
+  "A",      # flake8-builtins
+  "AIR",    # Airflow
+  "ASYNC",  # flake8-async
+  "BLE",    # flake8-blind-except
+  "C4",     # flake8-comprehensions
+  "C90",    # McCabe cyclomatic complexity
+  "CPY",    # flake8-copyright
+  "DJ",     # flake8-django
+  "E",      # pycodestyle
+  "EXE",    # flake8-executable
+  "F",      # Pyflakes
+  "FA",     # flake8-future-annotations
+  "FLY",    # flynt
+  "FURB",   # refurb
+  "G",      # flake8-logging-format
+  "I",      # isort
+  "ICN",    # flake8-import-conventions
+  "INP",    # flake8-no-pep420
+  "ISC",    # flake8-implicit-str-concat
+  "LOG",    # flake8-logging
+  "N",      # pep8-naming
+  "NPY",    # NumPy-specific rules
+  "PD",     # pandas-vet
+  "PERF",   # Perflint
+  "PGH",    # pygrep-hooks
+  "PIE",    # flake8-pie
+  "PL",     # Pylint
+  "PT",     # flake8-pytest-style
+  "RSE",    # flake8-raise
+  "S",      # flake8-bandit
+  "SIM",    # flake8-simplify
+  "SLOT",   # flake8-slots
+  "T10",    # flake8-debugger
+  "TCH",    # flake8-type-checking
+  "TID",    # flake8-tidy-imports
+  "TRIO",   # flake8-trio
+  "UP",     # pyupgrade
+  "W",      # pycodestyle
+  "YTT",    # flake8-2020
+  # "ANN",  # flake8-annotations
+  # "ARG",  # flake8-unused-arguments
+  # "B",    # flake8-bugbear
+  # "COM",  # flake8-commas
+  # "D",    # pydocstyle
+  # "DTZ",  # flake8-datetimez
+  # "EM",   # flake8-errmsg
+  # "ERA",  # eradicate
+  # "FBT",  # flake8-boolean-trap
+  # "FIX",  # flake8-fixme
+  # "INT",  # flake8-gettext
+  # "PTH",  # flake8-use-pathlib
+  # "PYI",  # flake8-pyi
+  # "Q",    # flake8-quotes
+  # "RET",  # flake8-return
+  # "RUF",  # Ruff-specific rules
+  # "SLF",  # flake8-self
+  # "T20",  # flake8-print
+  # "TD",   # flake8-todos
+  # "TRY",  # tryceratops
+]
+ignore = [
+  "DJ001",
+  "DJ006",
+  "DJ008",
+  "DJ012",
+  "N801",
+  "N802",
+  "N803",
+  "N806",  
+  "PT004",
+  "PT009",
+  "PT027",
+]
+line-length = 274
+target-version = "py38"
+
+[tool.ruff.per-file-ignores]
+"*/migrations/*" = ["D", "I"]
+"docker/base/celery.py" = ["INP001"]
+"setup.py" = ["EXE001"]
+"t/*" = ["S101"]
+"t/unit/conftest.py" = ["F401"]
+
+[tool.ruff.pylint]
+allow-magic-value-types = ["float", "int", "str"]
+max-args = 8  # Default: 5
