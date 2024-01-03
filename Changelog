@@ -6,7 +6,8 @@
 
 Next
 ====
-- Formally support Python 3.12.
+- Formally support Python 3.12 and PyPy 3.10.
+- Formally support Django 5.0.
 
 .. _version-2.5.0:
 

@@ -27,21 +27,21 @@ MINUTES = 'minutes'
 SECONDS = 'seconds'
 MICROSECONDS = 'microseconds'
 
-PERIOD_CHOICES = (
+PERIOD_CHOICES = [
     (DAYS, _('Days')),
     (HOURS, _('Hours')),
     (MINUTES, _('Minutes')),
     (SECONDS, _('Seconds')),
     (MICROSECONDS, _('Microseconds')),
-)
+]
 
-SINGULAR_PERIODS = (
+SINGULAR_PERIODS = [
     (DAYS, _('Day')),
     (HOURS, _('Hour')),
     (MINUTES, _('Minute')),
     (SECONDS, _('Second')),
     (MICROSECONDS, _('Microsecond')),
-)
+]
 
 SOLAR_SCHEDULES = [
     ("dawn_astronomical", _("Astronomical dawn")),
