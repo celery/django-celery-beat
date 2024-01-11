@@ -10,7 +10,7 @@ Next
 
 2.6.0
 =====
-release-date: !!! FIX_ME !!!
+:release-date: !!! FIX_ME !!!
 :release-by: !!! FIX_ME !!!
 - Formally support Python 3.12. (#690)
 - Avoid crash when can not get human readable description (#648)
