@@ -12,6 +12,7 @@ Next
 =====
 :release-date: !!! FIX_ME !!!
 :release-by: !!! FIX_ME !!!
+
 - Formally support Python 3.12. (#690)
 - Avoid crash when can not get human readable description (#648)
 - Update codeql-analysis.yml (#653)
