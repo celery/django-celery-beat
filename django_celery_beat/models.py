@@ -274,14 +274,6 @@ class CrontabSchedule(models.Model):
             'Cron Hours to Run. Use "*" for "all". (Example: "8,20")'),
         validators=[validators.hour_validator],
     )
-    day_of_week = models.CharField(
-        max_length=64, default='*',
-        verbose_name=_('Day(s) Of The Week'),
-        help_text=_(
-            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
-            'is 0 or 7, Monday is 1. (Example: "0,5")'),
-        validators=[validators.day_of_week_validator],
-    )
     day_of_month = models.CharField(
         max_length=31 * 4, default='*',
         verbose_name=_('Day(s) Of The Month'),
@@ -297,6 +289,14 @@ class CrontabSchedule(models.Model):
             'Cron Months (1-12) Of The Year to Run. Use "*" for "all". '
             '(Example: "1,12")'),
         validators=[validators.month_of_year_validator],
+    )
+    day_of_week = models.CharField(
+        max_length=64, default='*',
+        verbose_name=_('Day(s) Of The Week'),
+        help_text=_(
+            'Cron Days Of The Week to Run. Use "*" for "all", Sunday '
+            'is 0 or 7, Monday is 1. (Example: "0,5")'),
+        validators=[validators.day_of_week_validator],
     )
 
     timezone = timezone_field.TimeZoneField(
