@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - '*'
+
+jobs:
+  build:
+    if: github.repository == 'celery/django-celery-beat'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --upgrade build twine
+      - run: python -m build
+      - run: twine check dist/*
+
+  pypi-publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.CELERY_PYPI_TOKEN }}
+          repository-url: https://pypi.org/p/django-celery-beat
