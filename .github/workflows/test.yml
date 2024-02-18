@@ -11,8 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', 'pypy-3.9']
+      matrix: # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
+        django-version: ["3.2", "4.2", "5.0"]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy-3.10']
+        exclude:
+          - django-version: "3.2"
+            python-version: "3.11"
+          - django-version: "3.2"
+            python-version: "3.12"
+          - django-version: "5.0"
+            python-version: "3.8"
+          - django-version: "5.0"
+            python-version: "3.9"
 
     services:
       rabbitmq:
@@ -21,9 +31,9 @@ jobs:
           - "5672:5672"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -31,4 +41,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox tox-gh-actions
     - name: Test with tox
-      run: tox -vv
+      run: tox
+      env:
+        DJANGO: ${{ matrix.django-version }}

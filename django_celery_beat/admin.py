@@ -105,6 +105,7 @@ class PeriodicTaskForm(forms.ModelForm):
         return self._clean_json('kwargs')
 
 
+@admin.register(PeriodicTask)
 class PeriodicTaskAdmin(admin.ModelAdmin):
     """Admin-interface for periodic tasks."""
 
@@ -184,17 +185,21 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             ),
         )
 
+    @admin.action(
+        description=_('Enable selected tasks')
+    )
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
         PeriodicTasks.update_changed()
         self._message_user_about_update(request, rows_updated, 'enabled')
-    enable_tasks.short_description = _('Enable selected tasks')
 
+    @admin.action(
+        description=_('Disable selected tasks')
+    )
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False, last_run_at=None)
         PeriodicTasks.update_changed()
         self._message_user_about_update(request, rows_updated, 'disabled')
-    disable_tasks.short_description = _('Disable selected tasks')
 
     def _toggle_tasks_activity(self, queryset):
         return queryset.update(enabled=Case(
@@ -202,12 +207,17 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             default=Value(True),
         ))
 
+    @admin.action(
+        description=_('Toggle activity of selected tasks')
+    )
     def toggle_tasks(self, request, queryset):
         rows_updated = self._toggle_tasks_activity(queryset)
         PeriodicTasks.update_changed()
         self._message_user_about_update(request, rows_updated, 'toggled')
-    toggle_tasks.short_description = _('Toggle activity of selected tasks')
 
+    @admin.action(
+        description=_('Run selected tasks')
+    )
     def run_tasks(self, request, queryset):
         self.celery_app.loader.import_default_modules()
         tasks = [(self.celery_app.tasks.get(task.task),
@@ -249,9 +259,9 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                 pluralize(tasks_run, _('was,were')),
             ),
         )
-    run_tasks.short_description = _('Run selected tasks')
 
 
+@admin.register(ClockedSchedule)
 class ClockedScheduleAdmin(admin.ModelAdmin):
     """Admin-interface for clocked schedules."""
 
@@ -263,12 +273,12 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(CrontabSchedule)
 class CrontabScheduleAdmin(admin.ModelAdmin):
+    """Admin class for CrontabSchedule."""
+
     list_display = ('__str__', 'human_readable')
 
 
 admin.site.register(IntervalSchedule)
-admin.site.register(CrontabSchedule, CrontabScheduleAdmin)
 admin.site.register(SolarSchedule)
-admin.site.register(ClockedSchedule, ClockedScheduleAdmin)
-admin.site.register(PeriodicTask, PeriodicTaskAdmin)

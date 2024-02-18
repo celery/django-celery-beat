@@ -4,6 +4,30 @@
  Change history
 ================
 
+Next
+====
+
+
+2.6.0
+=====
+:release-date: !!! FIX_ME !!!
+:release-by: !!! FIX_ME !!!
+
+- Formally support Python 3.12. (#690)
+- Avoid crash when can not get human readable description (#648)
+- Update codeql-analysis.yml (#653)
+- Celery Beat scheduled tasks may be executed repeatedly (#660)
+- Drop Django 4.0 from CI to avoid security issues (#662)
+- Change assert self.app.timezone.zone to assert self.app.timezone.key (#664)
+- README.rst: Use git instead of zipfile for installing from Github (#670)
+- Update supported Python & Django version in setup.py (#672)
+- Update runtime.txt to include Django 5.0 (#681)
+- README.rst: Crontab effect description (#689)
+- Replace case.patching fixture with mockeypatch + MagicMock (#692)
+- Upgrade GitHub Actions and PyPy 3.10 and Django 5.0 (#699, #705)
+- Django v5.0: django.utils.timezone.utc alias --> datetime.timezone.utc (#703)
+
+
 .. _version-2.5.0:
 
 2.5.0

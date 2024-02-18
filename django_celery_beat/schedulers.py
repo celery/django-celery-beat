@@ -300,9 +300,9 @@ class DatabaseScheduler(Scheduler):
             while self._dirty:
                 name = self._dirty.pop()
                 try:
-                    self.schedule[name].save()
+                    self._schedule[name].save()
                     _tried.add(name)
-                except (KeyError, ObjectDoesNotExist):
+                except (KeyError, TypeError, ObjectDoesNotExist):
                     _failed.add(name)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)

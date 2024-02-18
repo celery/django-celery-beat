@@ -159,7 +159,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'Europe/Berlin'
+        assert self.app.timezone.key == 'Europe/Berlin'
 
         # simulate last_run_at from DB - not TZ aware but localtime
         right_now = datetime.utcnow()
@@ -191,7 +191,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'Europe/Berlin'
+        assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
         right_now = datetime.utcnow()
         # make sure to use fixed date time
@@ -227,7 +227,7 @@ class test_ModelEntry(SchedulerCase):
         os.environ["TZ"] = "Europe/Berlin"
         if hasattr(time, "tzset"):
             time.tzset()
-        assert self.app.timezone.zone == 'America/New_York'
+        assert self.app.timezone.key == 'America/New_York'
 
         # simulate last_run_at all none, doing the same thing that
         # _default_now() would do
@@ -443,6 +443,28 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s.schedule[self.m2.name] = self.s.reserve(e2)
         assert self.s.flushed == 1
         assert self.m2.name in self.s._dirty
+
+    def test_sync_not_saves_last_run_at_while_schedule_changed(self):
+        # Update e1 last_run_at and add to dirty
+        e1 = self.s.schedule[self.m2.name]
+        time.sleep(3)
+        e1.model.last_run_at = e1._default_now()
+        self.s._dirty.add(e1.model.name)
+
+        # Record e1 pre sync last_run_at
+        e1_pre_sync_last_run_at = e1.model.last_run_at
+
+        # Set schedule_changed() == True
+        self.s._last_timestamp = monotonic()
+        # Do sync
+        self.s.sync()
+
+        # Record e1 post sync last_run_at
+        e1_m = PeriodicTask.objects.get(pk=e1.model.pk)
+        e1_post_sync_last_run_at = e1_m.last_run_at
+
+        # Check
+        assert e1_pre_sync_last_run_at == e1_post_sync_last_run_at
 
     def test_sync_saves_last_run_at(self):
         e1 = self.s.schedule[self.m2.name]

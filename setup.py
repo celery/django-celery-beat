@@ -21,12 +21,12 @@ PACKAGE = 'django_celery_beat'
 E_UNSUPPORTED_PYTHON = f'{NAME} 1.0 requires %s %s or later!'
 
 PYIMP = _pyimp()
-PY37_OR_LESS = sys.version_info < (3, 7)
+PY38_OR_LESS = sys.version_info < (3, 8)
 PYPY_VERSION = getattr(sys, 'pypy_version_info', None)
 PYPY24_ATLEAST = PYPY_VERSION and PYPY_VERSION >= (2, 4)
 
-if PY37_OR_LESS and not PYPY24_ATLEAST:
-    raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, '3.7'))
+if PY38_OR_LESS and not PYPY24_ATLEAST:
+    raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, '3.8'))
 
 # -*- Classifiers -*-
 
@@ -35,18 +35,18 @@ classes = """
     License :: OSI Approved :: BSD License
     Programming Language :: Python
     Programming Language :: Python :: 3
-    Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
     Programming Language :: Python :: 3.9
     Programming Language :: Python :: 3.10
     Programming Language :: Python :: 3.11
+    Programming Language :: Python :: 3.12
     Programming Language :: Python :: Implementation :: CPython
     Programming Language :: Python :: Implementation :: PyPy
     Framework :: Django
     Framework :: Django :: 3.2
-    Framework :: Django :: 4.0
     Framework :: Django :: 4.1
     Framework :: Django :: 4.2
+    Framework :: Django :: 5.0
     Operating System :: OS Independent
     Topic :: Communications
     Topic :: System :: Distributed Computing

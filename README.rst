@@ -170,7 +170,7 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year``, so if you want the equivalent
-of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
+of a ``30 * * * *`` (execute 30 minutes past every hour) crontab entry you specify:
 
 .. code-block:: Python
 
@@ -298,12 +298,12 @@ Using the development version
 With pip
 ~~~~~~~~
 
-You can install the latest snapshot of django-celery-beat using the following
+You can install the latest main version of django-celery-beat using the following
 pip command:
 
 .. code-block:: bash
 
-        $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+        $ pip install git+https://github.com/celery/django-celery-beat#egg=django-celery-beat
 
 
 Developing django-celery-beat
