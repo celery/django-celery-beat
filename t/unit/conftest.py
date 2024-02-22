@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 # we have to import the pytest plugin fixtures here,
-# in case user did not do the `python setup.py develop` yet,
+# in case user did not yet `pip install ".[develop]"`,
 # that installs the pytest plugin into the setuptools registry.
 from celery.contrib.pytest import (celery_app, celery_config,
                                    celery_enable_logging, celery_parameters,
