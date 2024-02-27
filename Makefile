@@ -66,10 +66,8 @@ bump-major:
 
 release:
     python -m pip install --upgrade build setuptools wheel twine
-	python setup.py register
 	python -m build
-	python setup.py upload --sign --identity="$(PGPIDENT)"
-	python3 -m twine upload dist/*
+	twine upload --sign --identity="$(PGPIDENT) dist/*"
 
 Documentation:
 	(cd "$(SPHINX_DIR)"; $(MAKE) html)
