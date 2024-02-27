@@ -45,7 +45,7 @@ help:
 	@echo "  clean ------------ - Non-destructive clean"
 	@echo "    clean-pyc        - Remove .pyc/__pycache__ files"
 	@echo "    clean-docs       - Remove documentation build artifacts."
-	@echo "    clean-build      - Remove setup artifacts."
+	@echo "    clean-build      - Remove build artifacts."
 	@echo "bump                 - Bump patch version number."
 	@echo "bump-minor           - Bump minor version number."
 	@echo "bump-major           - Bump major version number."
@@ -65,7 +65,11 @@ bump-major:
 	bumpversion major
 
 release:
-	python setup.py register sdist bdist_wheel upload --sign --identity="$(PGPIDENT)"
+    python -m pip install --upgrade build setuptools wheel twine
+	python setup.py register
+	python -m build
+	python setup.py upload --sign --identity="$(PGPIDENT)"
+	python3 -m twine upload dist/*
 
 Documentation:
 	(cd "$(SPHINX_DIR)"; $(MAKE) html)
@@ -139,13 +143,13 @@ test-all: clean-pyc
 	$(TOX)
 
 test:
-	$(PYTHON) setup.py test
+	$(PYTEST) -x
 
 cov:
 	(cd $(TESTDIR); $(PYTEST) -x --cov="$(PROJ)" --cov-report=html)
 
 build:
-	$(PYTHON) setup.py sdist bdist_wheel
+	$(PYTHON) -m build
 
 distcheck: lint test clean
 
