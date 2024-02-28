@@ -21,7 +21,7 @@ COPY requirements/        /app/requirements/
 WORKDIR /app
 
 RUN pip3 install --editable --user ".[develop]"
-
+RUN pip3 install --editable .
 
 WORKDIR /
 
