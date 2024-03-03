@@ -1,4 +1,5 @@
 Django>=2.2,<5.0
+sphinxcontrib-django
 https://github.com/celery/sphinx_celery/archive/master.zip
 https://github.com/celery/kombu/zipball/main#egg=kombu
 https://github.com/celery/celery/zipball/main#egg=celery
