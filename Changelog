@@ -8,24 +8,37 @@ Next
 ====
 
 
+.. _version-2.6.0:
+
 2.6.0
 =====
-:release-date: !!! FIX_ME !!!
-:release-by: !!! FIX_ME !!!
+:release-date: 2024-03-03
+:release-by: Christian Clauss
 
-- Formally support Python 3.12. (#690)
-- Avoid crash when can not get human readable description (#648)
-- Update codeql-analysis.yml (#653)
-- Celery Beat scheduled tasks may be executed repeatedly (#660)
-- Drop Django 4.0 from CI to avoid security issues (#662)
-- Change assert self.app.timezone.zone to assert self.app.timezone.key (#664)
-- README.rst: Use git instead of zipfile for installing from Github (#670)
-- Update supported Python & Django version in setup.py (#672)
-- Update runtime.txt to include Django 5.0 (#681)
-- README.rst: Crontab effect description (#689)
-- Replace case.patching fixture with mockeypatch + MagicMock (#692)
-- Upgrade GitHub Actions and PyPy 3.10 and Django 5.0 (#699, #705)
-- Django v5.0: django.utils.timezone.utc alias --> datetime.timezone.utc (#703)
+- Avoid crash when can not get human readable description (#648).
+- Update codeql-analysis.yml (#653).
+- Fix CI: Change assert self.app.timezone.zone to assert self.app.timezone.key (#664).
+- Drop Django 4.0 from CI to avoid security issues (#662).
+- Fix Issue #388: Celery Beat scheduled tasks may be executed repeatedly (#660).
+- Update README.rst (#670).
+- Update runtime.txt to include Django 5.0 (#681).
+- Replace case.patching fixture with mockeypatch + MagicMock (#692).
+- Update README.rst - Crontab effect description (#689).
+- Update supported Python & Django version in setup.py (#672).
+- Add Python 3.12 to test matrix and add classifier (#690).
+- Django v5.0: django.utils.timezone.utc alias --> datetime.timezone.utc (#703).
+- Upgrade GitHub Actions and PyPy 3.10 and Django 5.0 (#699).
+- Testing Django v5.0 on pypy-3.10-v7.3.14 passes (#705).
+- Prepare for release v2.6.0 to support Py3.12 and Dj5.0 (#712).
+- GitHub Actions: Do not hardcode an out-of-date version of PyPy (#715).
+- Use the same order in the admin as in the cron schedule expression (#716).
+- Upgrade pip and GitHub Actions dependencies with dependabot (#721).
+- Bump github/codeql-action from 2 to 3 (#722).
+- Bump actions/checkout from 3 to 4 (#723).
+- Update pytest requirement from <8.0,>=6.2.5 to >=6.2.5,<9.0 (#724).
+- Remove requirements/test-djangoXY.txt (#728).
+- Remove code for unsupported django.VERSION < (3, 2) (#729).
+- Added sphinxcontrib-django to extensions (#736).
 
 
 .. _version-2.5.0:

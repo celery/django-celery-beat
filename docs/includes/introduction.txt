@@ -1,4 +1,4 @@
-:Version: 2.5.0
+:Version: 2.6.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
