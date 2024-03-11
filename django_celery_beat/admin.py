@@ -261,8 +261,26 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         )
 
 
+class PeriodicTaskInline(admin.TabularInline):
+    model = PeriodicTask
+    fields = ('name', 'task', 'args', 'kwargs')
+    readonly_fields = fields
+    can_delete = False
+    extra = 0
+    show_change_link = True
+    verbose_name = "Periodic Tasks Using This Schedule"
+    verbose_name_plural = verbose_name
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
+class ScheduleAdmin(admin.ModelAdmin):
+    inlines = [PeriodicTaskInline]
+
+
 @admin.register(ClockedSchedule)
-class ClockedScheduleAdmin(admin.ModelAdmin):
+class ClockedScheduleAdmin(ScheduleAdmin):
     """Admin-interface for clocked schedules."""
 
     fields = (
@@ -274,11 +292,22 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
 
 
 @admin.register(CrontabSchedule)
-class CrontabScheduleAdmin(admin.ModelAdmin):
+class CrontabScheduleAdmin(ScheduleAdmin):
     """Admin class for CrontabSchedule."""
 
     list_display = ('__str__', 'human_readable')
+    fields = ('human_readable', 'minute', 'hour', 'day_of_month',
+              'month_of_year', 'day_of_week', 'timezone')
+    readonly_fields = ('human_readable', )
 
 
-admin.site.register(IntervalSchedule)
-admin.site.register(SolarSchedule)
+@admin.register(SolarSchedule)
+class SolarScheduleAdmin(ScheduleAdmin):
+    """Admin class for SolarSchedule."""
+    pass
+
+
+@admin.register(IntervalSchedule)
+class IntervalScheduleAdmin(ScheduleAdmin):
+    """Admin class for IntervalSchedule."""
+    pass
