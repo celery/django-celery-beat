@@ -388,6 +388,10 @@ class PeriodicTasks(models.Model):
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
     last_update = models.DateTimeField(null=False)
 
+    class Meta:
+        verbose_name = _('periodic task track')
+        verbose_name_plural = _('periodic task tracks')
+
     @classmethod
     def changed(cls, instance, **kwargs):
         if not instance.no_changes:
