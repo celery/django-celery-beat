@@ -8,7 +8,6 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from celery.schedules import crontab
 from cron_descriptor import (FormatException, MissingFieldException,
                              WrongArgumentException, get_description)
 from django.conf import settings
