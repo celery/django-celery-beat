@@ -5,9 +5,7 @@
 import re
 from collections import namedtuple
 
-import django
-
-__version__ = '2.5.0'
+__version__ = '2.6.0'
 __author__ = 'Asif Saif Uddin, Ask Solem'
 __contact__ = 'auvipy@gmail.com, ask@celeryproject.org'
 __homepage__ = 'https://github.com/celery/django-celery-beat'
@@ -29,6 +27,3 @@ del _temp
 del re
 
 __all__ = []
-
-if django.VERSION < (3, 2):
-    default_app_config = 'django_celery_beat.apps.BeatConfig'
