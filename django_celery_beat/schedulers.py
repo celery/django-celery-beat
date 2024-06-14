@@ -84,7 +84,7 @@ class ModelEntry(ScheduleEntry):
         self.model = model
 
         if not model.last_run_at:
-            model.last_run_at = model.date_changed
+            model.last_run_at = model.date_changed or self._default_now()
             # if last_run_at is not set and
             # model.start_time last_run_at should be in way past.
             # This will trigger the job to run at start_time
