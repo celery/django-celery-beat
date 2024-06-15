@@ -238,7 +238,7 @@ class test_ModelEntry(SchedulerCase):
         e.save()
         m.refresh_from_db()
 
-        # The just created model has no value for last_run_at
+        # The just created model has no value for date_changed
         # so last_run_at should be set to the Entry._default_now()
         assert m.last_run_at == e.last_run_at
 
