@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-25 11:24+0200\n"
-"PO-Revision-Date: 2022-10-14 23:48+0200\n"
+"POT-Creation-Date: 2022-12-22 19:03+0000\n"
+"PO-Revision-Date: 2024-06-25 11:24+0200\n"
 "Last-Translator: Álvaro Mondéjar <mondejar1994@gmail.com>\n"
 "Language-Team: nLanguage: fr\n"
 "Language: \n"
@@ -55,9 +55,7 @@ msgid "Enable selected tasks"
 msgstr "Active les tâches sélectionnées"
 
 #: django_celery_beat/admin.py:182
-#, fuzzy, python-brace-format
-#| msgid "{0} task was successfully enabled"
-#| msgid_plural "{0} task were successfully enabled"
+#, python-brace-format
 msgid "{0} task was successfully enabled"
 msgid_plural "{0} tasks were successfully enabled"
 msgstr[0] "{0} tâche a été activée avec succès"
