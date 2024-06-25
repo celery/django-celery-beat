@@ -7,7 +7,8 @@ from django.contrib import admin, messages
 from django.db.models import Case, Value, When
 from django.forms.widgets import Select
 from django.template.defaultfilters import pluralize
-from django.utils.translation import gettext_lazy as _, ngettext_lazy
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext_lazy
 from kombu.utils.json import loads
 
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
