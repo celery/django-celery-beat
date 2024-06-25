@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-25 11:19+0200\n"
+"POT-Creation-Date: 2024-06-25 11:24+0200\n"
 "PO-Revision-Date: 2022-10-14 23:48+0200\n"
 "Last-Translator: Álvaro Mondéjar <mondejar1994@gmail.com>\n"
 "Language-Team: nLanguage: fr\n"
@@ -17,87 +17,89 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: django_celery_beat/admin.py:60
+#: django_celery_beat/admin.py:61
 msgid "Task (registered)"
 msgstr "Tâche (enregistrée)"
 
-#: django_celery_beat/admin.py:64
+#: django_celery_beat/admin.py:65
 msgid "Task (custom)"
 msgstr "Tâche (personalisée)"
 
-#: django_celery_beat/admin.py:81
+#: django_celery_beat/admin.py:82
 msgid "Need name of task"
 msgstr "Besoin du nom de la tâche"
 
-#: django_celery_beat/admin.py:87 django_celery_beat/models.py:626
+#: django_celery_beat/admin.py:88 django_celery_beat/models.py:626
 msgid "Only one can be set, in expires and expire_seconds"
 msgstr "Seulement un peu être définie, soit expires ou expire_seconds"
 
-#: django_celery_beat/admin.py:97
+#: django_celery_beat/admin.py:98
 #, python-format
 msgid "Unable to parse JSON: %s"
 msgstr "Incapable d'analyser le JSON: %s"
 
-#: django_celery_beat/admin.py:126
+#: django_celery_beat/admin.py:127
 msgid "Schedule"
 msgstr "Planification"
 
-#: django_celery_beat/admin.py:131
+#: django_celery_beat/admin.py:132
 msgid "Arguments"
 msgstr "Arguments"
 
-#: django_celery_beat/admin.py:135
+#: django_celery_beat/admin.py:136
 msgid "Execution Options"
 msgstr "Options d'exécution"
 
-#: django_celery_beat/admin.py:173
+#: django_celery_beat/admin.py:174
 msgid "Enable selected tasks"
 msgstr "Active les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:181
-#, python-brace-format
+#: django_celery_beat/admin.py:182
+#, fuzzy, python-brace-format
+#| msgid "{0} task was successfully enabled"
+#| msgid_plural "{0} task were successfully enabled"
 msgid "{0} task was successfully enabled"
-msgid_plural "{0} task were successfully enabled"
+msgid_plural "{0} tasks were successfully enabled"
 msgstr[0] "{0} tâche a été activée avec succès"
 msgstr[1] "{0} tâches ont été activées avec succès"
 
-#: django_celery_beat/admin.py:188
+#: django_celery_beat/admin.py:189
 msgid "Disable selected tasks"
 msgstr "Désactive les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:196
+#: django_celery_beat/admin.py:197
 #, python-brace-format
 msgid "{0} task was successfully disabled"
-msgid_plural "{0} task were successfully disabled"
+msgid_plural "{0} tasks were successfully disabled"
 msgstr[0] "{0} tâche a été désactivée avec succès"
 msgstr[1] "{0} tâches ont été désactivées avec succès"
 
-#: django_celery_beat/admin.py:209
+#: django_celery_beat/admin.py:210
 msgid "Toggle activity of selected tasks"
 msgstr "Bascule l'activité des tâches sélectionnées"
 
-#: django_celery_beat/admin.py:217
+#: django_celery_beat/admin.py:218
 #, python-brace-format
 msgid "{0} task was successfully toggled"
-msgid_plural "{0} task were successfully toggled"
+msgid_plural "{0} tasks were successfully toggled"
 msgstr[0] "{0} tâche a été inversée avec succès"
 msgstr[1] "{0} tâches ont été inversées avec succès"
 
-#: django_celery_beat/admin.py:224
+#: django_celery_beat/admin.py:225
 msgid "Run selected tasks"
 msgstr "Démarre les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:245
+#: django_celery_beat/admin.py:246
 #, python-brace-format
 msgid "task \"{not_found_task_name}\" not found"
 msgstr "tâche \"{not_found_task_name}\" introuvable"
 
-#: django_celery_beat/admin.py:261
+#: django_celery_beat/admin.py:262
 #, python-brace-format
 msgid "{0} task{1} {2} successfully run"
 msgstr "{0} tâche{1} {2} a fonctionnée avec succès"
 
-#: django_celery_beat/admin.py:264
+#: django_celery_beat/admin.py:265
 msgid "was,were"
 msgstr "a été,ont été"
 

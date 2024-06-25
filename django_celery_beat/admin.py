@@ -180,7 +180,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             request,
             ngettext_lazy(
                 '{0} task was successfully enabled',
-                '{0} task were successfully enabled',
+                '{0} tasks were successfully enabled',
                 rows_updated
             ).format(rows_updated)
         )
@@ -195,7 +195,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             request,
             ngettext_lazy(
                 '{0} task was successfully disabled',
-                '{0} task were successfully disabled',
+                '{0} tasks were successfully disabled',
                 rows_updated
             ).format(rows_updated)
         )
@@ -216,7 +216,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             request,
             ngettext_lazy(
                 '{0} task was successfully toggled',
-                '{0} task were successfully toggled',
+                '{0} tasks were successfully toggled',
                 rows_updated
             ).format(rows_updated)
         )
