@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-25 10:54+0200\n"
+"POT-Creation-Date: 2024-06-25 11:19+0200\n"
 "PO-Revision-Date: 2022-10-14 23:48+0200\n"
 "Last-Translator: Álvaro Mondéjar <mondejar1994@gmail.com>\n"
 "Language-Team: nLanguage: fr\n"
@@ -50,40 +50,54 @@ msgstr "Arguments"
 msgid "Execution Options"
 msgstr "Options d'exécution"
 
-#: django_celery_beat/admin.py:181
-#, python-brace-format
-msgid "{0} task was successfully {1}"
-msgid_plural "{0} task were successfully {1}"
-msgstr[0] "{0} tâche a été {1} avec succès"
-msgstr[1] "{0} tâches ont été {1} avec succès"
-
-#: django_celery_beat/admin.py:188
+#: django_celery_beat/admin.py:173
 msgid "Enable selected tasks"
 msgstr "Active les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:196
+#: django_celery_beat/admin.py:181
+#, python-brace-format
+msgid "{0} task was successfully enabled"
+msgid_plural "{0} task were successfully enabled"
+msgstr[0] "{0} tâche a été activée avec succès"
+msgstr[1] "{0} tâches ont été activées avec succès"
+
+#: django_celery_beat/admin.py:188
 msgid "Disable selected tasks"
 msgstr "Désactive les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:210
+#: django_celery_beat/admin.py:196
+#, python-brace-format
+msgid "{0} task was successfully disabled"
+msgid_plural "{0} task were successfully disabled"
+msgstr[0] "{0} tâche a été désactivée avec succès"
+msgstr[1] "{0} tâches ont été désactivées avec succès"
+
+#: django_celery_beat/admin.py:209
 msgid "Toggle activity of selected tasks"
 msgstr "Bascule l'activité des tâches sélectionnées"
 
-#: django_celery_beat/admin.py:218
+#: django_celery_beat/admin.py:217
+#, python-brace-format
+msgid "{0} task was successfully toggled"
+msgid_plural "{0} task were successfully toggled"
+msgstr[0] "{0} tâche a été inversée avec succès"
+msgstr[1] "{0} tâches ont été inversées avec succès"
+
+#: django_celery_beat/admin.py:224
 msgid "Run selected tasks"
 msgstr "Démarre les tâches sélectionnées"
 
-#: django_celery_beat/admin.py:239
+#: django_celery_beat/admin.py:245
 #, python-brace-format
 msgid "task \"{not_found_task_name}\" not found"
 msgstr "tâche \"{not_found_task_name}\" introuvable"
 
-#: django_celery_beat/admin.py:255
+#: django_celery_beat/admin.py:261
 #, python-brace-format
 msgid "{0} task{1} {2} successfully run"
 msgstr "{0} tâche{1} {2} a fonctionnée avec succès"
 
-#: django_celery_beat/admin.py:258
+#: django_celery_beat/admin.py:264
 msgid "was,were"
 msgstr "a été,ont été"
 
@@ -285,8 +299,8 @@ msgid ""
 "Cron Months (1-12) Of The Year to Run. Use \"*\" for \"all\". (Example: "
 "\"1,12\")"
 msgstr ""
-"Mois de l'année pour lesquels Cron doit exécuter. Utilisez \"*\" pour \"tous\". (Exemple : "
-"\"1,12\")"
+"Mois de l'année pour lesquels Cron doit exécuter. Utilisez \"*\" pour "
+"\"tous\". (Exemple : \"1,12\")"
 
 #: django_celery_beat/models.py:295
 msgid "Day(s) Of The Week"
@@ -297,8 +311,8 @@ msgid ""
 "Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, "
 "Monday is 1. (Example: \"0,5\")"
 msgstr ""
-"Jours de la semaine pour lesquels Cron doit exécuter. Utilisez \"*\" pour \"tous\", Dimanches est 0 ou 7, "
-"Lundi est 1. (Exemple : \"0,5\")"
+"Jours de la semaine pour lesquels Cron doit exécuter. Utilisez \"*\" pour "
+"\"tous\", Dimanches est 0 ou 7, Lundi est 1. (Exemple : \"0,5\")"
 
 #: django_celery_beat/models.py:305
 msgid "Cron Timezone"

@@ -170,28 +170,20 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related('interval', 'crontab', 'solar', 'clocked')
 
-    def _message_user_about_update(self, request, rows_updated, verb):
-        """Send message about action to user.
-
-        `verb` should shortly describe what have changed (e.g. 'enabled').
-
-        """
-        self.message_user(
-            request,
-            ngettext_lazy(
-                '{0} task was successfully {1}',
-                '{0} task were successfully {1}',
-                rows_updated
-            ).format(rows_updated, verb)
-        )
-
     @admin.action(
         description=_('Enable selected tasks')
     )
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'enabled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully enabled',
+                '{0} task were successfully enabled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     @admin.action(
         description=_('Disable selected tasks')
@@ -199,7 +191,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False, last_run_at=None)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'disabled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully disabled',
+                '{0} task were successfully disabled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     def _toggle_tasks_activity(self, queryset):
         return queryset.update(enabled=Case(
@@ -213,7 +212,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     def toggle_tasks(self, request, queryset):
         rows_updated = self._toggle_tasks_activity(queryset)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'toggled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully toggled',
+                '{0} task were successfully toggled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     @admin.action(
         description=_('Run selected tasks')
