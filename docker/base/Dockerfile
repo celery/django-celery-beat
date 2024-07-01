@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
         wait-for-it
 
 RUN pip3 install --user \
+        build \
         django-createsuperuserwithpassword \
         psycopg2-binary
 
@@ -19,8 +20,7 @@ COPY requirements/        /app/requirements/
 
 WORKDIR /app
 
-RUN python3 setup.py develop --user
-
+RUN pip3 install --user --editable ".[develop]"
 
 WORKDIR /
 
