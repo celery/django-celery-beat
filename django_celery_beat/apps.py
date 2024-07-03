@@ -14,7 +14,8 @@ class BeatConfig(AppConfig):
     default_auto_field = 'django.db.models.AutoField'
 
     def ready(self):
-        from .signals import signals_connect
         from celery import current_app
+
+        from .signals import signals_connect
         signals_connect()
         current_app.autodiscover_tasks(force=True)
