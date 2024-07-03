@@ -15,4 +15,6 @@ class BeatConfig(AppConfig):
 
     def ready(self):
         from .signals import signals_connect
+        from celery import current_app
         signals_connect()
+        current_app.autodiscover_tasks(force=True)
