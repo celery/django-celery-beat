@@ -226,21 +226,27 @@ class HumanReadableTestCase(TestCase):
         cron = CrontabSchedule.objects.create(
             hour="2",
             minute="0",
-            day_of_week="monxxx",
+            day_of_week="xxx",
         )
         self.assertEqual(
-            cron.human_readable, "0 2 * * monxxx UTC"
+            cron.human_readable, "0 2 * * xxx UTC"
         )
 
     def test_long_name(self):
         """Long day name display."""
-        # TODO: this should eventually work, but probably needs conversion
-        # before passing data to cron_description
-        cron = CrontabSchedule.objects.create(
-            hour="2",
-            minute="0",
-            day_of_week="monday",
-        )
-        self.assertEqual(
-            cron.human_readable, "0 2 * * monday UTC"
-        )
+        for day_day_of_week, expected in (
+            ("1", "Monday"),
+            ("mon", "Monday"),
+            ("Monday,tue", "Monday and Tuesday"),
+            ("sat-sun/2", "Saturday"),
+            ("mon-wed", "Monday, Tuesday, and Wednesday"),
+        ):
+            cron = CrontabSchedule.objects.create(
+                hour="2",
+                minute="0",
+                day_of_week=day_day_of_week,
+            )
+
+            self.assertEqual(
+                cron.human_readable, f"At 02:00 AM, only on {expected} UTC"
+            )
