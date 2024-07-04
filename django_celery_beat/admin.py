@@ -23,7 +23,6 @@ class TaskSelectWidget(Select):
     _choices = None
 
     def tasks_as_choices(self):
-        _ = self._modules
         tasks = list(sorted(name for name in self.celery_app.tasks
                             if not name.startswith('celery.')))
         return (('', ''), ) + tuple(zip(tasks, tasks))
@@ -39,10 +38,6 @@ class TaskSelectWidget(Select):
         # ChoiceField.__init__ sets ``self.choices = choices``
         # which would override ours.
         pass
-
-    @cached_property
-    def _modules(self):
-        self.celery_app.loader.import_default_modules()
 
 
 class TaskChoiceField(forms.ChoiceField):
