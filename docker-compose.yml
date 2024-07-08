@@ -8,6 +8,8 @@ services:
     build:
       context: .
       dockerfile: docker/base/Dockerfile
+      tags:
+        - django-celery-beat_base:latest
     command: ["sleep", "inf"]
 
   django:
