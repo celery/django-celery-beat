@@ -41,8 +41,7 @@ Important Warning about Time Zones
 
         >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
         >>> PeriodicTask.objects.all().update(last_run_at=None)
-        >>> for task in PeriodicTask.objects.all():
-        >>>     PeriodicTasks.changed(task)
+        >>> PeriodicTasks.update_changed()
 
 
 
