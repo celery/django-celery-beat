@@ -3,8 +3,8 @@
 import codecs
 import os
 import re
-import pytest
 
+import pytest
 import setuptools
 
 NAME = 'django-celery-beat'
