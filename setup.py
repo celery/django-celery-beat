@@ -4,7 +4,6 @@ import codecs
 import os
 import re
 
-import pytest
 import setuptools
 
 NAME = 'django-celery-beat'
@@ -120,7 +119,6 @@ setuptools.setup(
     python_requires='>=3.8',
     install_requires=reqs('default.txt') + reqs('runtime.txt'),
     tests_require=reqs('test.txt') + reqs('test-django.txt'),
-    cmdclass={'test': pytest},
     classifiers=classifiers,
     entry_points={
         'celery.beat_schedulers': [
