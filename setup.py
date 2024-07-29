@@ -118,7 +118,6 @@ setuptools.setup(
     license='BSD',
     python_requires='>=3.8',
     install_requires=reqs('default.txt') + reqs('runtime.txt'),
-    tests_require=reqs('test.txt') + reqs('test-django.txt'),
     classifiers=classifiers,
     entry_points={
         'celery.beat_schedulers': [
