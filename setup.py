@@ -3,10 +3,8 @@
 import codecs
 import os
 import re
-import sys
 
 import setuptools
-import setuptools.command.test
 
 NAME = 'django-celery-beat'
 PACKAGE = 'django_celery_beat'
@@ -103,19 +101,6 @@ else:
 
 # -*- %%% -*-
 
-
-class pytest(setuptools.command.test.test):
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to pytest')]
-
-    def initialize_options(self):
-        setuptools.command.test.test.initialize_options(self)
-        self.pytest_args = []
-
-    def run_tests(self):
-        import pytest
-        sys.exit(pytest.main(self.pytest_args))
-
-
 setuptools.setup(
     name=NAME,
     packages=setuptools.find_packages(exclude=[
@@ -133,8 +118,6 @@ setuptools.setup(
     license='BSD',
     python_requires='>=3.8',
     install_requires=reqs('default.txt') + reqs('runtime.txt'),
-    tests_require=reqs('test.txt') + reqs('test-django.txt'),
-    cmdclass={'test': pytest},
     classifiers=classifiers,
     entry_points={
         'celery.beat_schedulers': [
