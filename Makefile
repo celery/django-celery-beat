@@ -141,7 +141,7 @@ test-all: clean-pyc
 	$(TOX)
 
 test:
-	$(PYTEST) -x
+	$(PYTHON) -m $(PYTEST)
 
 cov:
 	(cd $(TESTDIR); $(PYTEST) -x --cov="$(PROJ)" --cov-report=html)

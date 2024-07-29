@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 2.5.0
+:Version: 2.6.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -41,8 +41,7 @@ Important Warning about Time Zones
 
         >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
         >>> PeriodicTask.objects.all().update(last_run_at=None)
-        >>> for task in PeriodicTask.objects.all():
-        >>>     PeriodicTasks.changed(task)
+        >>> PeriodicTasks.update_changed()
 
 
 

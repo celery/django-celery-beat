@@ -8,6 +8,7 @@ from django.db.models import Case, Value, When
 from django.forms.widgets import Select
 from django.template.defaultfilters import pluralize
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext_lazy
 from kombu.utils.json import loads
 
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
@@ -169,29 +170,20 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.select_related('interval', 'crontab', 'solar', 'clocked')
 
-    def _message_user_about_update(self, request, rows_updated, verb):
-        """Send message about action to user.
-
-        `verb` should shortly describe what have changed (e.g. 'enabled').
-
-        """
-        self.message_user(
-            request,
-            _('{0} task{1} {2} successfully {3}').format(
-                rows_updated,
-                pluralize(rows_updated),
-                pluralize(rows_updated, _('was,were')),
-                verb,
-            ),
-        )
-
     @admin.action(
         description=_('Enable selected tasks')
     )
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'enabled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully enabled',
+                '{0} tasks were successfully enabled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     @admin.action(
         description=_('Disable selected tasks')
@@ -199,7 +191,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False, last_run_at=None)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'disabled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully disabled',
+                '{0} tasks were successfully disabled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     def _toggle_tasks_activity(self, queryset):
         return queryset.update(enabled=Case(
@@ -213,7 +212,14 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     def toggle_tasks(self, request, queryset):
         rows_updated = self._toggle_tasks_activity(queryset)
         PeriodicTasks.update_changed()
-        self._message_user_about_update(request, rows_updated, 'toggled')
+        self.message_user(
+            request,
+            ngettext_lazy(
+                '{0} task was successfully toggled',
+                '{0} tasks were successfully toggled',
+                rows_updated
+            ).format(rows_updated)
+        )
 
     @admin.action(
         description=_('Run selected tasks')
@@ -261,8 +267,26 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         )
 
 
+class PeriodicTaskInline(admin.TabularInline):
+    model = PeriodicTask
+    fields = ('name', 'task', 'args', 'kwargs')
+    readonly_fields = fields
+    can_delete = False
+    extra = 0
+    show_change_link = True
+    verbose_name = "Periodic Tasks Using This Schedule"
+    verbose_name_plural = verbose_name
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
+class ScheduleAdmin(admin.ModelAdmin):
+    inlines = [PeriodicTaskInline]
+
+
 @admin.register(ClockedSchedule)
-class ClockedScheduleAdmin(admin.ModelAdmin):
+class ClockedScheduleAdmin(ScheduleAdmin):
     """Admin-interface for clocked schedules."""
 
     fields = (
@@ -274,11 +298,22 @@ class ClockedScheduleAdmin(admin.ModelAdmin):
 
 
 @admin.register(CrontabSchedule)
-class CrontabScheduleAdmin(admin.ModelAdmin):
+class CrontabScheduleAdmin(ScheduleAdmin):
     """Admin class for CrontabSchedule."""
 
     list_display = ('__str__', 'human_readable')
+    fields = ('human_readable', 'minute', 'hour', 'day_of_month',
+              'month_of_year', 'day_of_week', 'timezone')
+    readonly_fields = ('human_readable', )
 
 
-admin.site.register(IntervalSchedule)
-admin.site.register(SolarSchedule)
+@admin.register(SolarSchedule)
+class SolarScheduleAdmin(ScheduleAdmin):
+    """Admin class for SolarSchedule."""
+    pass
+
+
+@admin.register(IntervalSchedule)
+class IntervalScheduleAdmin(ScheduleAdmin):
+    """Admin class for IntervalSchedule."""
+    pass

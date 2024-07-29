@@ -124,8 +124,7 @@ class DisableTasksTest(TestCase):
         cls.interval_schedule = IntervalSchedule.objects.create(every=10,
                                                                 period=DAYS)
 
-    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.'
-                '_message_user_about_update')
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.message_user')
     def test_disable_tasks(self, mock_message_user):
         PeriodicTask.objects.create(name='name1', task='task1', enabled=True,
                                     interval=self.interval_schedule)

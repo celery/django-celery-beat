@@ -3,30 +3,11 @@
 import codecs
 import os
 import re
-import sys
 
 import setuptools
-import setuptools.command.test
-
-try:
-    import platform
-    _pyimp = platform.python_implementation
-except (AttributeError, ImportError):
-    def _pyimp():
-        return 'Python'
 
 NAME = 'django-celery-beat'
 PACKAGE = 'django_celery_beat'
-
-E_UNSUPPORTED_PYTHON = f'{NAME} 1.0 requires %s %s or later!'
-
-PYIMP = _pyimp()
-PY38_OR_LESS = sys.version_info < (3, 8)
-PYPY_VERSION = getattr(sys, 'pypy_version_info', None)
-PYPY24_ATLEAST = PYPY_VERSION and PYPY_VERSION >= (2, 4)
-
-if PY38_OR_LESS and not PYPY24_ATLEAST:
-    raise Exception(E_UNSUPPORTED_PYTHON % (PYIMP, '3.8'))
 
 # -*- Classifiers -*-
 
@@ -47,6 +28,7 @@ classes = """
     Framework :: Django :: 4.1
     Framework :: Django :: 4.2
     Framework :: Django :: 5.0
+    Framework :: Django :: 5.1
     Operating System :: OS Independent
     Topic :: Communications
     Topic :: System :: Distributed Computing
@@ -119,19 +101,6 @@ else:
 
 # -*- %%% -*-
 
-
-class pytest(setuptools.command.test.test):
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to pytest')]
-
-    def initialize_options(self):
-        setuptools.command.test.test.initialize_options(self)
-        self.pytest_args = []
-
-    def run_tests(self):
-        import pytest
-        sys.exit(pytest.main(self.pytest_args))
-
-
 setuptools.setup(
     name=NAME,
     packages=setuptools.find_packages(exclude=[
@@ -147,9 +116,8 @@ setuptools.setup(
     url=meta['homepage'],
     platforms=['any'],
     license='BSD',
+    python_requires='>=3.8',
     install_requires=reqs('default.txt') + reqs('runtime.txt'),
-    tests_require=reqs('test.txt') + reqs('test-django.txt'),
-    cmdclass={'test': pytest},
     classifiers=classifiers,
     entry_points={
         'celery.beat_schedulers': [

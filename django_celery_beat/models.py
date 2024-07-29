@@ -317,10 +317,22 @@ class CrontabSchedule(models.Model):
 
     @property
     def human_readable(self):
+        try:
+            c = schedules.crontab(
+                minute=self.minute,
+                hour=self.hour,
+                day_of_week=self.day_of_week,
+                day_of_month=self.day_of_month,
+                month_of_year=self.month_of_year,
+            )
+            day_of_week = cronexp(",".join(str(day) for day in c.day_of_week))
+        except ValueError:
+            day_of_week = cronexp(self.day_of_week)
+
         cron_expression = '{} {} {} {} {}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
-            cronexp(self.day_of_week)
+            day_of_week
         )
         try:
             human_readable = get_description(cron_expression)
