@@ -252,7 +252,7 @@ To install using ``pip``:
 
 .. code-block:: bash
 
-        $ pip install -U django-celery-beat
+        $ pip install --upgrade django-celery-beat
 
 Downloading and installing from source
 --------------------------------------
@@ -264,14 +264,13 @@ You can install it by doing the following :
 
 .. code-block:: bash
 
+        $ python3 -m venv .venv
+        $ source .venv/bin/activate
+        $ pip install --upgrade build pip
         $ tar xvfz django-celery-beat-0.0.0.tar.gz
         $ cd django-celery-beat-0.0.0
-        $ python setup.py build
-        # python setup.py install
-
-The last command must be executed as a privileged user if
-you are not currently using a virtualenv.
-
+        $ python -m build
+        $ pip install --upgrade .
 
 After installation, add ``django_celery_beat`` to Django's settings module:
 
