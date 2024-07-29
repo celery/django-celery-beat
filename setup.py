@@ -6,7 +6,6 @@ import re
 import sys
 
 import setuptools
-import setuptools.command.test
 
 NAME = 'django-celery-beat'
 PACKAGE = 'django_celery_beat'
@@ -102,19 +101,6 @@ else:
     long_description_content_type = 'text/markdown'
 
 # -*- %%% -*-
-
-
-class pytest(setuptools.command.test.test):
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to pytest')]
-
-    def initialize_options(self):
-        setuptools.command.test.test.initialize_options(self)
-        self.pytest_args = []
-
-    def run_tests(self):
-        import pytest
-        sys.exit(pytest.main(self.pytest_args))
-
 
 setuptools.setup(
     name=NAME,
