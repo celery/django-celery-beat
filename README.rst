@@ -322,9 +322,9 @@ TZ Awareness:
 If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_TZ_AWARE=False`` in your settings file.
 
 
-.. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
+.. |build-status| image:: https://github.com/celery/django-celery-beat/actions/workflows/test.yml/badge.svg
     :alt: Build status
-    :target: https://travis-ci.org/celery/django-celery-beat
+    :target: https://github.com/celery/django-celery-beat/actions/workflows/test.yml
 
 .. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=master
     :target: https://codecov.io/github/celery/django-celery-beat?branch=master
