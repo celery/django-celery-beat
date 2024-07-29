@@ -65,7 +65,7 @@ bump-major:
 	bumpversion major
 
 release:
-	python -m pip install --upgrade build setuptools wheel twine
+	python -m pip install --upgrade build twine
 	python -m build
 	twine upload --sign --identity="$(PGPIDENT) dist/*"
 
