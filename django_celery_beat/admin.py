@@ -24,8 +24,8 @@ class TaskSelectWidget(Select):
 
     def tasks_as_choices(self):
         _ = self._modules
-        tasks = list(sorted(name for name in self.celery_app.tasks
-                            if not name.startswith('celery.')))
+        tasks = sorted(name for name in self.celery_app.tasks
+                       if not name.startswith('celery.'))
         return (('', ''), ) + tuple(zip(tasks, tasks))
 
     @property
