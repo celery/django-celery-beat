@@ -5,7 +5,7 @@ except ImportError:
     from backports.zoneinfo import available_timezones
 
 from datetime import timedelta
-
+import decimal
 import timezone_field
 from celery import current_app, schedules
 from cron_descriptor import (FormatException, MissingFieldException,
@@ -93,13 +93,13 @@ class SolarSchedule(models.Model):
         max_digits=9, decimal_places=6,
         verbose_name=_('Latitude'),
         help_text=_('Run the task when the event happens at this latitude'),
-        validators=[MinValueValidator(-90), MaxValueValidator(90)],
+        validators=[MinValueValidator(decimal.Decimal(-90)), MaxValueValidator(decimal.Decimal(90))],
     )
     longitude = models.DecimalField(
         max_digits=9, decimal_places=6,
         verbose_name=_('Longitude'),
         help_text=_('Run the task when the event happens at this longitude'),
-        validators=[MinValueValidator(-180), MaxValueValidator(180)],
+        validators=[MinValueValidator(decimal.Decimal(-180)), MaxValueValidator(decimal.Decimal(180))],
     )
 
     class Meta:
@@ -317,22 +317,10 @@ class CrontabSchedule(models.Model):
 
     @property
     def human_readable(self):
-        try:
-            c = schedules.crontab(
-                minute=self.minute,
-                hour=self.hour,
-                day_of_week=self.day_of_week,
-                day_of_month=self.day_of_month,
-                month_of_year=self.month_of_year,
-            )
-            day_of_week = cronexp(",".join(str(day) for day in c.day_of_week))
-        except ValueError:
-            day_of_week = cronexp(self.day_of_week)
-
         cron_expression = '{} {} {} {} {}'.format(
             cronexp(self.minute), cronexp(self.hour),
             cronexp(self.day_of_month), cronexp(self.month_of_year),
-            day_of_week
+            cronexp(self.day_of_week)
         )
         try:
             human_readable = get_description(cron_expression)
