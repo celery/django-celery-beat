@@ -36,3 +36,19 @@ repos:
     hooks:
       - id: django-upgrade
         args: [--target-version, "3.2"]
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.5.5
+    hooks:  # Format before linting
+      # - id: ruff-format
+      - id: ruff
+
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: 2.1.4
+    hooks:
+      - id: pyproject-fmt
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.18
+    hooks:
+      - id: validate-pyproject

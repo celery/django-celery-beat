@@ -104,7 +104,6 @@ class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
             "day_of_week": "*",
             "day_of_month": "*",
             "month_of_year": "*",
-            "day_of_week": "*",
         }
         schedule = schedules.crontab(hour="4")
         self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)

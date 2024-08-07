@@ -44,7 +44,7 @@ def test_cases_shortcuts(request, app, patching):
         request.instance.app = None
 
 
-@pytest.fixture
+@pytest.fixture()
 def patching(monkeypatch):
     def _patching(attr):
         monkeypatch.setattr(attr, MagicMock())
