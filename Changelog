@@ -34,6 +34,7 @@ Project infrastructure
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - Automate PyPI release from GitHub actions using trusted publisher (#749)
+- Simplify logic for minimum Python requirement (#765)
 - Add Ruff to pre-commit config (#778)
 
 .. _version-2.6.0:
