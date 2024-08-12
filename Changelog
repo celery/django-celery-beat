@@ -8,6 +8,24 @@ Next
 ====
 
 
+.. _version-2.7.0:
+
+2.7.0
+=====
+:release-date: !!! FIX_ME !!!
+:release-by: !!! FIX_ME !!!
+
+- Fix display of long name day of week in admin (#745)
+- Add ``PeriodicTaskInline` to the schedule admin to showing tasks using the schedule (#743)
+- Relaxed Django upper version to allow version 5.1 (#756)
+- Fix a few French translations (#760)
+- Add official support for Django 5.1 (#761)
+- Fix documentation about timezone changes (#769)
+- Remove usages of deprecated setuptools API ``setuptools.command.test`` (#771)
+- Clean up running of ``setup.py`` as it's deprecated (#737)
+- Automated PyPI release from GitHub actions using trusted publisher (#749)
+- Add Ruff to pre-commit config (#778)
+
 .. _version-2.6.0:
 
 2.6.0
