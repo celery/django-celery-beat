@@ -19,7 +19,7 @@ Added
 
 - Add official support for Django 5.1 (#761)
 - Relax Django upper version to allow version 5.1 (#756)
-- Add ``PeriodicTaskInline` to the schedule admin to showing tasks using the schedule (#743)
+- Add ``PeriodicTaskInline`` to the schedule admin to showing tasks using the schedule (#743)
 
 Fixed
 ~~~~~
