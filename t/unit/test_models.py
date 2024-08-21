@@ -160,7 +160,7 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
         assert str(schedule.clocked_time) == str(schedule)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class OneToOneRelTestCase(TestCase):
     """
     Make sure that when OneToOne relation Model changed,

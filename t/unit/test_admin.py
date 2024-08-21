@@ -11,7 +11,7 @@ from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
                                        SolarSchedule)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class ActionsTests(TestCase):
 
     @classmethod
@@ -76,7 +76,7 @@ class ActionsTests(TestCase):
         self.assertTrue(e3)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class ValidateUniqueTests(TestCase):
 
     def test_validate_unique_raises_if_schedule_not_set(self):
@@ -115,7 +115,7 @@ class ValidateUniqueTests(TestCase):
         PeriodicTask(clocked=ClockedSchedule(), one_off=True).validate_unique()
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class DisableTasksTest(TestCase):
 
     @classmethod

@@ -58,7 +58,7 @@ class TrackingScheduler(schedulers.DatabaseScheduler):
         schedulers.DatabaseScheduler.sync(self)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class SchedulerCase:
 
     def create_model_interval(self, schedule, **kwargs):
@@ -113,7 +113,7 @@ class SchedulerCase:
         return CrontabSchedule.objects.create()
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_ModelEntry(SchedulerCase):
     Entry = EntryTrackSave
 
@@ -292,11 +292,11 @@ class test_ModelEntry(SchedulerCase):
         assert delay == NEVER_CHECK_TIMEOUT
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -348,11 +348,11 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert self.m1.crontab is None
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -645,7 +645,7 @@ class test_DatabaseScheduler(SchedulerCase):
         assert s._heap[0][2].name == m1.name
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
@@ -802,7 +802,7 @@ class test_models(SchedulerCase):
         assert (nextcheck2 == NEVER_CHECK_TIMEOUT) and (isdue2 is True)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_model_PeriodicTasks(SchedulerCase):
 
     def test_track_changes(self):
@@ -818,9 +818,9 @@ class test_model_PeriodicTasks(SchedulerCase):
         assert y > x
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
