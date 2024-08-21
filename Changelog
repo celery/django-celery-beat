@@ -11,8 +11,8 @@ Next
 
 2.7.0
 =====
-:release-date: !!! FIX_ME !!!
-:release-by: !!! FIX_ME !!!
+:release-date: 2024-08-21
+:release-by: Christian Clauss (@cclauss)
 
 Added
 ~~~~~
@@ -42,7 +42,7 @@ Project infrastructure
 2.6.0
 =====
 :release-date: 2024-03-03
-:release-by: Christian Clauss
+:release-by: Christian Clauss (@cclauss)
 
 - Avoid crash when can not get human readable description (#648).
 - Update codeql-analysis.yml (#653).
