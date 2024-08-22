@@ -326,8 +326,8 @@ If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_
     :alt: Build status
     :target: https://github.com/celery/django-celery-beat/actions/workflows/test.yml
 
-.. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=master
-    :target: https://codecov.io/github/celery/django-celery-beat?branch=master
+.. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=main
+    :target: https://codecov.io/github/celery/django-celery-beat?branch=main
 
 .. |license| image:: https://img.shields.io/pypi/l/django-celery-beat.svg#foo
     :alt: BSD License
