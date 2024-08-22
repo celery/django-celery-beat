@@ -45,10 +45,16 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox tox-gh-actions
     - name: Test with tox
-      run: tox
+      run: |
+        if [ "${{ matrix.python-version }}" != "pypy-3.10" ]; then
+          tox -- --cov=django_celery_beat --cov-report=xml --no-cov-on-fail --cov-report term
+        else
+          tox
+        fi
       env:
         DJANGO: ${{ matrix.django-version }}
     - name: Upload coverage reports to Codecov
+      if: ${{ matrix.python-version != 'pypy-3.10' }}
       uses: codecov/codecov-action@v4
       with:
         fail_ci_if_error: true # optional (default = false)
