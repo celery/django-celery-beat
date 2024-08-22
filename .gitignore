@@ -20,6 +20,7 @@ Documentation/
 .project
 .pydevproject
 .idea/
+.vscode/
 .coverage
 celery/tests/cover/
 .ve*
