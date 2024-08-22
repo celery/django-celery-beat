@@ -131,21 +131,21 @@ lint.pylint.max-args = 8 # Default: 5
 [tool.coverage.run]
 branch = true
 cover_pylib = false
-include = ["*django_celery_beat/*"]
-omit = ["django_celery_beat.tests.*"]
+include = [ "*django_celery_beat/*" ]
+omit = [ "django_celery_beat.tests.*" ]
 
 [tool.coverage.report]
 exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "except ImportError:"
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "except ImportError:",
 ]
 omit = [
-    "*/python?.?/*",
-    "*/site-packages/*",
-    "*/pypy/*",
-    "*/.tox/*",
-    "*/docker/*",
-    "*/docs/*",
-    "*/test_*.py"
+  "*/python?.?/*",
+  "*/site-packages/*",
+  "*/pypy/*",
+  "*/.tox/*",
+  "*/docker/*",
+  "*/docs/*",
+  "*/test_*.py",
 ]
