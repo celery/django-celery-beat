@@ -325,7 +325,10 @@ class CrontabSchedule(models.Model):
                 day_of_month=self.day_of_month,
                 month_of_year=self.month_of_year,
             )
-            day_of_week = cronexp(",".join(str(day) for day in c.day_of_week))
+            if c.day_of_week and set(c.day_of_week) == set(range(7)):
+                day_of_week = "*"
+            else:
+                day_of_week = cronexp(",".join(map(str, c.day_of_week)))
         except ValueError:
             day_of_week = cronexp(self.day_of_week)
 
