@@ -38,7 +38,7 @@ repos:
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.2
+    rev: v0.6.3
     hooks:  # Format before linting
       # - id: ruff-format
       - id: ruff
