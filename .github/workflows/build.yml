@@ -12,13 +12,13 @@ on:
 jobs:
   build:
     name: Build distribution
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-4vcpu-ubuntu-2204
 
     steps:
     - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: useblacksmith/setup-python@v6
       with:
         python-version: "3.x"
     
@@ -36,7 +36,7 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-4vcpu-ubuntu-2204
 
     needs: [build]
 
@@ -61,7 +61,7 @@ jobs:
 
   github-release:
     name: Upload them to GitHub Release
-    runs-on: ubuntu-22.04
+    runs-on: blacksmith-4vcpu-ubuntu-2204
 
     needs: [publish-to-pypi]
 
