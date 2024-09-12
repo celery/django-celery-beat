@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2204
     strategy:
       fail-fast: false
       matrix: # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
@@ -37,7 +37,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: useblacksmith/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
