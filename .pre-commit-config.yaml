@@ -38,13 +38,13 @@ repos:
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.5
+    rev: v0.6.7
     hooks:  # Format before linting
       # - id: ruff-format
       - id: ruff
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: 2.2.3
+    rev: 2.2.4
     hooks:
       - id: pyproject-fmt
 
