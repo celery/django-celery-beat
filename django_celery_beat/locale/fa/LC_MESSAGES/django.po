@@ -1,0 +1,534 @@
+# Farsi translation strings for django-celery-beat.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <<hamidfzm@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-20 18:28+0000\n"
+"PO-Revision-Date: 2023-10-20 19:03+0000\n"
+"Last-Translator: Hamid FzM <hamidfzm@gmail.com>\n"
+"Language-Team: \n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: django_celery_beat/admin.py:60
+msgid "Task (registered)"
+msgstr "تسک (ثبت شده)"
+
+#: django_celery_beat/admin.py:64
+msgid "Task (custom)"
+msgstr "تسک (سفارشی)"
+
+#: django_celery_beat/admin.py:81
+msgid "Need name of task"
+msgstr "به نام تسک نیاز دارد"
+
+#: django_celery_beat/admin.py:87 django_celery_beat/models.py:614
+msgid "Only one can be set, in expires and expire_seconds"
+msgstr "بین expires و expire_seconds فقط یکی می تواند تنظیم شود"
+
+#: django_celery_beat/admin.py:97
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "امکان تجزیه JSON وجود ندارد: %s"
+
+#: django_celery_beat/admin.py:125
+msgid "Schedule"
+msgstr "برنامه‌ریزی"
+
+#: django_celery_beat/admin.py:130
+msgid "Arguments"
+msgstr "آرگومان‌ها"
+
+#: django_celery_beat/admin.py:134
+msgid "Execution Options"
+msgstr "گزینه‌های اجرا"
+
+#: django_celery_beat/admin.py:179
+#, python-brace-format
+msgid "{0} task{1} {2} successfully {3}"
+msgstr "{0} تسک{1} {2} با موفقیت {3}"
+
+#: django_celery_beat/admin.py:182 django_celery_beat/admin.py:249
+msgid "was,were"
+msgstr "بود,بودند"
+
+#: django_celery_beat/admin.py:191
+msgid "Enable selected tasks"
+msgstr "فعال کردن تسک‌های انتخاب شده"
+
+#: django_celery_beat/admin.py:197
+msgid "Disable selected tasks"
+msgstr "غیرفعال کردن تسک‌های انتخاب شده"
+
+#: django_celery_beat/admin.py:209
+msgid "Toggle activity of selected tasks"
+msgstr "تغییر فعالیت تسک‌های انتخاب شده"
+
+#: django_celery_beat/admin.py:230
+#, fuzzy, python-brace-format
+#| msgid "task \"{0}\" not found"
+msgid "task \"{not_found_task_name}\" not found"
+msgstr "تسک \"{not_found_task_name}\" یافت نشد"
+
+#: django_celery_beat/admin.py:246
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} تسک{1} {2} با موفقیت اجرا شد"
+
+#: django_celery_beat/admin.py:252
+msgid "Run selected tasks"
+msgstr "اجرای تسک‌های انتخاب شده"
+
+#: django_celery_beat/apps.py:13
+msgid "Periodic Tasks"
+msgstr "تسک‌های دوره‌ای"
+
+#: django_celery_beat/models.py:31
+msgid "Days"
+msgstr "روزها"
+
+#: django_celery_beat/models.py:32
+msgid "Hours"
+msgstr "ساعت‌ها"
+
+#: django_celery_beat/models.py:33
+msgid "Minutes"
+msgstr "دقیقه‌ها"
+
+#: django_celery_beat/models.py:34
+msgid "Seconds"
+msgstr "ثانیه‌ها"
+
+#: django_celery_beat/models.py:35
+msgid "Microseconds"
+msgstr "میکروثانیه‌ها"
+
+#: django_celery_beat/models.py:39
+msgid "Day"
+msgstr "روز"
+
+#: django_celery_beat/models.py:40
+msgid "Hour"
+msgstr "ساعت"
+
+#: django_celery_beat/models.py:41
+msgid "Minute"
+msgstr "دقیقه"
+
+#: django_celery_beat/models.py:42
+msgid "Second"
+msgstr "ثانیه"
+
+#: django_celery_beat/models.py:43
+msgid "Microsecond"
+msgstr "میکروثانیه"
+
+#: django_celery_beat/models.py:47
+msgid "Astronomical dawn"
+msgstr "طلوع نجومی"
+
+#: django_celery_beat/models.py:48
+msgid "Civil dawn"
+msgstr "طلوع مدنی"
+
+#: django_celery_beat/models.py:49
+msgid "Nautical dawn"
+msgstr "طلوع دریایی"
+
+#: django_celery_beat/models.py:50
+msgid "Astronomical dusk"
+msgstr "غروب نجومی"
+
+#: django_celery_beat/models.py:51
+msgid "Civil dusk"
+msgstr "غروب مدنی"
+
+#: django_celery_beat/models.py:52
+msgid "Nautical dusk"
+msgstr "غروب دریایی"
+
+#: django_celery_beat/models.py:53
+msgid "Solar noon"
+msgstr "ظهر خورشیدی"
+
+#: django_celery_beat/models.py:54
+msgid "Sunrise"
+msgstr "طلوع خورشیدی"
+
+#: django_celery_beat/models.py:55
+msgid "Sunset"
+msgstr "غروب خورشیدی"
+
+#: django_celery_beat/models.py:89
+msgid "Solar Event"
+msgstr "رویداد خورشیدی"
+
+#: django_celery_beat/models.py:90
+msgid "The type of solar event when the job should run"
+msgstr "نوع رویداد خورشیدی زمانی که کار باید اجرا شود"
+
+#: django_celery_beat/models.py:94
+msgid "Latitude"
+msgstr "عرض جغرافیایی"
+
+#: django_celery_beat/models.py:95
+msgid "Run the task when the event happens at this latitude"
+msgstr "هنگامی که رویداد در این عرض جغرافیایی اتفاق می افتد، تسک را اجرا کن"
+
+#: django_celery_beat/models.py:100
+msgid "Longitude"
+msgstr "طول جغرافیایی"
+
+#: django_celery_beat/models.py:101
+msgid "Run the task when the event happens at this longitude"
+msgstr "هنگامی که رویداد در این طول جغرافیایی اتفاق می افتد، تسک را اجرا کن"
+
+#: django_celery_beat/models.py:108
+msgid "solar event"
+msgstr "رویداد خورشیدی"
+
+#: django_celery_beat/models.py:109
+msgid "solar events"
+msgstr "رویدادهای خورشیدی"
+
+#: django_celery_beat/models.py:159
+msgid "Number of Periods"
+msgstr "تعداد دوره‌ها"
+
+#: django_celery_beat/models.py:160
+msgid "Number of interval periods to wait before running the task again"
+msgstr "تعداد بازه‌های زمانی برای انتظار قبل از اجرای دوباره تسک"
+
+#: django_celery_beat/models.py:166
+msgid "Interval Period"
+msgstr "دوره فاصله زمانی"
+
+#: django_celery_beat/models.py:167
+msgid "The type of period between task runs (Example: days)"
+msgstr "نوع دوره بین اجرای تسک (مثال: روزها)"
+
+#: django_celery_beat/models.py:173
+msgid "interval"
+msgstr "فاصله زمانی"
+
+#: django_celery_beat/models.py:174
+msgid "intervals"
+msgstr "فاصله‌های زمانی"
+
+#: django_celery_beat/models.py:201
+msgid "every {}"
+msgstr "هر {}"
+
+#: django_celery_beat/models.py:206
+msgid "every {} {}"
+msgstr "هر {} {}"
+
+#: django_celery_beat/models.py:217
+msgid "Clock Time"
+msgstr "زمان ساعت"
+
+#: django_celery_beat/models.py:218
+msgid "Run the task at clocked time"
+msgstr "تسک را در زمان مشخص شده اجرا کن"
+
+#: django_celery_beat/models.py:224 django_celery_beat/models.py:225
+msgid "clocked"
+msgstr "ساعت مشخص شده"
+
+#: django_celery_beat/models.py:265
+msgid "Minute(s)"
+msgstr "دقیقه‌(ها)"
+
+#: django_celery_beat/models.py:267
+msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
+msgstr ""
+"کرون دقیقه‌هایی که باید اجرا شوند. برای \"همه\" از \"*\" استفاده کنید. (مثال: "
+"\"0,30\")"
+
+#: django_celery_beat/models.py:272
+msgid "Hour(s)"
+msgstr "ساعت‌(ها)"
+
+#: django_celery_beat/models.py:274
+msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
+msgstr ""
+"کرون ساعت‌هایی که باید اجرا شوند. برای \"همه\" از \"*\" استفاده کنید. (مثال: "
+"\"8,20\")"
+
+#: django_celery_beat/models.py:279
+msgid "Day(s) Of The Week"
+msgstr "روز(های) هفته"
+
+#: django_celery_beat/models.py:281
+#, fuzzy
+#| msgid ""
+#| "Cron Days Of The Week to Run. Use \"*\" for \"all\". (Example: \"0,5\")"
+msgid ""
+"Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, "
+"Monday is 1. (Example: \"0,5\")"
+msgstr ""
+"کرون روزهای هفته‌ای که باید اجرا شوند. برای \"همه\" از \"*\" استفاده کنید. "
+"یکشنبه 0 یا 7 است، دوشنبه 1. (مثال: \"0,5\")"
+
+#: django_celery_beat/models.py:287
+msgid "Day(s) Of The Month"
+msgstr "روز(های) ماه"
+
+#: django_celery_beat/models.py:289
+msgid ""
+"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr ""
+"کرون روزهای ماهیانه که باید اجرا شوند. برای \"همه\" از \"*\" استفاده کنید. "
+"(مثال: \"1,15\")"
+
+#: django_celery_beat/models.py:295
+msgid "Month(s) Of The Year"
+msgstr "ماه(های) سال"
+
+#: django_celery_beat/models.py:297
+#, fuzzy
+#| msgid ""
+#| "Cron Months Of The Year to Run. Use \"*\" for \"all\". (Example: \"0,6\")"
+msgid ""
+"Cron Months (1-12) Of The Year to Run. Use \"*\" for \"all\". (Example: "
+"\"1,12\")"
+msgstr ""
+"کرون ماه‌های سالی که باید اجرا شوند. برای \"همه\" از \"*\" استفاده کنید. "
+"(مثال: \"0,6\")"
+
+#: django_celery_beat/models.py:305
+msgid "Cron Timezone"
+msgstr "منطقه زمانی کرون"
+
+#: django_celery_beat/models.py:307
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
+msgstr "منطقه زمانی برای اجرای برنامه زمانی کرون. پیش فرض UTC است."
+
+#: django_celery_beat/models.py:313
+msgid "crontab"
+msgstr "کرون‌تب"
+
+#: django_celery_beat/models.py:314
+msgid "crontabs"
+msgstr "کرون‌تب‌ها"
+
+#: django_celery_beat/models.py:413
+msgid "Name"
+msgstr "نام"
+
+#: django_celery_beat/models.py:414
+msgid "Short Description For This Task"
+msgstr "توضیحات کوتاه برای این تسک"
+
+#: django_celery_beat/models.py:419
+msgid ""
+"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
+"import_contacts\")"
+msgstr "نام تسک سلری که باید اجرا شود. (مثال: \"proj.tasks.import_contacts\")"
+
+#: django_celery_beat/models.py:427
+msgid "Interval Schedule"
+msgstr "فاصله زمانی برنامه‌ریزی"
+
+#: django_celery_beat/models.py:428
+msgid ""
+"Interval Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"فاصله زمانی برنامه‌ریزی برای اجرای تسک. فقط یک نوع برنامه‌ریزی را تنظیم کنید، "
+"باقی را خالی بگذارید."
+
+#: django_celery_beat/models.py:433
+msgid "Crontab Schedule"
+msgstr "برنامه‌ریزی کرون‌تب"
+
+#: django_celery_beat/models.py:434
+msgid ""
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"برنامه‌ریزی کرون‌تب برای اجرای تسک. فقط یک نوع برنامه‌ریزی را تنظیم کنید، باقی "
+"را خالی بگذارید."
+
+#: django_celery_beat/models.py:439
+msgid "Solar Schedule"
+msgstr "برنامه‌ریزی خورشیدی"
+
+#: django_celery_beat/models.py:440
+msgid ""
+"Solar Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"برنامه‌ریزی خورشیدی برای اجرای تسک. فقط یک نوع برنامه‌ریزی را تنظیم کنید، باقی "
+"را خالی بگذارید."
+
+#: django_celery_beat/models.py:445
+msgid "Clocked Schedule"
+msgstr "برنامه‌ریزی ساعتی"
+
+#: django_celery_beat/models.py:446
+msgid ""
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"برنامه‌ریزی ساعتی برای اجرای تسک. فقط یک نوع برنامه‌ریزی را تنظیم کنید، باقی "
+"را خالی بگذارید."
+
+#: django_celery_beat/models.py:452
+msgid "Positional Arguments"
+msgstr "آرگومان‌های موقعیتی"
+
+#: django_celery_beat/models.py:454
+msgid "JSON encoded positional arguments (Example: [\"arg1\", \"arg2\"])"
+msgstr "آرگومان‌های موقعیتی اینکود شده JSON (مثال: [\"arg1\", \"arg2\"])"
+
+#: django_celery_beat/models.py:459
+msgid "Keyword Arguments"
+msgstr "آرگومان‌های کلیدواژه‌ای"
+
+#: django_celery_beat/models.py:461
+msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
+msgstr ""
+"آرگومان‌های کلیدواژه‌ای اینکود شده JSON (مثال: {\"argument\": \"value\"})"
+
+#: django_celery_beat/models.py:467
+msgid "Queue Override"
+msgstr "تغییر صف"
+
+#: django_celery_beat/models.py:469
+msgid "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
+msgstr "صف تعریف شده در CELERY_TASK_QUEUES. برای صف پیش فرض، خالی بگذارید."
+
+#: django_celery_beat/models.py:478
+msgid "Exchange"
+msgstr "تبادل"
+
+#: django_celery_beat/models.py:479
+msgid "Override Exchange for low-level AMQP routing"
+msgstr "تغییر تبادل برای مسیریابی AMQP سطح پایین"
+
+#: django_celery_beat/models.py:483
+msgid "Routing Key"
+msgstr "کلید مسیریابی"
+
+#: django_celery_beat/models.py:484
+msgid "Override Routing Key for low-level AMQP routing"
+msgstr "تغییر کلید مسیریابی برای مسیریابی AMQP سطح پایین"
+
+#: django_celery_beat/models.py:488
+msgid "AMQP Message Headers"
+msgstr "هدرهای پیام AMQP"
+
+#: django_celery_beat/models.py:489
+msgid "JSON encoded message headers for the AMQP message."
+msgstr "پیام اینکود شده JSON برای پیام AMQP."
+
+#: django_celery_beat/models.py:495
+msgid "Priority"
+msgstr "اولویت"
+
+#: django_celery_beat/models.py:497
+msgid ""
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
+"reversed, 0 is highest)."
+msgstr ""
+"عدد اولویت بین 0 و 255. پشتیبانی از: RabbitMQ, Redis (اولویت معکوس، 0 "
+"بالاترین است)."
+
+#: django_celery_beat/models.py:502
+msgid "Expires Datetime"
+msgstr "تاریخ انقضا"
+
+#: django_celery_beat/models.py:504
+msgid ""
+"Datetime after which the schedule will no longer trigger the task to run"
+msgstr "تاریخی که برنامه‌ریزی دیگر تسک را آغاز نمی کند"
+
+#: django_celery_beat/models.py:509
+msgid "Expires timedelta with seconds"
+msgstr "مدت زمان به ثانیه که منقضی می شود"
+
+#: django_celery_beat/models.py:511
+msgid ""
+"Timedelta with seconds which the schedule will no longer trigger the task to "
+"run"
+msgstr "مدت زمان به ثانیه که برنامه‌ریزی تسک را دیگر آغاز نمی کند"
+
+#: django_celery_beat/models.py:517
+msgid "One-off Task"
+msgstr "تسک یک مرتبه‌ای"
+
+#: django_celery_beat/models.py:519
+msgid "If True, the schedule will only run the task a single time"
+msgstr "اگر درست باشد، برنامه‌ریزی فقط یک بار تسک را اجرا می کند"
+
+#: django_celery_beat/models.py:523
+msgid "Start Datetime"
+msgstr "تاریخ شروع"
+
+#: django_celery_beat/models.py:525
+msgid "Datetime when the schedule should begin triggering the task to run"
+msgstr "تاریخی که برنامه‌ریزی باید شروع به اجرای تسک کند"
+
+#: django_celery_beat/models.py:530
+msgid "Enabled"
+msgstr "فعال"
+
+#: django_celery_beat/models.py:531
+msgid "Set to False to disable the schedule"
+msgstr "برای غیرفعال کردن برنامه‌ریزی، روی نادرست تنظیم کنید"
+
+#: django_celery_beat/models.py:536
+msgid "Last Run Datetime"
+msgstr "آخرین تاریخ اجرا"
+
+#: django_celery_beat/models.py:538
+msgid ""
+"Datetime that the schedule last triggered the task to run. Reset to None if "
+"enabled is set to False."
+msgstr ""
+"تاریخی که برنامه‌ریزی آخرین بار تسک را آغاز کرده است. اگر فعال را روی نادرست "
+"تنظیم کنید، به None تنظیم می شود."
+
+#: django_celery_beat/models.py:543
+msgid "Total Run Count"
+msgstr "تعداد کل اجرا"
+
+#: django_celery_beat/models.py:545
+msgid "Running count of how many times the schedule has triggered the task"
+msgstr "تعداد دفعاتی که برنامه‌ریزی تسک را آغاز کرده است"
+
+#: django_celery_beat/models.py:550
+msgid "Last Modified"
+msgstr "آخرین ویرایش"
+
+#: django_celery_beat/models.py:551
+msgid "Datetime that this PeriodicTask was last modified"
+msgstr "تاریخی که این تسک دوره‌ای آخرین بار ویرایش شده است"
+
+#: django_celery_beat/models.py:555
+msgid "Description"
+msgstr "توضیحات"
+
+#: django_celery_beat/models.py:557
+msgid "Detailed description about the details of this Periodic Task"
+msgstr "توضیحات دقیق در مورد این تسک دوره‌ای"
+
+#: django_celery_beat/models.py:566
+msgid "periodic task"
+msgstr "تسک دوره‌ای"
+
+#: django_celery_beat/models.py:567
+msgid "periodic tasks"
+msgstr "تسک‌های دوره‌ای"
+
+#: django_celery_beat/templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr "خانه"
