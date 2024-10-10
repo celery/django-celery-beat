@@ -77,8 +77,9 @@ class ModelEntry(ScheduleEntry):
         if getattr(model, 'expires_', None):
             self.options['expires'] = getattr(model, 'expires_')
 
-        self.options['headers'] = loads(model.headers or '{}')
-        self.options['periodic_task_name'] = model.name
+        headers = loads(model.headers or '{}')
+        headers['periodic_task_name'] = model.name
+        self.options['headers'] = headers
 
         self.total_run_count = model.total_run_count
         self.model = model
