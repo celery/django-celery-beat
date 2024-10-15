@@ -948,13 +948,13 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         queued_message = self.request._messages._queued_messages[0].message
         assert queued_message == '2 tasks were successfully run'
 
-
     @pytest.mark.timeout(5)
     def test_run_task_headers(self, monkeypatch):
         def mock_apply_async(*args, **kwargs):
             self.captured_headers = kwargs.get('headers', {})
 
-        monkeypatch.setattr('celery.app.task.Task.apply_async', mock_apply_async)
+        monkeypatch.setattr('celery.app.task.Task.apply_async',
+                            mock_apply_async)
         ma = PeriodicTaskAdmin(PeriodicTask, self.site)
         self.request = self.patch_request(self.request_factory.get('/'))
         ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
