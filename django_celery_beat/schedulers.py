@@ -110,7 +110,6 @@ class ModelEntry(ScheduleEntry):
             now = self._default_now()
             if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
                 now = maybe_make_aware(self._default_now())
-
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
@@ -118,6 +117,14 @@ class ModelEntry(ScheduleEntry):
                     (self.model.start_time - now).total_seconds()
                 )
                 return schedules.schedstate(False, delay)
+
+        # EXPIRED TASK: Disable task when expired
+        if self.model.expires is not None:
+            now = self._default_now()
+            if now >= self.model.expires:
+                self._disable(self.model)
+                # Don't recheck
+                return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # ONE OFF TASK: Disable one off tasks after they've ran once
         if self.model.one_off and self.model.enabled \

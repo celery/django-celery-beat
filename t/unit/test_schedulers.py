@@ -291,6 +291,35 @@ class test_ModelEntry(SchedulerCase):
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
 
+    def test_task_with_expires(self):
+        interval = 10
+        right_now = self.app.now()
+        one_second_later = right_now + timedelta(seconds=1)
+        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                       start_time=right_now,
+                                       expires=one_second_later)
+        e = self.Entry(m, app=self.app)
+        isdue, delay = e.is_due()
+        assert isdue
+        assert delay == interval
+
+        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                        start_time=right_now,
+                                        expires=right_now)
+        e2 = self.Entry(m2, app=self.app)
+        isdue, delay = e2.is_due()
+        assert not isdue
+        assert delay == NEVER_CHECK_TIMEOUT
+
+        one_second_ago = right_now - timedelta(seconds=1)
+        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
+                                        start_time=right_now,
+                                        expires=one_second_ago)
+        e2 = self.Entry(m2, app=self.app)
+        isdue, delay = e2.is_due()
+        assert not isdue
+        assert delay == NEVER_CHECK_TIMEOUT
+
 
 @pytest.mark.django_db
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):
