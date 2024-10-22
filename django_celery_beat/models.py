@@ -146,6 +146,8 @@ class IntervalSchedule(models.Model):
     >>> every=2, period=DAYS
     """
 
+    _schedule_cls_ = schedules.schedule
+
     DAYS = DAYS
     HOURS = HOURS
     MINUTES = MINUTES
@@ -176,7 +178,7 @@ class IntervalSchedule(models.Model):
 
     @property
     def schedule(self):
-        return schedules.schedule(
+        return self._schedule_cls_(
             timedelta(**{self.period: self.every}),
             nowfun=lambda: make_aware(now())
         )
@@ -185,7 +187,9 @@ class IntervalSchedule(models.Model):
     def from_schedule(cls, schedule, period=SECONDS):
         every = max(schedule.run_every.total_seconds(), 0)
         try:
-            return cls.objects.get(every=every, period=period)
+            obj = cls.objects.get(every=every, period=period)
+            obj._schedule_cls_ = type(schedule)
+            return obj
         except cls.DoesNotExist:
             return cls(every=every, period=period)
         except MultipleObjectsReturned:
