@@ -78,6 +78,7 @@ class ModelEntry(ScheduleEntry):
             self.options['expires'] = getattr(model, 'expires_')
 
         self.options['headers'] = loads(model.headers or '{}')
+        self.options['headers']['periodic_task_name'] = model.name
         self.options['periodic_task_name'] = model.name
 
         self.total_run_count = model.total_run_count
