@@ -215,6 +215,55 @@ class test_ModelEntry(SchedulerCase):
 
     @override_settings(
         USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False
+    )
+    @pytest.mark.usefixtures('depends_on_current_app')
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_and_model_last_run_at_when_model_changed(self, monkeypatch):
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
+        assert self.app.timezone.key == 'Europe/Berlin'
+        # simulate last_run_at from DB - not TZ aware but localtime
+        right_now = datetime.utcnow()
+        # make sure to use fixed date time
+        monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
+        m = self.create_model_crontab(
+            crontab(minute='*/10')
+        )
+        m.save()
+        e = self.Entry(m, app=self.app)
+        e.save()
+        m.refresh_from_db()
+
+        # The just created model has no value for date_changed
+        # so last_run_at should be set to the Entry._default_now()
+        assert m.last_run_at == e.last_run_at
+
+        # If the model has been updated and the entry.last_run_at is None,
+        # entry.last_run_at should be set to the value of model.date_changed.
+        # see #717
+        m2 = self.create_model_crontab(
+            crontab(minute='*/10')
+        )
+        m2.save()
+        m2.refresh_from_db()
+        assert m2.date_changed is not None
+        e2 = self.Entry(m2, app=self.app)
+        e2.save()
+        assert m2.last_run_at == m2.date_changed
+
+        if old_tz is not None:
+            os.environ["TZ"] = old_tz
+        else:
+            del os.environ["TZ"]
+        if hasattr(time, "tzset"):
+            time.tzset()
+
+    @override_settings(
+        USE_TZ=False,
         DJANGO_CELERY_BEAT_TZ_AWARE=False,
         TIME_ZONE="Europe/Berlin",
         CELERY_TIMEZONE="America/New_York"
