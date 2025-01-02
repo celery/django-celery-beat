@@ -11,14 +11,16 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
+from django.db.models import Q
 from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .clockedschedule import clocked
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
                      PeriodicTask, PeriodicTasks, SolarSchedule)
-from .utils import NEVER_CHECK_TIMEOUT
+from .utils import NEVER_CHECK_TIMEOUT, now
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -251,7 +253,13 @@ class DatabaseScheduler(Scheduler):
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
-        for model in self.Model.objects.enabled():
+        next_five_minutes = now() + datetime.timedelta(minutes=5)
+        exclude_clock_tasks_query = Q(clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes)
+        exclude_hours = self.get_excluded_hours_for_crontab_tasks()
+        exclude_cron_tasks_query = Q(crontab__isnull=False, crontab__hour__in=exclude_hours)
+        for model in self.Model.objects.enabled().exclude(
+            exclude_clock_tasks_query | exclude_cron_tasks_query
+        ):
             try:
                 s[model.name] = self.Entry(model, app=self.app)
             except ValueError:
@@ -377,3 +385,28 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+    @staticmethod
+    def get_excluded_hours_for_crontab_tasks():
+        # Generate the full list of allowed hours for crontabs
+        allowed_crontab_hours = [
+            str(hour).zfill(2) for hour in range(24)
+        ] + [
+            str(hour) for hour in range(10)
+        ]
+
+        # Get current, next, and previous hours
+        current_time = timezone.localtime(now())
+        current_hour = current_time.hour
+        next_hour = (current_hour + 1) % 24
+        previous_hour = (current_hour - 1) % 24
+
+        # Create a set of hours to remove (both padded and non-padded versions)
+        hours_to_remove = {
+            str(current_hour).zfill(2), str(current_hour),
+            str(next_hour).zfill(2), str(next_hour),
+            str(previous_hour).zfill(2), str(previous_hour),
+        }
+
+        # Filter out 'should be considered' hours
+        return [hour for hour in allowed_crontab_hours if hour not in hours_to_remove]
