@@ -254,9 +254,13 @@ class DatabaseScheduler(Scheduler):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
         next_five_minutes = now() + datetime.timedelta(minutes=5)
-        exclude_clock_tasks_query = Q(clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes)
+        exclude_clock_tasks_query = Q(
+            clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes
+        )
         exclude_hours = self.get_excluded_hours_for_crontab_tasks()
-        exclude_cron_tasks_query = Q(crontab__isnull=False, crontab__hour__in=exclude_hours)
+        exclude_cron_tasks_query = Q(
+            crontab__isnull=False, crontab__hour__in=exclude_hours
+        )
         for model in self.Model.objects.enabled().exclude(
             exclude_clock_tasks_query | exclude_cron_tasks_query
         ):
@@ -409,4 +413,7 @@ class DatabaseScheduler(Scheduler):
         }
 
         # Filter out 'should be considered' hours
-        return [hour for hour in allowed_crontab_hours if hour not in hours_to_remove]
+        return [
+            hour for hour in allowed_crontab_hours
+            if hour not in hours_to_remove
+        ]
