@@ -455,12 +455,13 @@ class test_DatabaseScheduler(SchedulerCase):
             solar('solar_noon', 48.06, 12.86))
         self.m4.save()
         self.m4.refresh_from_db()
-
-        dt_aware = make_aware(datetime(day=26,
-                                       month=7,
-                                       year=3000,
-                                       hour=1,
-                                       minute=0))  # future time
+        now = datetime.now()
+        two_minutes_later = now + timedelta(minutes=2)
+        dt_aware = make_aware(datetime(day=two_minutes_later.day,
+                                       month=two_minutes_later.month,
+                                       year=two_minutes_later.year,
+                                       hour=two_minutes_later.hour,
+                                       minute=two_minutes_later.minute))  # future time
         self.m6 = self.create_model_clocked(
             clocked(dt_aware)
         )

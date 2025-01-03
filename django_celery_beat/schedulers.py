@@ -410,6 +410,7 @@ class DatabaseScheduler(Scheduler):
             str(current_hour).zfill(2), str(current_hour),
             str(next_hour).zfill(2), str(next_hour),
             str(previous_hour).zfill(2), str(previous_hour),
+            str(4), "04",  # celery's default cleanup task
         }
 
         # Filter out 'should be considered' hours
