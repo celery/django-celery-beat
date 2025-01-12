@@ -249,11 +249,18 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             return
 
         task_ids = [
-            task.apply_async(args=args, kwargs=kwargs, queue=queue,
-                             periodic_task_name=periodic_task_name)
+            task.apply_async(
+                args=args,
+                kwargs=kwargs,
+                queue=queue,
+                headers={'periodic_task_name': periodic_task_name}
+            )
             if queue and len(queue)
-            else task.apply_async(args=args, kwargs=kwargs,
-                                  periodic_task_name=periodic_task_name)
+            else task.apply_async(
+                args=args,
+                kwargs=kwargs,
+                headers={'periodic_task_name': periodic_task_name}
+            )
             for task, args, kwargs, queue, periodic_task_name in tasks
         ]
         tasks_run = len(task_ids)
