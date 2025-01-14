@@ -1,5 +1,5 @@
 =====================================================================
- Database-backed Periodic Tasks
+ Database-backend Periodic Tasks
 =====================================================================
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
