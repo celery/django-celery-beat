@@ -456,22 +456,67 @@ class test_DatabaseScheduler(SchedulerCase):
         self.m4.save()
         self.m4.refresh_from_db()
 
-        dt_aware = make_aware(datetime(day=26,
-                                       month=7,
-                                       year=3000,
-                                       hour=1,
-                                       minute=0))  # future time
+        # disabled, should not be in schedule
+        self.m5 = self.create_model_interval(
+            schedule(timedelta(seconds=1)))
+        self.m5.enabled = False
+        self.m5.save()
+
+        # near future time (should be in schedule)
+        now = datetime.now()
+        two_minutes_later = now + timedelta(minutes=2)
+        dt_aware = make_aware(
+            datetime(
+                day=two_minutes_later.day,
+                month=two_minutes_later.month,
+                year=two_minutes_later.year,
+                hour=two_minutes_later.hour,
+                minute=two_minutes_later.minute
+            )
+        )
         self.m6 = self.create_model_clocked(
             clocked(dt_aware)
         )
         self.m6.save()
         self.m6.refresh_from_db()
 
-        # disabled, should not be in schedule
-        m5 = self.create_model_interval(
-            schedule(timedelta(seconds=1)))
-        m5.enabled = False
-        m5.save()
+        # distant future time (should not be in schedule)
+        ten_minutes_later = now + timedelta(minutes=10)
+        distant_dt_aware = make_aware(
+            datetime(
+                day=ten_minutes_later.day,
+                month=ten_minutes_later.month,
+                year=ten_minutes_later.year,
+                hour=ten_minutes_later.hour,
+                minute=ten_minutes_later.minute
+            )
+        )
+        self.m7 = self.create_model_clocked(
+            clocked(distant_dt_aware)
+        )
+        self.m7.save()
+        self.m7.refresh_from_db()
+
+        now_hour = timezone.localtime(timezone.now()).hour
+        # near future time (should be in schedule)
+        self.m8 = self.create_model_crontab(
+            crontab(hour=str(now_hour)))
+        self.m8.save()
+        self.m8.refresh_from_db()
+        self.m9 = self.create_model_crontab(
+            crontab(hour=str((now_hour + 1) % 24)))
+        self.m9.save()
+        self.m9.refresh_from_db()
+        self.m10 = self.create_model_crontab(
+            crontab(hour=str((now_hour - 1) % 24)))
+        self.m10.save()
+        self.m10.refresh_from_db()
+
+        # distant future time (should not be in schedule)
+        self.m11 = self.create_model_crontab(
+            crontab(hour=str((now_hour + 2) % 24)))
+        self.m11.save()
+        self.m11.refresh_from_db()
 
         self.s = self.Scheduler(app=self.app)
 
@@ -483,10 +528,20 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_all_as_schedule(self):
         sched = self.s.schedule
         assert sched
-        assert len(sched) == 6
+        assert len(sched) == 9
         assert 'celery.backend_cleanup' in sched
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
+
+    def test_get_excluded_hours_for_crontab_tasks(self):
+        now_hour = timezone.localtime(timezone.now()).hour
+        excluded_hours = self.s.get_excluded_hours_for_crontab_tasks()
+
+        assert str(now_hour) not in excluded_hours
+        assert str((now_hour + 1) % 24) not in excluded_hours
+        assert str((now_hour - 1) % 24) not in excluded_hours
+        assert str((now_hour + 2) % 24) in excluded_hours
+        assert str((now_hour - 2) % 24) in excluded_hours
 
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
