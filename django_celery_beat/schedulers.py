@@ -117,7 +117,8 @@ class ModelEntry(ScheduleEntry):
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
 
-                next_time_run = self.schedule.remaining_estimate(self.model.start_time) + self.model.start_time
+                next_time_run = self.schedule.remaining_estimate(
+                    self.model.start_time) + self.model.start_time
                 delay = math.ceil((next_time_run - now).total_seconds())
 
                 return schedules.schedstate(False, delay)
