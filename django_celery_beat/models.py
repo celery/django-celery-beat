@@ -663,3 +663,11 @@ class PeriodicTask(models.Model):
     @property
     def schedule(self):
         return self.scheduler.schedule
+
+    @property
+    def due_start_time(self):
+        if self.crontab:
+            _, delay = self.scheduler.schedule.is_due(self.start_time)
+            return self.start_time + timedelta(seconds=delay)
+        else:
+            return self.start_time
