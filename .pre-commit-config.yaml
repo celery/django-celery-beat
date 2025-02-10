@@ -32,13 +32,13 @@ repos:
       - id: isort
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.22.2
+    rev: 1.23.1
     hooks:
       - id: django-upgrade
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.4
+    rev: v0.9.6
     hooks:  # Format before linting
       # - id: ruff-format
       - id: ruff
