@@ -390,6 +390,13 @@ class CrontabSchedule(models.Model):
         except MultipleObjectsReturned:
             return cls.objects.filter(**spec).first()
 
+    def due_start_time(self, start_time):
+        start, ends_in, now = self.schedule.remaining_delta(start_time)
+        if str(start.tzinfo) == str(
+            now.tzinfo) and now.utcoffset() != start.utcoffset():
+            start = start.replace(tzinfo=now.tzinfo)
+        return start + ends_in
+
 
 class PeriodicTasks(models.Model):
     """Helper table for tracking updates to periodic tasks.
@@ -667,7 +674,6 @@ class PeriodicTask(models.Model):
     @property
     def due_start_time(self):
         if self.crontab:
-            _, delay = self.scheduler.schedule.is_due(self.start_time)
-            return self.start_time + timedelta(seconds=delay)
+            return self.crontab.due_start_time(self.start_time)
         else:
             return self.start_time

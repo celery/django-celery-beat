@@ -777,6 +777,75 @@ class test_DatabaseScheduler(SchedulerCase):
         assert s._heap[0]
         assert s._heap[0][2].name == m1.name
 
+    def test_crontab_with_start_time_between_now_and_crontab(self, app):
+        now = app.now()
+
+        delay_minutes = 2
+
+        test_start_time = now + timedelta(minutes=delay_minutes)
+
+        crontab_time = test_start_time + timedelta(minutes=delay_minutes)
+
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+
+        is_due, next_check = entry.is_due()
+
+        expected_delay = 2 * delay_minutes * 60
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
+    def test_crontab_with_start_time_after_crontab(self, app):
+        now = app.now()
+
+        delay_minutes = 2
+
+        crontab_time = now + timedelta(minutes=delay_minutes)
+
+        test_start_time = crontab_time + timedelta(minutes=delay_minutes)
+
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+
+        is_due, next_check = entry.is_due()
+
+        expected_delay = delay_minutes * 60 + 3600
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
+    def test_crontab_with_start_time_tick(self, app):
+        PeriodicTask.objects.all().delete()
+        s = self.Scheduler(app=self.app)
+        assert not s._heap
+
+        m1 = self.create_model_interval(schedule(timedelta(seconds=3)))
+        m1.save()
+
+        now = timezone.now()
+        start_time = now + timedelta(minutes=1)
+        crontab_trigger_time = now + timedelta(minutes=2)
+
+        m2 = self.create_model_crontab(
+            crontab(minute=f'{crontab_trigger_time.minute}'),
+            start_time=start_time)
+        m2.save()
+
+        e2 = EntryTrackSave(m2, app=self.app)
+        is_due, _ = e2.is_due()
+
+        while (not is_due):
+            s.tick()
+            assert s._heap[0][2].name != m2.name
+            is_due, _ = e2.is_due()
+
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
