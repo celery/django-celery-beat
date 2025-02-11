@@ -392,9 +392,13 @@ class CrontabSchedule(models.Model):
 
     def due_start_time(self, start_time):
         start, ends_in, now = self.schedule.remaining_delta(start_time)
-        if (str(start.tzinfo) == str(now.tzinfo) and
-            now.utcoffset() != start.utcoffset()):
+
+        same_tz = str(start.tzinfo) == str(now.tzinfo)
+        different_offset = now.utcoffset() != start.utcoffset()
+
+        if same_tz and different_offset:
             start = start.replace(tzinfo=now.tzinfo)
+
         return start + ends_in
 
 
