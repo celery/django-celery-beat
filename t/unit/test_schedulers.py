@@ -6,6 +6,7 @@ from itertools import count
 from time import monotonic
 
 import pytest
+import pytz
 from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -807,6 +808,53 @@ class test_DatabaseScheduler(SchedulerCase):
         crontab_time = now + timedelta(minutes=delay_minutes)
 
         test_start_time = crontab_time + timedelta(minutes=delay_minutes)
+
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+
+        is_due, next_check = entry.is_due()
+
+        expected_delay = delay_minutes * 60 + 3600
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
+    def test_crontab_with_start_time_different_time_zone(self, app):
+        now = app.now()
+
+        delay_minutes = 2
+
+        test_start_time = now + timedelta(minutes=delay_minutes)
+
+        crontab_time = test_start_time + timedelta(minutes=delay_minutes)
+
+        tz = pytz.timezone('Asia/Shanghai')
+        test_start_time = test_start_time.astimezone(tz)
+
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+
+        is_due, next_check = entry.is_due()
+
+        expected_delay = 2 * delay_minutes * 60
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
+        now = app.now()
+
+        crontab_time = now + timedelta(minutes=delay_minutes)
+
+        test_start_time = crontab_time + timedelta(minutes=delay_minutes)
+
+        tz = pytz.timezone('Asia/Shanghai')
+        test_start_time = test_start_time.astimezone(tz)
 
         task = self.create_model_crontab(
             crontab(minute=f'{crontab_time.minute}'),

@@ -390,15 +390,10 @@ class CrontabSchedule(models.Model):
         except MultipleObjectsReturned:
             return cls.objects.filter(**spec).first()
 
-    def due_start_time(self, start_time):
+    def due_start_time(self, start_time, tz):
+        if str(start_time.tzinfo) != str(tz):
+            start_time = start_time.astimezone(tz)
         start, ends_in, now = self.schedule.remaining_delta(start_time)
-
-        same_tz = str(start.tzinfo) == str(now.tzinfo)
-        different_offset = now.utcoffset() != start.utcoffset()
-
-        if same_tz and different_offset:
-            start = start.replace(tzinfo=now.tzinfo)
-
         return start + ends_in
 
 
@@ -675,9 +670,8 @@ class PeriodicTask(models.Model):
     def schedule(self):
         return self.scheduler.schedule
 
-    @property
-    def due_start_time(self):
+    def due_start_time(self, tz):
         if self.crontab:
-            return self.crontab.due_start_time(self.start_time)
+            return self.crontab.due_start_time(self.start_time, tz)
         else:
             return self.start_time
