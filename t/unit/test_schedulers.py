@@ -4,9 +4,9 @@ import time
 from datetime import datetime, timedelta
 from itertools import count
 from time import monotonic
+from zoneinfo import ZoneInfo
 
 import pytest
-import pytz
 from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -831,7 +831,7 @@ class test_DatabaseScheduler(SchedulerCase):
 
         crontab_time = test_start_time + timedelta(minutes=delay_minutes)
 
-        tz = pytz.timezone('Asia/Shanghai')
+        tz = ZoneInfo('Asia/Shanghai')
         test_start_time = test_start_time.astimezone(tz)
 
         task = self.create_model_crontab(
@@ -853,7 +853,7 @@ class test_DatabaseScheduler(SchedulerCase):
 
         test_start_time = crontab_time + timedelta(minutes=delay_minutes)
 
-        tz = pytz.timezone('Asia/Shanghai')
+        tz = ZoneInfo('Asia/Shanghai')
         test_start_time = test_start_time.astimezone(tz)
 
         task = self.create_model_crontab(
