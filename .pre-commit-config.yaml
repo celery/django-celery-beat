@@ -27,7 +27,7 @@ repos:
       - id: mixed-line-ending
 
   - repo: https://github.com/pycqa/isort
-    rev: 6.0.0
+    rev: 6.0.1
     hooks:
       - id: isort
 
@@ -38,13 +38,13 @@ repos:
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.7
+    rev: v0.9.9
     hooks:  # Format before linting
       # - id: ruff-format
       - id: ruff
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.5.0
+    rev: v2.5.1
     hooks:
       - id: pyproject-fmt
 
