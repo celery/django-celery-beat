@@ -118,7 +118,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
                     'last_run_at', 'one_off')
     list_filter = ['enabled', 'one_off', 'task', 'start_time', 'last_run_at']
     actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
-    search_fields = ('name',)
+    search_fields = ('name', 'task',)
     fieldsets = (
         (None, {
             'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
