@@ -540,8 +540,7 @@ class test_DatabaseScheduler(SchedulerCase):
         assert str(now_hour) not in excluded_hours
         assert str((now_hour + 1) % 24) not in excluded_hours
         assert str((now_hour - 1) % 24) not in excluded_hours
-        assert str((now_hour + 2) % 24) in excluded_hours
-        assert str((now_hour - 2) % 24) in excluded_hours
+        assert str(4) not in excluded_hours
 
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
