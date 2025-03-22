@@ -395,7 +395,7 @@ class DatabaseScheduler(Scheduler):
     def get_excluded_hours_for_crontab_tasks():
         # Generate the full list of allowed hours for crontabs
         allowed_crontab_hours = [
-            str(hour).zfill(2) for hour in range(24)
+            f"{hour:02}" for hour in range(24)
         ] + [
             str(hour) for hour in range(10)
         ]
@@ -408,9 +408,9 @@ class DatabaseScheduler(Scheduler):
 
         # Create a set of hours to remove (both padded and non-padded versions)
         hours_to_remove = {
-            str(current_hour).zfill(2), str(current_hour),
-            str(next_hour).zfill(2), str(next_hour),
-            str(previous_hour).zfill(2), str(previous_hour),
+            f"{current_hour:02}", str(current_hour),
+            f"{next_hour:02}", str(next_hour),
+            f"{previous_hour:02}", str(previous_hour),
             str(4), "04",  # celery's default cleanup task
         }
 

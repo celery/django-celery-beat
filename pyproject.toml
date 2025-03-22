@@ -71,7 +71,6 @@ lint.ignore = [
   "N803",
   "N806",
   "PIE790",
-  "PT004",
   "PT009",
   "PT027",
   "UP031",
@@ -82,6 +81,7 @@ lint.per-file-ignores."*/migrations/*" = [
   "D",
   "E501",
   "I",
+  "PGH004",
 ]
 lint.per-file-ignores."django_celery_beat/models.py" = [
   "ISC002",
