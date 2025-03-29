@@ -4,7 +4,7 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 2.2.1
+:Version: 2.7.0
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
@@ -41,12 +41,11 @@ Important Warning about Time Zones
 
         >>> from django_celery_beat.models import PeriodicTask, PeriodicTasks
         >>> PeriodicTask.objects.all().update(last_run_at=None)
-        >>> for task in PeriodicTask.objects.all():
-        >>>     PeriodicTasks.changed(task)
+        >>> PeriodicTasks.update_changed()
 
 
 
-.. note:: 
+.. note::
    This will reset the state as if the periodic tasks have never run before.
 
 
@@ -95,7 +94,7 @@ create the interval object:
 .. code-block:: Python
 
         >>> from django_celery_beat.models import PeriodicTask, IntervalSchedule
-        
+
         # executes every 10 seconds.
         >>> schedule, created = IntervalSchedule.objects.get_or_create(
         ...     every=10,
@@ -170,7 +169,7 @@ Example creating crontab-based periodic task
 
 A crontab schedule has the fields: ``minute``, ``hour``, ``day_of_week``,
 ``day_of_month`` and ``month_of_year``, so if you want the equivalent
-of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
+of a ``30 * * * *`` (execute 30 minutes past every hour) crontab entry you specify:
 
 .. code-block:: Python
 
@@ -181,7 +180,7 @@ of a ``30 * * * *`` (execute every 30 minutes) crontab entry you specify:
         ...     day_of_week='*',
         ...     day_of_month='*',
         ...     month_of_year='*',
-        ...     timezone=pytz.timezone('Canada/Pacific')
+        ...     timezone=zoneinfo.ZoneInfo('Canada/Pacific')
         ... )
 
 The crontab schedule is linked to a specific timezone using the 'timezone' input parameter.
@@ -253,7 +252,7 @@ To install using ``pip``:
 
 .. code-block:: bash
 
-        $ pip install -U django-celery-beat
+        $ pip install --upgrade django-celery-beat
 
 Downloading and installing from source
 --------------------------------------
@@ -265,14 +264,13 @@ You can install it by doing the following :
 
 .. code-block:: bash
 
+        $ python3 -m venv .venv
+        $ source .venv/bin/activate
+        $ pip install --upgrade build pip
         $ tar xvfz django-celery-beat-0.0.0.tar.gz
         $ cd django-celery-beat-0.0.0
-        $ python setup.py build
-        # python setup.py install
-
-The last command must be executed as a privileged user if
-you are not currently using a virtualenv.
-
+        $ python -m build
+        $ pip install --upgrade .
 
 After installation, add ``django_celery_beat`` to Django's settings module:
 
@@ -288,7 +286,7 @@ After installation, add ``django_celery_beat`` to Django's settings module:
 Run the ``django_celery_beat`` migrations using:
 
 .. code-block:: bash
-    
+
         $ python manage.py migrate django_celery_beat
 
 
@@ -298,12 +296,12 @@ Using the development version
 With pip
 ~~~~~~~~
 
-You can install the latest snapshot of django-celery-beat using the following
+You can install the latest main version of django-celery-beat using the following
 pip command:
 
 .. code-block:: bash
 
-        $ pip install https://github.com/celery/django-celery-beat/zipball/master#egg=django-celery-beat
+        $ pip install git+https://github.com/celery/django-celery-beat#egg=django-celery-beat
 
 
 Developing django-celery-beat
@@ -324,12 +322,12 @@ TZ Awareness:
 If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_TZ_AWARE=False`` in your settings file.
 
 
-.. |build-status| image:: https://secure.travis-ci.org/celery/django-celery-beat.svg?branch=master
+.. |build-status| image:: https://github.com/celery/django-celery-beat/actions/workflows/test.yml/badge.svg
     :alt: Build status
-    :target: https://travis-ci.org/celery/django-celery-beat
+    :target: https://github.com/celery/django-celery-beat/actions/workflows/test.yml
 
-.. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=master
-    :target: https://codecov.io/github/celery/django-celery-beat?branch=master
+.. |coverage| image:: https://codecov.io/github/celery/django-celery-beat/coverage.svg?branch=main
+    :target: https://codecov.io/github/celery/django-celery-beat?branch=main
 
 .. |license| image:: https://img.shields.io/pypi/l/django-celery-beat.svg#foo
     :alt: BSD License

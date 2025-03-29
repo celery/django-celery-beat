@@ -1,11 +1,12 @@
-import pytest
+from unittest.mock import MagicMock
 
+import pytest
 # we have to import the pytest plugin fixtures here,
-# in case user did not do the `python setup.py develop` yet,
+# in case user did not yet `pip install ".[develop]"`,
 # that installs the pytest plugin into the setuptools registry.
-from celery.contrib.pytest import (celery_app, celery_enable_logging,
-                                   celery_parameters, depends_on_current_app,
-                                   celery_config, use_celery_app_trap)
+from celery.contrib.pytest import (celery_app, celery_config,
+                                   celery_enable_logging, celery_parameters,
+                                   depends_on_current_app, use_celery_app_trap)
 from celery.contrib.testing.app import TestApp, Trap
 
 # Tricks flake8 into silencing redefining fixtures warnings.
@@ -21,7 +22,7 @@ def setup_default_app_trap():
     set_default_app(Trap())
 
 
-@pytest.fixture()
+@pytest.fixture
 def app(celery_app):
     return celery_app
 
@@ -41,3 +42,11 @@ def test_cases_shortcuts(request, app, patching):
     yield
     if request.instance:
         request.instance.app = None
+
+
+@pytest.fixture
+def patching(monkeypatch):
+    def _patching(attr):
+        monkeypatch.setattr(attr, MagicMock())
+
+    return _patching

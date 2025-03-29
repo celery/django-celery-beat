@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    strategy:
+      fail-fast: false
+      matrix: # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
+        django-version: ["3.2", "4.2", "5.1", "5.2"]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', 'pypy-3.10']
+        exclude:
+          - django-version: "3.2"
+            python-version: "3.11"
+          - django-version: "3.2"
+            python-version: "3.12"
+          - django-version: "3.2"
+            python-version: "3.13"
+          - django-version: "4.2"
+            python-version: "3.13"
+          - django-version: "5.1"
+            python-version: "3.9"
+          - django-version: "5.2"
+            python-version: "3.9"
+
+    services:
+      rabbitmq:
+        image: rabbitmq
+        ports:
+          - "5672:5672"
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: useblacksmith/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install tox tox-gh-actions
+    - name: Test with tox
+      run: |
+        if [ "${{ matrix.python-version }}" != "pypy-3.10" ]; then
+          tox -- --cov=django_celery_beat --cov-report=xml --no-cov-on-fail --cov-report term
+        else
+          tox
+        fi
+      env:
+        DJANGO: ${{ matrix.django-version }}
+    - name: Upload coverage reports to Codecov
+      if: ${{ matrix.python-version != 'pypy-3.10' }}
+      uses: codecov/codecov-action@v5
+      with:
+        fail_ci_if_error: true # optional (default = false)
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true # optional (default = false)
