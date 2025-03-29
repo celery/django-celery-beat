@@ -780,7 +780,6 @@ class test_DatabaseScheduler(SchedulerCase):
 
     def test_crontab_with_start_time_between_now_and_crontab(self, app):
         now = app.now()
-
         delay_minutes = 2
 
         test_start_time = now + timedelta(minutes=delay_minutes)
