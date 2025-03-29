@@ -892,7 +892,9 @@ class test_DatabaseScheduler(SchedulerCase):
         e2 = EntryTrackSave(m2, app=self.app)
         is_due, _ = e2.is_due()
 
-        while (not is_due):
+        max_iterations = 1000
+        iterations = 0
+        while (not is_due and iterations < max_iterations):
             s.tick()
             assert s._heap[0][2].name != m2.name
             is_due, _ = e2.is_due()
