@@ -390,8 +390,8 @@ class CrontabSchedule(models.Model):
         except MultipleObjectsReturned:
             return cls.objects.filter(**spec).first()
 
-    def due_start_time(self, start_time, tz):
-        start_time = start_time.astimezone(tz)
+    def due_start_time(self, initial_start_time, tz):
+        start_time = initial_start_time.astimezone(tz)
         start, ends_in, now = self.schedule.remaining_delta(start_time)
         return start + ends_in
 
