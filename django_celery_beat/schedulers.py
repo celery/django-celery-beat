@@ -118,7 +118,7 @@ class ModelEntry(ScheduleEntry):
                 # send a delay to retry on start_time
                 current_tz = now.tzinfo
                 delay = math.ceil(
-                    (self.model.due_start_time(now_tz) - now).total_seconds()
+                    (self.model.due_start_time(current_tz) - now).total_seconds()
                 )
 
                 return schedules.schedstate(False, delay)
