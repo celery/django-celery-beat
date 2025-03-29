@@ -4,7 +4,11 @@ import time
 from datetime import datetime, timedelta
 from itertools import count
 from time import monotonic
-from zoneinfo import ZoneInfo
+
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except ImportError:
+    from backports.zoneinfo import ZoneInfo  # Python 3.8
 
 import pytest
 from celery.schedules import crontab, schedule, solar
