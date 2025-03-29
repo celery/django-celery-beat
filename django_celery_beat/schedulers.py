@@ -116,9 +116,11 @@ class ModelEntry(ScheduleEntry):
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
-                delay = math.ceil(
-                    (self.model.start_time - now).total_seconds()
-                )
+                current_tz = now.tzinfo
+                start_time = self.model.due_start_time(current_tz)
+                time_remaining = start_time - now
+                delay = math.ceil(time_remaining.total_seconds())
+
                 return schedules.schedstate(False, delay)
 
         # EXPIRED TASK: Disable task when expired
