@@ -116,7 +116,7 @@ class ModelEntry(ScheduleEntry):
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
-                now_tz = now.tzinfo
+                current_tz = now.tzinfo
                 delay = math.ceil(
                     (self.model.due_start_time(now_tz) - now).total_seconds()
                 )
