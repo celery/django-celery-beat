@@ -1,24 +1,28 @@
+import datetime
 import os
 
+try:
+    from zoneinfo import ZoneInfo, available_timezones
+except ImportError:
+    from backports.zoneinfo import available_timezones, ZoneInfo
+
+import pytest
 from celery import schedules
-from django.test import TestCase, override_settings
 from django.apps import apps
-from django.db.migrations.state import ProjectState
+from django.conf import settings
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
+from django.db.migrations.state import ProjectState
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
-import timezone_field
-
 from django_celery_beat import migrations as beat_migrations
-from django_celery_beat.models import (
-    crontab_schedule_celery_timezone,
-    SolarSchedule,
-    CrontabSchedule,
-    ClockedSchedule,
-    IntervalSchedule,
-)
+from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
+                                       IntervalSchedule, PeriodicTasks,
+                                       SolarSchedule,
+                                       crontab_schedule_celery_timezone)
+from t.proj.models import O2OToPeriodicTasks
 
 
 class MigrationTests(TestCase):
@@ -83,8 +87,7 @@ class TestDuplicatesMixin:
 
 
 class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
-    FIRST_VALID_TIMEZONE = timezone_field.\
-        TimeZoneField.default_choices[0][0].zone
+    FIRST_VALID_TIMEZONE = available_timezones().pop()
 
     def test_default_timezone_without_settings_config(self):
         assert crontab_schedule_celery_timezone() == "UTC"
@@ -101,7 +104,6 @@ class CrontabScheduleTestCase(TestCase, TestDuplicatesMixin):
             "day_of_week": "*",
             "day_of_month": "*",
             "month_of_year": "*",
-            "day_of_week": "*",
         }
         schedule = schedules.crontab(hour="4")
         self._test_duplicate_schedules(CrontabSchedule, kwargs, schedule)
@@ -146,3 +148,111 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     def test_duplicate_schedules(self):
         kwargs = {'clocked_time': timezone.now()}
         self._test_duplicate_schedules(ClockedSchedule, kwargs)
+
+    # IMPORTANT: we must have a valid timezone (not UTC) for accurate testing
+    @override_settings(TIME_ZONE='Africa/Cairo')
+    def test_timezone_format(self):
+        """Ensure scheduled time is not shown in UTC when timezone is used"""
+        tz_info = datetime.datetime.now(ZoneInfo(settings.TIME_ZONE))
+        schedule, created = ClockedSchedule.objects.get_or_create(
+            clocked_time=tz_info)
+        # testnig str(schedule) calls make_aware() internally
+        assert str(schedule.clocked_time) == str(schedule)
+
+
+@pytest.mark.django_db
+class OneToOneRelTestCase(TestCase):
+    """
+    Make sure that when OneToOne relation Model changed,
+    the `PeriodicTasks.last_update` will be update.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.interval_schedule = IntervalSchedule.objects.create(
+            every=10, period=DAYS
+        )
+
+    def test_trigger_update_when_saved(self):
+        o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
+        )
+        not_changed_dt = PeriodicTasks.last_change()
+        o2o_to_periodic_tasks.enabled = True  # Change something on instance.
+        o2o_to_periodic_tasks.save()
+        has_changed_dt = PeriodicTasks.last_change()
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
+        # Check the `PeriodicTasks` does be updated.
+
+    def test_trigger_update_when_deleted(self):
+        o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
+            name='name1',
+            task='task1',
+            enabled=True,
+            interval=self.interval_schedule
+        )
+        not_changed_dt = PeriodicTasks.last_change()
+        o2o_to_periodic_tasks.delete()
+        has_changed_dt = PeriodicTasks.last_change()
+        self.assertTrue(
+            not_changed_dt != has_changed_dt,
+            'The `PeriodicTasks.last_update` has not be update.'
+        )
+        # Check the `PeriodicTasks` does be updated.
+
+
+class HumanReadableTestCase(TestCase):
+    def test_good(self):
+        """Valid crontab display."""
+        cron = CrontabSchedule.objects.create(
+            hour="2",
+            minute="0",
+            day_of_week="mon",
+        )
+        self.assertNotEqual(
+            cron.human_readable, "0 2 * * mon UTC"
+        )
+
+    def test_invalid(self):
+        """Invalid crontab display."""
+        cron = CrontabSchedule.objects.create(
+            hour="2",
+            minute="0",
+            day_of_week="xxx",
+        )
+        self.assertEqual(
+            cron.human_readable, "0 2 * * xxx UTC"
+        )
+
+    def test_long_name(self):
+        """Long day name display."""
+        for day_day_of_week, expected in (
+            ("1", ", only on Monday"),
+            ("mon", ", only on Monday"),
+            ("Monday,tue", ", only on Monday and Tuesday"),
+            ("sat-sun/2", ", only on Saturday"),
+            ("mon-wed", ", only on Monday, Tuesday, and Wednesday"),
+            ("*", ""),
+            ("0-6", ""),
+            ("2-1", ""),
+            ("mon-sun", ""),
+            ("tue-mon", ""),
+        ):
+            cron = CrontabSchedule.objects.create(
+                hour="2",
+                minute="0",
+                day_of_week=day_day_of_week,
+            )
+
+            self.assertEqual(
+                cron.human_readable,
+                f"At 02:00 AM{expected} UTC",
+                day_day_of_week,
+            )

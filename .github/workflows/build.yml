@@ -1,0 +1,93 @@
+name: Build & Publish to PyPI
+
+on:
+  workflow_dispatch:
+  # Ensure the build works on main
+  push:
+    branches: [main]
+    tags: ['*']
+  # Ensure the build works on each pull request
+  pull_request:
+
+jobs:
+  build:
+    name: Build distribution
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: useblacksmith/setup-python@v6
+      with:
+        python-version: "3.x"
+    
+    - name: Install pypa/build
+      run: python3 -m pip install build --user
+    
+    - name: Build a binary wheel and a source tarball
+      run: python3 -m build
+    
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+
+    needs: [build]
+
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    
+    environment:
+      name: pypi
+      url: https://pypi.org/p/django-celery-beat
+    
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: Upload them to GitHub Release
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+
+    needs: [publish-to-pypi]
+
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create
+          '${{ github.ref_name }}'
+          --repo '${{ github.repository }}'
+          --notes ""
+      
+      - name: Upload artifact to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload
+          '${{ github.ref_name }}' dist/**
+          --repo '${{ github.repository }}'

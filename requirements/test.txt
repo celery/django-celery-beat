@@ -1,6 +1,10 @@
-case>=1.3.1
-pytest-django>=2.2,<4.0
-pytz>dev
-pytest<4.0.0
-pytest-timeout
+# Base dependencies (common for all Python versions)
 ephem
+pytest-timeout
+
+# Conditional dependencies
+pytest>=6.2.5,<8.0; python_version < '3.9'  # Python 3.8 only
+pytest>=6.2.5,<9.0; python_version >= '3.9'  # Python 3.9+ only
+pytest-django>=4.5.2,<4.6.0; python_version < '3.9'  # Python 3.8 only
+pytest-django>=4.5.2,<5.0; python_version >= '3.9'    # Python 3.9+ only
+backports.zoneinfo; python_version < '3.9'  # Python 3.8 only

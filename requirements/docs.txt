@@ -1,4 +1,6 @@
-Django>=2.2,<4.0
+Django>=2.2,<6.0
+sphinxcontrib-django
 https://github.com/celery/sphinx_celery/archive/master.zip
-https://github.com/celery/kombu/zipball/master#egg=kombu
-https://github.com/celery/celery/zipball/master#egg=celery
+https://github.com/celery/kombu/zipball/main#egg=kombu
+https://github.com/celery/celery/zipball/main#egg=celery
+-r default.txt

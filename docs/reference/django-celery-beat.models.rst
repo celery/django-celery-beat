@@ -8,4 +8,3 @@
 
 .. automodule:: django_celery_beat.models
     :members:
-    :undoc-members:

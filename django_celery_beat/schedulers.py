@@ -2,35 +2,31 @@
 import datetime
 import logging
 import math
-
 from multiprocessing.util import Finalize
 
-from celery import current_app
-from celery import schedules
-from celery.beat import Scheduler, ScheduleEntry
-
+from celery import current_app, schedules
+from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
-from kombu.utils.encoding import safe_str, safe_repr
-from kombu.utils.json import dumps, loads
-
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import (
     DEFAULT_DB_ALIAS,
     close_old_connections,
     router,
     transaction
 )
-from django.db.utils import DatabaseError, InterfaceError
-from django.core.exceptions import ObjectDoesNotExist
 
-from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
-)
+from django.db.models import Q
+from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
+from kombu.utils.encoding import safe_repr, safe_str
+from kombu.utils.json import dumps, loads
+
 from .clockedschedule import clocked
-from .utils import NEVER_CHECK_TIMEOUT
+from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
+                     PeriodicTask, PeriodicTasks, SolarSchedule)
+from .utils import NEVER_CHECK_TIMEOUT, now
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -89,13 +85,22 @@ class ModelEntry(ScheduleEntry):
         if getattr(model, 'expires_', None):
             self.options['expires'] = getattr(model, 'expires_')
 
-        self.options['headers'] = loads(model.headers or '{}')
+        headers = loads(model.headers or '{}')
+        headers['periodic_task_name'] = model.name
+        self.options['headers'] = headers
 
         self.total_run_count = model.total_run_count
         self.model = model
 
         if not model.last_run_at:
-            model.last_run_at = self._default_now()
+            model.last_run_at = model.date_changed or self._default_now()
+            # if last_run_at is not set and
+            # model.start_time last_run_at should be in way past.
+            # This will trigger the job to run at start_time
+            # and avoid the heap block.
+            if self.model.start_time:
+                model.last_run_at = model.last_run_at \
+                    - datetime.timedelta(days=365 * 30)
 
         self.last_run_at = model.last_run_at
 
@@ -114,14 +119,23 @@ class ModelEntry(ScheduleEntry):
             now = self._default_now()
             if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
                 now = maybe_make_aware(self._default_now())
-
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
-                delay = math.ceil(
-                    (self.model.start_time - now).total_seconds()
-                )
+                current_tz = now.tzinfo
+                start_time = self.model.due_start_time(current_tz)
+                time_remaining = start_time - now
+                delay = math.ceil(time_remaining.total_seconds())
+
                 return schedules.schedstate(False, delay)
+
+        # EXPIRED TASK: Disable task when expired
+        if self.model.expires is not None:
+            now = self._default_now()
+            if now >= self.model.expires:
+                self._disable(self.model)
+                # Don't recheck
+                return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # ONE OFF TASK: Disable one off tasks after they've ran once
         if self.model.one_off and self.model.enabled \
@@ -140,12 +154,8 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        # The PyTZ datetime must be localised for the Django-Celery-Beat
-        # scheduler to work. Keep in mind that timezone arithmatic
-        # with a localized timezone may be inaccurate.
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = self.app.now()
-            now = now.tzinfo.localize(now.replace(tzinfo=None))
+            now = datetime.datetime.now(self.app.timezone)
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
@@ -177,21 +187,26 @@ class ModelEntry(ScheduleEntry):
                 model_schedule.save()
                 return model_schedule, model_field
         raise ValueError(
-            'Cannot convert schedule type {0!r} to model'.format(schedule))
+            f'Cannot convert schedule type {schedule!r} to model')
 
     @classmethod
     def from_entry(cls, name, app=None, **entry):
-        return cls(PeriodicTask._default_manager.update_or_create(
+        obj, created = PeriodicTask._default_manager.update_or_create(
             name=name, defaults=cls._unpack_fields(**entry),
-        ), app=app)
+        )
+        return cls(obj, app=app)
 
     @classmethod
     def _unpack_fields(cls, schedule,
                        args=None, kwargs=None, relative=None, options=None,
                        **entry):
+        entry_schedules = {
+            model_field: None for _, _, model_field in cls.model_schedules
+        }
         model_schedule, model_field = cls.to_model_schedule(schedule)
+        entry_schedules[model_field] = model_schedule
         entry.update(
-            {model_field: model_schedule},
+            entry_schedules,
             args=dumps(args or []),
             kwargs=dumps(kwargs or {}),
             **cls._unpack_options(**options or {})
@@ -212,7 +227,7 @@ class ModelEntry(ScheduleEntry):
         }
 
     def __repr__(self):
-        return '<ModelEntry: {0} {1}(*{2}, **{3}) {4}>'.format(
+        return '<ModelEntry: {} {}(*{}, **{}) {}>'.format(
             safe_str(self.name), self.task, safe_repr(self.args),
             safe_repr(self.kwargs), self.schedule,
         )
@@ -247,7 +262,17 @@ class DatabaseScheduler(Scheduler):
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
-        for model in self.Model.objects.enabled():
+        next_five_minutes = now() + datetime.timedelta(minutes=5)
+        exclude_clock_tasks_query = Q(
+            clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes
+        )
+        exclude_hours = self.get_excluded_hours_for_crontab_tasks()
+        exclude_cron_tasks_query = Q(
+            crontab__isnull=False, crontab__hour__in=exclude_hours
+        )
+        for model in self.Model.objects.enabled().exclude(
+            exclude_clock_tasks_query | exclude_cron_tasks_query
+        ):
             try:
                 s[model.name] = self.Entry(model, app=self.app)
             except ValueError:
@@ -314,9 +339,9 @@ class DatabaseScheduler(Scheduler):
             while self._dirty:
                 name = self._dirty.pop()
                 try:
-                    self.schedule[name].save()
+                    self._schedule[name].save()
                     _tried.add(name)
-                except (KeyError, ObjectDoesNotExist):
+                except (KeyError, TypeError, ObjectDoesNotExist):
                     _failed.add(name)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)
@@ -388,3 +413,32 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+    @staticmethod
+    def get_excluded_hours_for_crontab_tasks():
+        # Generate the full list of allowed hours for crontabs
+        allowed_crontab_hours = [
+            f"{hour:02}" for hour in range(24)
+        ] + [
+            str(hour) for hour in range(10)
+        ]
+
+        # Get current, next, and previous hours
+        current_time = timezone.localtime(now())
+        current_hour = current_time.hour
+        next_hour = (current_hour + 1) % 24
+        previous_hour = (current_hour - 1) % 24
+
+        # Create a set of hours to remove (both padded and non-padded versions)
+        hours_to_remove = {
+            f"{current_hour:02}", str(current_hour),
+            f"{next_hour:02}", str(next_hour),
+            f"{previous_hour:02}", str(previous_hour),
+            str(4), "04",  # celery's default cleanup task
+        }
+
+        # Filter out 'should be considered' hours
+        return [
+            hour for hour in allowed_crontab_hours
+            if hour not in hours_to_remove
+        ]

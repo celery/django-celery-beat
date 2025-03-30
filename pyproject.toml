@@ -1,0 +1,151 @@
+[tool.ruff]
+target-version = "py38"
+
+lint.select = [
+  "A",     # flake8-builtins
+  "AIR",   # Airflow
+  "ASYNC", # flake8-async
+  "BLE",   # flake8-blind-except
+  "C4",    # flake8-comprehensions
+  "C90",   # McCabe cyclomatic complexity
+  "DJ",    # flake8-django
+  "E",     # pycodestyle
+  "EXE",   # flake8-executable
+  "F",     # Pyflakes
+  "FA",    # flake8-future-annotations
+  "FLY",   # flynt
+  "FURB",  # refurb
+  "G",     # flake8-logging-format
+  "ICN",   # flake8-import-conventions
+  "INP",   # flake8-no-pep420
+  "ISC",   # flake8-implicit-str-concat
+  "LOG",   # flake8-logging
+  "N",     # pep8-naming
+  "NPY",   # NumPy-specific rules
+  "PD",    # pandas-vet
+  "PERF",  # Perflint
+  "PGH",   # pygrep-hooks
+  "PIE",   # flake8-pie
+  "PL",    # Pylint
+  "PT",    # flake8-pytest-style
+  "RSE",   # flake8-raise
+  "S",     # flake8-bandit
+  "SIM",   # flake8-simplify
+  "SLOT",  # flake8-slots
+  "T10",   # flake8-debugger
+  "TCH",   # flake8-type-checking
+  "TID",   # flake8-tidy-imports
+  "UP",    # pyupgrade
+  "W",     # pycodestyle
+  "YTT",   # flake8-2020
+  # "ANN",  # flake8-annotations
+  # "ARG",  # flake8-unused-arguments
+  # "B",    # flake8-bugbear
+  # "COM",  # flake8-commas
+  # "CPY",  # flake8-copyright
+  # "D",    # pydocstyle
+  # "DTZ",  # flake8-datetimez
+  # "EM",   # flake8-errmsg
+  # "ERA",  # eradicate
+  # "FBT",  # flake8-boolean-trap
+  # "FIX",  # flake8-fixme
+  # "I",    # isort
+  # "INT",  # flake8-gettext
+  # "PTH",  # flake8-use-pathlib
+  # "PYI",  # flake8-pyi
+  # "Q",    # flake8-quotes
+  # "RET",  # flake8-return
+  # "RUF",  # Ruff-specific rules
+  # "SLF",  # flake8-self
+  # "T20",  # flake8-print
+  # "TD",   # flake8-todos
+  # "TRY",  # tryceratops
+]
+lint.ignore = [
+  "DJ001",
+  "DJ006",
+  "DJ008",
+  "DJ012",
+  "N801",
+  "N802",
+  "N803",
+  "N806",
+  "PIE790",
+  "PT009",
+  "PT027",
+  "UP031",
+  "UP032",
+]
+lint.per-file-ignores."*/migrations/*" = [
+  "C405",
+  "D",
+  "E501",
+  "I",
+  "PGH004",
+]
+lint.per-file-ignores."django_celery_beat/models.py" = [
+  "ISC002",
+]
+lint.per-file-ignores."django_celery_beat/schedulers.py" = [
+  "PERF203",
+  "SIM105",
+]
+lint.per-file-ignores."django_celery_beat/validators.py" = [
+  "BLE001",
+]
+lint.per-file-ignores."docker/base/celery.py" = [
+  "INP001",
+]
+lint.per-file-ignores."docs/conf.py" = [
+  "INP001",
+]
+lint.per-file-ignores."setup.py" = [
+  "EXE001",
+  "FURB129",
+  "SIM115",
+]
+lint.per-file-ignores."t/*" = [
+  "S101",
+]
+lint.per-file-ignores."t/proj/__init__.py" = [
+  "PGH004",
+]
+lint.per-file-ignores."t/proj/settings.py" = [
+  "S105",
+]
+lint.per-file-ignores."t/unit/conftest.py" = [
+  "F401",
+]
+lint.per-file-ignores."t/unit/test_schedulers.py" = [
+  "C408",
+  "PERF102",
+  "PT018",
+]
+lint.pylint.allow-magic-value-types = [
+  "float",
+  "int",
+  "str",
+]
+lint.pylint.max-args = 8 # Default: 5
+
+[tool.coverage.run]
+branch = true
+cover_pylib = false
+include = [ "*django_celery_beat/*" ]
+omit = [ "django_celery_beat.tests.*" ]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "except ImportError:",
+]
+omit = [
+  "*/python?.?/*",
+  "*/site-packages/*",
+  "*/pypy/*",
+  "*/.tox/*",
+  "*/docker/*",
+  "*/docs/*",
+  "*/test_*.py",
+]

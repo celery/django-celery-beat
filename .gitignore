@@ -1,7 +1,6 @@
 .DS_Store
 *.pyc
 *$py.class
-*.mo
 *~
 .*.sw[pon]
 dist/
@@ -21,6 +20,7 @@ Documentation/
 .project
 .pydevproject
 .idea/
+.vscode/
 .coverage
 celery/tests/cover/
 .ve*
@@ -33,3 +33,4 @@ coverage.xml
 .eggs/
 .python-version
 venv
+.env
