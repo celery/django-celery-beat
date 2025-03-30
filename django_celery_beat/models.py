@@ -390,6 +390,11 @@ class CrontabSchedule(models.Model):
         except MultipleObjectsReturned:
             return cls.objects.filter(**spec).first()
 
+    def due_start_time(self, initial_start_time, tz):
+        start_time = initial_start_time.astimezone(tz)
+        start, ends_in, now = self.schedule.remaining_delta(start_time)
+        return start + ends_in
+
 
 class PeriodicTasks(models.Model):
     """Helper table for tracking updates to periodic tasks.
@@ -663,3 +668,9 @@ class PeriodicTask(models.Model):
     @property
     def schedule(self):
         return self.scheduler.schedule
+
+    def due_start_time(self, tz):
+        if self.crontab:
+            return self.crontab.due_start_time(self.start_time, tz)
+        else:
+            return self.start_time
