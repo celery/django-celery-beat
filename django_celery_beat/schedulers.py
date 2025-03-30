@@ -321,8 +321,7 @@ class DatabaseScheduler(Scheduler):
         # DEFAULT_DB_ALIAS will be automatically returned.
         # The exception will be located to the django routing section
         db = router.db_for_write(self.Model)
-        return db
-
+        return db or DEFAULT_DB_ALIAS
     def _sync(self):
         if logger.isEnabledFor(logging.DEBUG):
             debug('Writing entries...')
