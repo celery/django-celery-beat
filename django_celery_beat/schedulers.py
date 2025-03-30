@@ -10,13 +10,8 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import (
-    DEFAULT_DB_ALIAS,
-    close_old_connections,
-    router,
-    transaction
-)
-
+from django.db import (DEFAULT_DB_ALIAS, close_old_connections, router,
+                       transaction)
 from django.db.models import Q
 from django.db.utils import DatabaseError, InterfaceError
 from django.utils import timezone
