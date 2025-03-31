@@ -9,7 +9,7 @@ repos:
         args: ["--py37-plus"]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.2
+    rev: 7.2.0
     hooks:
       - id: flake8
 
@@ -32,7 +32,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.23.1
+    rev: 1.24.0
     hooks:
       - id: django-upgrade
         args: [--target-version, "3.2"]
