@@ -7,6 +7,27 @@
 Next
 ====
 
+.. _version-2.8.0:
+
+2.8.0
+=====
+:release-date: 2025-04-16
+:release-by: Asif Saif Uddin (@auvipy)
+
+Added
+~~~~~
+
+- Add official support for Django 5.2.
+- Issue 796: remove days of the week from human readable description when the whole week is specified.
+- fix 'exipres', 'expire_seconds' not working normal as expected.
+- fix long period task will never be triggered (#717).
+- Fix for missing periodic task name in results (#812).
+- refactor(db-scheduler): optimize all_as_schedule query (#835).
+- feat(admin): add task field to search_fields.
+- Fix the time calculation problem caused by start_time (#844).
+- Added Python 3.13 support.
+
+
 .. _version-2.7.0:
 
 2.7.0
