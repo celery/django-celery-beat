@@ -1029,7 +1029,6 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_crontab_timezone_conversion(self, mock_now, mock_get_tz):
         # Set up mocks for server timezone and current time
         from datetime import datetime
-
         from zoneinfo import ZoneInfo
         server_tz = ZoneInfo("Asia/Tokyo")
 
