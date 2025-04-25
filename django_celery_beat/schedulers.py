@@ -363,23 +363,7 @@ class DatabaseScheduler(Scheduler):
         # Get server timezone
         server_tz = timezone.get_current_timezone()
 
-        # Handle the timezone_name input
-        if hasattr(timezone_name, 'key'):  # ZoneInfo object
-            target_tz = timezone_name
-        else:
-            # Get target timezone
-            import pytz
-            try:
-                if (
-                    isinstance(timezone_name, str)
-                    and timezone_name.upper() == 'UTC'
-                ):
-                    target_tz = pytz.UTC
-                else:
-                    target_tz = pytz.timezone(str(timezone_name))
-            except pytz.exceptions.UnknownTimeZoneError:
-                # If timezone is unknown, assume no offset
-                return 0
+        target_tz = timezone_name
 
         # Use a fixed point in time for the calculation to avoid DST issues
         fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)

@@ -1030,13 +1030,8 @@ class test_DatabaseScheduler(SchedulerCase):
         # Set up mocks for server timezone and current time
         from datetime import datetime
 
-        # Use zoneinfo instead of pytz for Django 4.2+
-        try:
-            from zoneinfo import ZoneInfo
-            server_tz = ZoneInfo("Asia/Tokyo")
-        except ImportError:
-            import pytz
-            server_tz = pytz.timezone("Asia/Tokyo")
+        from zoneinfo import ZoneInfo
+        server_tz = ZoneInfo("Asia/Tokyo")
 
         mock_get_tz.return_value = server_tz
 
