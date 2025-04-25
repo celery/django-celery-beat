@@ -573,8 +573,7 @@ class test_DatabaseScheduler(SchedulerCase):
         is_hour_four_task = False
 
         # Check if the task would have hour 4.
-        if self.m11.crontab.hour == '4'\
-        or (current_hour + 3) % 24 == 4:
+        if self.m11.crontab.hour == '4' or (current_hour + 3) % 24 == 4:
             is_hour_four_task = True
 
         # Add to expected tasks if it's an hour=4 task
