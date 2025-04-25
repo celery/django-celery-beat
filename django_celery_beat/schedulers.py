@@ -18,10 +18,8 @@ from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .clockedschedule import clocked
-from .models import (
-    ClockedSchedule, CrontabSchedule, IntervalSchedule,
-    PeriodicTask, PeriodicTasks, SolarSchedule
-)
+from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
+                     PeriodicTask, PeriodicTasks, SolarSchedule)
 from .utils import NEVER_CHECK_TIMEOUT, now
 
 # This scheduler must wake up more frequently than the
