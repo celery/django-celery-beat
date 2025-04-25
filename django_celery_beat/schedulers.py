@@ -260,18 +260,131 @@ class DatabaseScheduler(Scheduler):
         exclude_clock_tasks_query = Q(
             clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes
         )
-        exclude_hours = self.get_excluded_hours_for_crontab_tasks()
-        exclude_cron_tasks_query = Q(
-            crontab__isnull=False, crontab__hour__in=exclude_hours
-        )
-        for model in self.Model.objects.enabled().exclude(
-            exclude_clock_tasks_query | exclude_cron_tasks_query
-        ):
+
+        # Get hours to exclude based on crontab tasks with timezone-adjusted server hour
+        exclude_cron_tasks_query = self._get_crontab_exclude_query()
+
+        # Combine the queries for optimal database filtering
+        exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
+
+        # Fetch only the tasks we need to consider
+        for model in self.Model.objects.enabled().exclude(exclude_query):
             try:
                 s[model.name] = self.Entry(model, app=self.app)
             except ValueError:
                 pass
         return s
+
+    def _get_crontab_exclude_query(self):
+        """
+        Build a query to exclude crontab tasks based on their hour value,
+        adjusted for timezone differences relative to the server.
+
+        This creates an annotation for each crontab task that represents the
+        server-equivalent hour, then filters on that annotation.
+        """
+        # Get server time and timezone
+        server_time = timezone.localtime(now())
+        server_hour = server_time.hour
+
+        # Previous, current, and next hour in server timezone
+        hours_to_include = [
+            (server_hour - 2) % 24,
+            (server_hour - 1) % 24,
+            server_hour,
+            (server_hour + 1) % 24,
+            (server_hour + 2) % 24,
+            4,                       # hour 4 (celery's default cleanup task)
+        ]
+
+        # Create a query for tasks with specific hour values only
+        # This is where we'll do the timezone conversion
+        from django.db.models.functions import Cast
+        from django.db.models import F, IntegerField, Case, When
+
+        # Regex pattern to match only numbers
+        # This ensures we only process numeric hour values
+        numeric_hour_pattern = r'^\d+$'
+
+        # Get all tasks with a simple numeric hour value
+        numeric_hour_tasks = CrontabSchedule.objects.filter(hour__regex=numeric_hour_pattern)
+
+        # Annotate these tasks with their server-hour equivalent
+        annotated_tasks = numeric_hour_tasks.annotate(
+            # Cast hour string to integer
+            hour_int=Cast('hour', IntegerField()),
+
+            # Calculate server-hour based on timezone offset
+            server_hour=Case(
+                # Handle each timezone specifically
+                *[
+                    When(
+                        timezone=timezone_name,
+                        then=(F('hour_int') + self._get_timezone_offset(timezone_name)) % 24
+                    )
+                    for timezone_name in self._get_unique_timezone_names()
+                ],
+                # Default case - use hour as is
+                default=F('hour_int')
+            )
+        )
+
+        # Get IDs of tasks whose server_hour falls not within our include window
+        excluded_hour_task_ids = annotated_tasks.exclude(
+            server_hour__in=hours_to_include
+        ).values_list('id', flat=True)
+
+        # Build the final exclude query:
+        # Exclude crontab tasks that are not in our include list
+        exclude_query = Q(crontab__isnull=False) & Q(crontab__id__in=excluded_hour_task_ids)
+
+        return exclude_query
+
+    def _get_unique_timezone_names(self):
+        """Get a list of all unique timezone names used in CrontabSchedule"""
+        return CrontabSchedule.objects.values_list('timezone', flat=True).distinct()
+
+    def _get_timezone_offset(self, timezone_name):
+        """
+        Calculate the hour offset between the given timezone and server timezone.
+
+        Args:
+            timezone_name: The name of the timezone or a ZoneInfo object
+
+        Returns:
+            int: The hour offset to add to convert from timezone's hour to server hour
+        """
+        # Get server timezone
+        server_tz = timezone.get_current_timezone()
+
+        # Handle the timezone_name input
+        if hasattr(timezone_name, 'key'):  # ZoneInfo object
+            target_tz = timezone_name
+        else:
+            # Get target timezone
+            import pytz
+            try:
+                if isinstance(timezone_name, str) and timezone_name.upper() == 'UTC':
+                    target_tz = pytz.UTC
+                else:
+                    target_tz = pytz.timezone(str(timezone_name))
+            except pytz.exceptions.UnknownTimeZoneError:
+                # If timezone is unknown, assume no offset
+                return 0
+
+        # Use a fixed point in time for the calculation to avoid DST issues
+        fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
+
+        # Calculate the offset
+        dt1 = fixed_dt.replace(tzinfo=server_tz)
+        dt2 = fixed_dt.replace(tzinfo=target_tz)
+
+        # Calculate hour difference
+        offset_seconds = (dt1.utcoffset().total_seconds() - dt2.utcoffset().total_seconds())
+        offset_hours = int(offset_seconds / 3600)
+
+        print(offset_hours)
+        return offset_hours
 
     def schedule_changed(self):
         try:
@@ -392,32 +505,3 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
-
-    @staticmethod
-    def get_excluded_hours_for_crontab_tasks():
-        # Generate the full list of allowed hours for crontabs
-        allowed_crontab_hours = [
-            f"{hour:02}" for hour in range(24)
-        ] + [
-            str(hour) for hour in range(10)
-        ]
-
-        # Get current, next, and previous hours
-        current_time = timezone.localtime(now())
-        current_hour = current_time.hour
-        next_hour = (current_hour + 1) % 24
-        previous_hour = (current_hour - 1) % 24
-
-        # Create a set of hours to remove (both padded and non-padded versions)
-        hours_to_remove = {
-            f"{current_hour:02}", str(current_hour),
-            f"{next_hour:02}", str(next_hour),
-            f"{previous_hour:02}", str(previous_hour),
-            str(4), "04",  # celery's default cleanup task
-        }
-
-        # Filter out 'should be considered' hours
-        return [
-            hour for hour in allowed_crontab_hours
-            if hour not in hours_to_remove
-        ]

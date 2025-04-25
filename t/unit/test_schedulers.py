@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timedelta
 from itertools import count
 from time import monotonic
+from unittest.mock import patch
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+
@@ -519,7 +520,7 @@ class test_DatabaseScheduler(SchedulerCase):
 
         # distant future time (should not be in schedule)
         self.m11 = self.create_model_crontab(
-            crontab(hour=str((now_hour + 2) % 24)))
+            crontab(hour=str((now_hour + 3) % 24)))
         self.m11.save()
         self.m11.refresh_from_db()
 
@@ -538,14 +539,42 @@ class test_DatabaseScheduler(SchedulerCase):
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
-    def test_get_excluded_hours_for_crontab_tasks(self):
-        now_hour = timezone.localtime(timezone.now()).hour
-        excluded_hours = self.s.get_excluded_hours_for_crontab_tasks()
+    @pytest.mark.django_db
+    @patch('django.utils.timezone.get_current_timezone')
+    @patch('django.utils.timezone.now')
+    def test_crontab_exclusion_logic(self, mock_now, mock_get_tz):
+        # Step 1: Mock server "now" and timezone
+        import pytz
+        from datetime import datetime
 
-        assert str(now_hour) not in excluded_hours
-        assert str((now_hour + 1) % 24) not in excluded_hours
-        assert str((now_hour - 1) % 24) not in excluded_hours
-        assert str(4) not in excluded_hours
+        server_tz = pytz.timezone("Asia/Tokyo")
+        mock_get_tz.return_value = server_tz
+        mock_now.return_value = datetime(2023, 1, 1, 17, 0, 0, tzinfo=server_tz)
+
+        # Step 2: Create test crontab schedules
+        crons = [
+            CrontabSchedule.objects.create(hour='12', timezone='UTC'),  # UTC+0 → 21:00 server time → include
+            CrontabSchedule.objects.create(hour='5', timezone='America/New_York'),
+            # UTC-5 → 19:00 server time → exclude
+            CrontabSchedule.objects.create(hour='22', timezone='Asia/Tokyo'),  # UTC+9 → 22:00 server time → include
+            CrontabSchedule.objects.create(hour='4', timezone='UTC'),
+            # outside time window → include only if hour 4 logic applies
+            CrontabSchedule.objects.create(hour='17', timezone='Asia/Tokyo'),  # UTC+9 → 17:00 server time → exclude
+        ]
+
+        # Step 3: Run the scheduler logic
+        exclude_query = self.s._get_crontab_exclude_query()
+
+        # Step 4: Check which crontab IDs are in the exclude set
+        excluded_ids = set(
+            PeriodicTask.objects.filter(exclude_query).values_list('id', flat=True)
+        )
+
+        # Step 5: Assert excluded/included
+        included_ids = {crons[0].id, crons[1].id, crons[2].id, crons[3].id}
+        actually_excluded = {crons[4].id}
+
+        assert excluded_ids == actually_excluded
 
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
