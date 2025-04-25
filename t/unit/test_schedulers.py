@@ -959,10 +959,6 @@ class test_DatabaseScheduler(SchedulerCase):
             PeriodicTask.objects.filter(exclude_query).values_list('id', flat=True)
         )
 
-        # Print actual results for debugging
-        print(f"Excluded tasks: {excluded_tasks}")
-        print(f"Task outside ID: {task_outside.id}")
-
         # The test that matters is that hour 4 is always included
         assert task_hour_four.id not in excluded_tasks
 
@@ -1055,9 +1051,6 @@ class test_DatabaseScheduler(SchedulerCase):
         excluded_tasks = set(
             PeriodicTask.objects.filter(exclude_query).values_list('id', flat=True)
         )
-
-        # Print actual results for debugging
-        print(f"Excluded tasks: {excluded_tasks}")
 
         # Current hour tasks in different timezones should not be excluded
         assert task_utc_current.id not in excluded_tasks, "UTC current hour task should be included"

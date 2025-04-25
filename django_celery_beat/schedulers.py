@@ -383,7 +383,6 @@ class DatabaseScheduler(Scheduler):
         offset_seconds = (dt1.utcoffset().total_seconds() - dt2.utcoffset().total_seconds())
         offset_hours = int(offset_seconds / 3600)
 
-        print(offset_hours)
         return offset_hours
 
     def schedule_changed(self):
