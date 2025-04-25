@@ -1004,8 +1004,9 @@ class test_DatabaseScheduler(SchedulerCase):
         This test mocks the server timezone to Tokyo and tests timezone conversions.
         """
         # Set up mocks for server timezone and current time
-        import pytz
         from datetime import datetime
+
+        import pytz
 
         # Server timezone is Tokyo (UTC+9)
         server_tz = pytz.timezone("Asia/Tokyo")

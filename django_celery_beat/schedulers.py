@@ -299,8 +299,8 @@ class DatabaseScheduler(Scheduler):
 
         # Create a query for tasks with specific hour values only
         # This is where we'll do the timezone conversion
+        from django.db.models import Case, F, IntegerField, When
         from django.db.models.functions import Cast
-        from django.db.models import F, IntegerField, Case, When
 
         # Regex pattern to match only numbers
         # This ensures we only process numeric hour values
