@@ -550,8 +550,45 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_all_as_schedule(self):
         sched = self.s.schedule
         assert sched
-        assert len(sched) == 9
-        assert 'celery.backend_cleanup' in sched
+
+        # Check for presence of standard tasks
+        expected_task_names = {
+            self.m1.name,  # interval task
+            self.m2.name,  # interval task
+            self.m3.name,  # crontab task
+            self.m4.name,  # solar task
+            self.m6.name,  # clocked task (near future)
+            self.m8.name,  # crontab task (current hour)
+            self.m9.name,  # crontab task (current hour + 1)
+            self.m10.name,  # crontab task (current hour - 1)
+            'celery.backend_cleanup'  # auto-added by system
+        }
+
+        # The distant future crontab task (hour + 3) should be excluded
+        distant_task_name = self.m11.name
+
+        # But if it's hour is 4 (or converts to 4 after timezone adjustment),
+        # it would be included because of the special handling for hour=4
+        current_hour = timezone.localtime(timezone.now()).hour
+        is_hour_four_task = False
+
+        # Check if the task would have hour 4.
+        if self.m11.crontab.hour == '4'\
+        or (current_hour + 3) % 24 == 4:
+            is_hour_four_task = True
+
+        # Add to expected tasks if it's an hour=4 task
+        if is_hour_four_task:
+            expected_task_names.add(distant_task_name)
+
+        # Verify all expected tasks are present in the schedule
+        schedule_task_names = set(sched.keys())
+        assert schedule_task_names == expected_task_names, (
+            f"Task mismatch. Expected: {expected_task_names}, "
+            f"Got: {schedule_task_names}"
+        )
+
+        # Verify all entries are the right type
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
@@ -1219,7 +1256,7 @@ class test_models(SchedulerCase):
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
         assert isdue is False  # False means task isn't due, but keep checking.
         assert (nextcheck > 0) and (isdue is False) or \
-            (nextcheck == s.max_interval) and (isdue is True)
+               (nextcheck == s.max_interval) and (isdue is True)
 
         s2 = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt2 = datetime(day=26, month=7, year=2000, hour=1, minute=0)
@@ -1229,7 +1266,7 @@ class test_models(SchedulerCase):
         isdue2, nextcheck2 = s2.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
         assert (nextcheck2 > 0) and (isdue2 is True) or \
-            (nextcheck2 == s2.max_interval) and (isdue2 is False)
+               (nextcheck2 == s2.max_interval) and (isdue2 is False)
 
     def test_ClockedSchedule_schedule(self):
         due_datetime = make_aware(datetime(
@@ -1248,7 +1285,7 @@ class test_models(SchedulerCase):
         # False means task isn't due, but keep checking.
         assert isdue is False
         assert (nextcheck > 0) and (isdue is False) or \
-            (nextcheck == s.max_interval) and (isdue is True)
+               (nextcheck == s.max_interval) and (isdue is True)
 
         due_datetime = make_aware(datetime.now())
         s = ClockedSchedule(clocked_time=due_datetime)
