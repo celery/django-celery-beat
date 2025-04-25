@@ -1006,21 +1006,25 @@ class test_DatabaseScheduler(SchedulerCase):
         # Set up mocks for server timezone and current time
         from datetime import datetime
 
-        import pytz
-
-        # Server timezone is Tokyo (UTC+9)
-        server_tz = pytz.timezone("Asia/Tokyo")
+        # Use zoneinfo instead of pytz for Django 4.2+
+        try:
+            from zoneinfo import ZoneInfo
+            server_tz = ZoneInfo("Asia/Tokyo")
+        except ImportError:
+            import pytz
+            server_tz = pytz.timezone("Asia/Tokyo")
+            
         mock_get_tz.return_value = server_tz
-
+        
         # Server time is 17:00 Tokyo time
         mock_now_dt = datetime(2023, 1, 1, 17, 0, 0, tzinfo=server_tz)
         mock_now.return_value = mock_now_dt
-
+        
         # Create tasks with the following crontab schedules:
         # 1. UTC task at hour 8 - equivalent to 17:00 Tokyo time (current hour) - should be included
         # 2. New York task at hour 3 - equivalent to 17:00 Tokyo time (current hour) - should be included
         # 3. UTC task at hour 3 - equivalent to 12:00 Tokyo time - should be excluded (outside window)
-
+        
         # Create crontab schedules in different timezones
         utc_current_hour = CrontabSchedule.objects.create(hour='8', timezone='UTC')
         ny_current_hour = CrontabSchedule.objects.create(hour='3', timezone='America/New_York')
