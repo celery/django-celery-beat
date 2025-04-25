@@ -18,8 +18,10 @@ from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .clockedschedule import clocked
-from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
-                     PeriodicTask, PeriodicTasks, SolarSchedule)
+from .models import (
+    ClockedSchedule, CrontabSchedule, IntervalSchedule,
+    PeriodicTask, PeriodicTasks, SolarSchedule
+)
 from .utils import NEVER_CHECK_TIMEOUT, now
 
 # This scheduler must wake up more frequently than the
@@ -258,10 +260,12 @@ class DatabaseScheduler(Scheduler):
         s = {}
         next_five_minutes = now() + datetime.timedelta(minutes=5)
         exclude_clock_tasks_query = Q(
-            clocked__isnull=False, clocked__clocked_time__gt=next_five_minutes
+            clocked__isnull=False, 
+            clocked__clocked_time__gt=next_five_minutes
         )
 
-        # Get hours to exclude based on crontab tasks with timezone-adjusted server hour
+        # Get hours to exclude based on crontab tasks with 
+        # timezone-adjusted server hour
         exclude_cron_tasks_query = self._get_crontab_exclude_query()
 
         # Combine the queries for optimal database filtering
@@ -307,7 +311,9 @@ class DatabaseScheduler(Scheduler):
         numeric_hour_pattern = r'^\d+$'
 
         # Get all tasks with a simple numeric hour value
-        numeric_hour_tasks = CrontabSchedule.objects.filter(hour__regex=numeric_hour_pattern)
+        numeric_hour_tasks = CrontabSchedule.objects.filter(
+            hour__regex=numeric_hour_pattern
+        )
 
         # Annotate these tasks with their server-hour equivalent
         annotated_tasks = numeric_hour_tasks.annotate(
@@ -320,7 +326,10 @@ class DatabaseScheduler(Scheduler):
                 *[
                     When(
                         timezone=timezone_name,
-                        then=(F('hour_int') + self._get_timezone_offset(timezone_name)) % 24
+                        then=(
+                            F('hour_int') + 
+                            self._get_timezone_offset(timezone_name)
+                        ) % 24
                     )
                     for timezone_name in self._get_unique_timezone_names()
                 ],
@@ -329,30 +338,37 @@ class DatabaseScheduler(Scheduler):
             )
         )
 
-        # Get IDs of tasks whose server_hour falls not within our include window
+        # Get IDs of tasks whose server_hour falls not within our 
+        # include window
         excluded_hour_task_ids = annotated_tasks.exclude(
             server_hour__in=hours_to_include
         ).values_list('id', flat=True)
 
         # Build the final exclude query:
         # Exclude crontab tasks that are not in our include list
-        exclude_query = Q(crontab__isnull=False) & Q(crontab__id__in=excluded_hour_task_ids)
+        exclude_query = Q(crontab__isnull=False) & Q(
+            crontab__id__in=excluded_hour_task_ids
+        )
 
         return exclude_query
 
     def _get_unique_timezone_names(self):
         """Get a list of all unique timezone names used in CrontabSchedule"""
-        return CrontabSchedule.objects.values_list('timezone', flat=True).distinct()
+        return CrontabSchedule.objects.values_list(
+            'timezone', flat=True
+        ).distinct()
 
     def _get_timezone_offset(self, timezone_name):
         """
-        Calculate the hour offset between the given timezone and server timezone.
+        Calculate the hour offset between the given timezone and server 
+        timezone.
 
         Args:
             timezone_name: The name of the timezone or a ZoneInfo object
 
         Returns:
-            int: The hour offset to add to convert from timezone's hour to server hour
+            int: The hour offset to add to convert from timezone's hour 
+                to server hour
         """
         # Get server timezone
         server_tz = timezone.get_current_timezone()
@@ -364,7 +380,8 @@ class DatabaseScheduler(Scheduler):
             # Get target timezone
             import pytz
             try:
-                if isinstance(timezone_name, str) and timezone_name.upper() == 'UTC':
+                if (isinstance(timezone_name, str) and 
+                        timezone_name.upper() == 'UTC'):
                     target_tz = pytz.UTC
                 else:
                     target_tz = pytz.timezone(str(timezone_name))
@@ -380,7 +397,9 @@ class DatabaseScheduler(Scheduler):
         dt2 = fixed_dt.replace(tzinfo=target_tz)
 
         # Calculate hour difference
-        offset_seconds = (dt1.utcoffset().total_seconds() - dt2.utcoffset().total_seconds())
+        offset_seconds = (
+            dt1.utcoffset().total_seconds() - dt2.utcoffset().total_seconds()
+        )
         offset_hours = int(offset_seconds / 3600)
 
         return offset_hours
