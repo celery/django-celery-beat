@@ -910,13 +910,6 @@ class test_DatabaseScheduler(SchedulerCase):
 
     @pytest.mark.django_db
     def test_crontab_exclusion_logic_basic(self):
-        """
-        Test that the crontab exclusion logic properly excludes schedules 
-        outside the time window.
-        This is a simple test without timezone complications.
-        """
-        # Create crontab schedules with simple hour values in the 
-        # default timezone
         current_hour = datetime.now().hour
         cron_current_hour = CrontabSchedule.objects.create(
             hour=str(current_hour)
@@ -1001,8 +994,6 @@ class test_DatabaseScheduler(SchedulerCase):
                         task_minus_one.id, task_minus_two.id]:
             assert task_id not in excluded_tasks
 
-        # The task outside our time window should be excluded if it's not 
-        # hour 4
         if task_outside.crontab.hour != '4':
             assert task_outside.id in excluded_tasks
 
@@ -1036,12 +1027,6 @@ class test_DatabaseScheduler(SchedulerCase):
     @patch('django.utils.timezone.get_current_timezone')
     @patch('django.utils.timezone.now')
     def test_crontab_timezone_conversion(self, mock_now, mock_get_tz):
-        """
-        Test that the scheduler correctly handles crontab schedules with 
-        different timezones.
-        This test mocks the server timezone to Tokyo and tests timezone 
-        conversions.
-        """
         # Set up mocks for server timezone and current time
         from datetime import datetime
 
@@ -1052,13 +1037,13 @@ class test_DatabaseScheduler(SchedulerCase):
         except ImportError:
             import pytz
             server_tz = pytz.timezone("Asia/Tokyo")
-            
+
         mock_get_tz.return_value = server_tz
-        
+
         # Server time is 17:00 Tokyo time
         mock_now_dt = datetime(2023, 1, 1, 17, 0, 0, tzinfo=server_tz)
         mock_now.return_value = mock_now_dt
-        
+
         # Create tasks with the following crontab schedules:
         # 1. UTC task at hour 8 - equivalent to 17:00 Tokyo time (current hour)
         #    - should be included
@@ -1066,7 +1051,7 @@ class test_DatabaseScheduler(SchedulerCase):
         #    (current hour) - should be included
         # 3. UTC task at hour 3 - equivalent to 12:00 Tokyo time
         #    - should be excluded (outside window)
-        
+
         # Create crontab schedules in different timezones
         utc_current_hour = CrontabSchedule.objects.create(
             hour='8', timezone='UTC'
@@ -1267,7 +1252,7 @@ class test_models(SchedulerCase):
         assert s.schedule is not None
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
         # False means task isn't due, but keep checking.
-        assert isdue is False  
+        assert isdue is False
         assert (nextcheck > 0) and (isdue is False) or \
             (nextcheck == s.max_interval) and (isdue is True)
 
