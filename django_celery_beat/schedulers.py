@@ -4,6 +4,11 @@ import logging
 import math
 from multiprocessing.util import Finalize
 
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except ImportError:
+    from backports.zoneinfo import ZoneInfo  # Python 3.8
+
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
@@ -363,7 +368,7 @@ class DatabaseScheduler(Scheduler):
         # Get server timezone
         server_tz = timezone.get_current_timezone()
 
-        target_tz = timezone_name
+        target_tz = ZoneInfo(timezone_name)
 
         # Use a fixed point in time for the calculation to avoid DST issues
         fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
