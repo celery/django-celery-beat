@@ -288,8 +288,8 @@ class DatabaseScheduler(Scheduler):
         This creates an annotation for each crontab task that represents the
         server-equivalent hour, then filters on that annotation.
         """
-        # Get server time and timezone
-        server_time = timezone.localtime(now())
+        # Get server time
+        server_time = now()
         server_hour = server_time.hour
 
         # Previous, current, and next hour in server timezone
