@@ -368,6 +368,9 @@ class DatabaseScheduler(Scheduler):
         # Get server timezone
         server_tz = timezone.get_current_timezone()
 
+        if isinstance(timezone_name, ZoneInfo):
+            timezone_name = timezone_name.key
+
         target_tz = ZoneInfo(timezone_name)
 
         # Use a fixed point in time for the calculation to avoid DST issues
