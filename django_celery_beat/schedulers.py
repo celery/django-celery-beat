@@ -289,7 +289,9 @@ class DatabaseScheduler(Scheduler):
         server-equivalent hour, then filters on that annotation.
         """
         # Get server time
-        server_time = now()
+        server_time = timezone.localtime(
+            datetime.datetime.now(datetime.timezone.utc)
+        )
         server_hour = server_time.hour
 
         # Previous, current, and next hour in server timezone
