@@ -296,14 +296,8 @@ class DatabaseScheduler(Scheduler):
         server_hour = server_time.hour
 
         # Window of +/- 2 hours around the current hour in server tz.
-        hours_to_include = [
-            (server_hour - 2) % 24,
-            (server_hour - 1) % 24,
-            server_hour,
-            (server_hour + 1) % 24,
-            (server_hour + 2) % 24,
-            4,                       # hour 4 (celery's default cleanup task)
-        ]
+        hours_to_include = [(server_hour + offset) % 24 for offset in range(-2, 3)]
+        hours_to_include += [4]  # celery's default cleanup task
 
         # Regex pattern to match only numbers
         # This ensures we only process numeric hour values
