@@ -12,8 +12,6 @@ except ImportError:
 from django.conf import settings
 from django.utils import timezone
 
-
-
 is_aware = timezone.is_aware
 # celery schedstate return None will make it not work
 NEVER_CHECK_TIMEOUT = 100000000
