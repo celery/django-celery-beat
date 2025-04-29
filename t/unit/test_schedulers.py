@@ -1137,7 +1137,9 @@ class test_DatabaseScheduler(SchedulerCase):
     @pytest.mark.django_db
     @patch('django.utils.timezone.get_current_timezone')
     @patch('django.utils.timezone.now')
-    def test_crontab_timezone_conversion_with_negative_offset_and_dst(self, mock_now, mock_get_tz):
+    def test_crontab_timezone_conversion_with_negative_offset_and_dst(
+        self, mock_now, mock_get_tz
+    ):
         # Set up mocks for server timezone and current time
         from datetime import datetime
 
