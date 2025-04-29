@@ -1060,19 +1060,18 @@ class test_DatabaseScheduler(SchedulerCase):
         assert task_hour_four.id not in excluded_tasks
 
     @pytest.mark.django_db
+    @patch('django_celery_beat.utils.aware_now')
     @patch('django.utils.timezone.get_current_timezone')
-    @patch('django.utils.timezone.now')
-    def test_crontab_timezone_conversion(self, mock_now, mock_get_tz):
+    def test_crontab_timezone_conversion(self, mock_get_tz, mock_aware_now):
         # Set up mocks for server timezone and current time
         from datetime import datetime
-
         server_tz = ZoneInfo("Asia/Tokyo")
 
         mock_get_tz.return_value = server_tz
 
         # Server time is 17:00 Tokyo time
         mock_now_dt = datetime(2023, 1, 1, 17, 0, 0, tzinfo=server_tz)
-        mock_now.return_value = mock_now_dt
+        mock_aware_now.return_value = mock_now_dt
 
         # Create tasks with the following crontab schedules:
         # 1. UTC task at hour 8 - equivalent to 17:00 Tokyo time (current hour)
