@@ -325,6 +325,7 @@ class DatabaseScheduler(Scheduler):
                         then=(
                             F('hour_int')
                             + self._get_timezone_offset(timezone_name)
+                            + 24
                         ) % 24
                     )
                     for timezone_name in self._get_unique_timezone_names()
