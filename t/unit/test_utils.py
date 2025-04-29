@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-from django.test import override_settings, TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from django_celery_beat.utils import aware_now, make_aware
