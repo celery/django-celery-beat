@@ -295,7 +295,7 @@ class DatabaseScheduler(Scheduler):
         )
         server_hour = server_time.hour
 
-        # Previous, current, and next hour in server timezone
+        # Window of +/- 2 hours around the current hour in server tz.
         hours_to_include = [
             (server_hour - 2) % 24,
             (server_hour - 1) % 24,
