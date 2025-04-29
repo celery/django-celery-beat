@@ -26,7 +26,7 @@ from kombu.utils.json import dumps, loads
 from .clockedschedule import clocked
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
                      PeriodicTask, PeriodicTasks, SolarSchedule)
-from .utils import NEVER_CHECK_TIMEOUT, now
+from .utils import NEVER_CHECK_TIMEOUT, now, aware_now
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
@@ -291,10 +291,9 @@ class DatabaseScheduler(Scheduler):
         This creates an annotation for each crontab task that represents the
         server-equivalent hour, then filters on that annotation.
         """
-        # Get server time
-        server_time = timezone.localtime(
-            datetime.datetime.now(datetime.timezone.utc)
-        )
+        # Get server time based on Django settings
+
+        server_time = aware_now()
         server_hour = server_time.hour
 
         # Window of +/- 2 hours around the current hour in server tz.
