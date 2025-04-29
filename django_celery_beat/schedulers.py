@@ -32,6 +32,7 @@ from .utils import NEVER_CHECK_TIMEOUT, now
 # regular of 5 minutes because it needs to take external
 # changes to the schedule into account.
 DEFAULT_MAX_INTERVAL = 5  # seconds
+SCHEDULE_SYNC_MAX_INTERVAL = 300  # 5 minutes
 
 ADD_ENTRY_ERROR = """\
 Cannot add entry %r to database schedule: %r. Contents: %r
@@ -244,6 +245,7 @@ class DatabaseScheduler(Scheduler):
     _last_timestamp = None
     _initial_read = True
     _heap_invalidated = False
+    _last_full_sync = None
 
     def __init__(self, *args, **kwargs):
         """Initialize the database scheduler."""
@@ -481,13 +483,31 @@ class DatabaseScheduler(Scheduler):
     @property
     def schedule(self):
         initial = update = False
+        current_time = datetime.datetime.now()
+
         if self._initial_read:
             debug('DatabaseScheduler: initial read')
             initial = update = True
             self._initial_read = False
+            self._last_full_sync = current_time
         elif self.schedule_changed():
             info('DatabaseScheduler: Schedule changed.')
             update = True
+            self._last_full_sync = current_time
+
+        # Force update the schedule if it's been more than 5 minutes
+        if not update:
+            time_since_last_sync = (
+                current_time - self._last_full_sync
+            ).total_seconds()
+            if (
+                time_since_last_sync >= SCHEDULE_SYNC_MAX_INTERVAL
+            ):
+                debug(
+                    'DatabaseScheduler: Forcing full sync after 5 minutes'
+                )
+                update = True
+                self._last_full_sync = current_time
 
         if update:
             self.sync()
