@@ -16,7 +16,8 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Q
+from django.db.models import Q, Case, F, IntegerField, When
+from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
 from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
@@ -303,11 +304,6 @@ class DatabaseScheduler(Scheduler):
             (server_hour + 2) % 24,
             4,                       # hour 4 (celery's default cleanup task)
         ]
-
-        # Create a query for tasks with specific hour values only
-        # This is where we'll do the timezone conversion
-        from django.db.models import Case, F, IntegerField, When
-        from django.db.models.functions import Cast
 
         # Regex pattern to match only numbers
         # This ensures we only process numeric hour values
