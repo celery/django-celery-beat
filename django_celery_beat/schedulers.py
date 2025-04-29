@@ -26,7 +26,7 @@ from kombu.utils.json import dumps, loads
 from .clockedschedule import clocked
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
                      PeriodicTask, PeriodicTasks, SolarSchedule)
-from .utils import NEVER_CHECK_TIMEOUT, now, aware_now
+from .utils import NEVER_CHECK_TIMEOUT, aware_now, now
 
 # This scheduler must wake up more frequently than the
 # regular of 5 minutes because it needs to take external
