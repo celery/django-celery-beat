@@ -264,10 +264,12 @@ class DatabaseScheduler(Scheduler):
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
-        next_five_minutes = now() + datetime.timedelta(minutes=5)
+        next_schedule_sync = now() + datetime.timedelta(
+            seconds=SCHEDULE_SYNC_MAX_INTERVAL
+        )
         exclude_clock_tasks_query = Q(
             clocked__isnull=False,
-            clocked__clocked_time__gt=next_five_minutes
+            clocked__clocked_time__gt=next_schedule_sync
         )
 
         exclude_cron_tasks_query = self._get_crontab_exclude_query()
