@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timedelta
 from itertools import count
 from time import monotonic
+from unittest.mock import patch
 
 try:
     from zoneinfo import ZoneInfo  # Python 3.9+
@@ -306,40 +307,50 @@ class test_ModelEntry(SchedulerCase):
         interval = 10
         right_now = self.app.now()
         one_interval_ago = right_now - timedelta(seconds=interval)
-        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                       start_time=right_now,
-                                       last_run_at=one_interval_ago)
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            start_time=right_now,
+            last_run_at=one_interval_ago
+        )
         e = self.Entry(m, app=self.app)
         isdue, delay = e.is_due()
         assert isdue
         assert delay == interval
 
         tomorrow = right_now + timedelta(days=1)
-        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                        start_time=tomorrow,
-                                        last_run_at=one_interval_ago)
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            start_time=tomorrow,
+            last_run_at=one_interval_ago
+        )
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
-        assert delay == math.ceil((tomorrow - right_now).total_seconds())
+        assert delay == math.ceil(
+            (tomorrow - right_now).total_seconds()
+        )
 
     def test_one_off_task(self):
         interval = 10
         right_now = self.app.now()
         one_interval_ago = right_now - timedelta(seconds=interval)
-        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                       one_off=True,
-                                       last_run_at=one_interval_ago,
-                                       total_run_count=0)
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            one_off=True,
+            last_run_at=one_interval_ago,
+            total_run_count=0
+        )
         e = self.Entry(m, app=self.app)
         isdue, delay = e.is_due()
         assert isdue
         assert delay == interval
 
-        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                        one_off=True,
-                                        last_run_at=one_interval_ago,
-                                        total_run_count=1)
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            one_off=True,
+            last_run_at=one_interval_ago,
+            total_run_count=1
+        )
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
@@ -349,26 +360,32 @@ class test_ModelEntry(SchedulerCase):
         interval = 10
         right_now = self.app.now()
         one_second_later = right_now + timedelta(seconds=1)
-        m = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                       start_time=right_now,
-                                       expires=one_second_later)
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            start_time=right_now,
+            expires=one_second_later
+        )
         e = self.Entry(m, app=self.app)
         isdue, delay = e.is_due()
         assert isdue
         assert delay == interval
 
-        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                        start_time=right_now,
-                                        expires=right_now)
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            start_time=right_now,
+            expires=right_now
+        )
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
 
         one_second_ago = right_now - timedelta(seconds=1)
-        m2 = self.create_model_interval(schedule(timedelta(seconds=interval)),
-                                        start_time=right_now,
-                                        expires=one_second_ago)
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=interval)),
+            start_time=right_now,
+            expires=one_second_ago
+        )
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
@@ -519,7 +536,7 @@ class test_DatabaseScheduler(SchedulerCase):
 
         # distant future time (should not be in schedule)
         self.m11 = self.create_model_crontab(
-            crontab(hour=str((now_hour + 2) % 24)))
+            crontab(hour=str((now_hour + 3) % 24)))
         self.m11.save()
         self.m11.refresh_from_db()
 
@@ -533,19 +550,46 @@ class test_DatabaseScheduler(SchedulerCase):
     def test_all_as_schedule(self):
         sched = self.s.schedule
         assert sched
-        assert len(sched) == 9
-        assert 'celery.backend_cleanup' in sched
+
+        # Check for presence of standard tasks
+        expected_task_names = {
+            self.m1.name,  # interval task
+            self.m2.name,  # interval task
+            self.m3.name,  # crontab task
+            self.m4.name,  # solar task
+            self.m6.name,  # clocked task (near future)
+            self.m8.name,  # crontab task (current hour)
+            self.m9.name,  # crontab task (current hour + 1)
+            self.m10.name,  # crontab task (current hour - 1)
+            'celery.backend_cleanup'  # auto-added by system
+        }
+
+        # The distant future crontab task (hour + 3) should be excluded
+        distant_task_name = self.m11.name
+
+        # But if it's hour is 4 (or converts to 4 after timezone adjustment),
+        # it would be included because of the special handling for hour=4
+        current_hour = timezone.localtime(timezone.now()).hour
+        is_hour_four_task = False
+
+        # Check if the task would have hour 4.
+        if self.m11.crontab.hour == '4' or (current_hour + 3) % 24 == 4:
+            is_hour_four_task = True
+
+        # Add to expected tasks if it's an hour=4 task
+        if is_hour_four_task:
+            expected_task_names.add(distant_task_name)
+
+        # Verify all expected tasks are present in the schedule
+        schedule_task_names = set(sched.keys())
+        assert schedule_task_names == expected_task_names, (
+            f"Task mismatch. Expected: {expected_task_names}, "
+            f"Got: {schedule_task_names}"
+        )
+
+        # Verify all entries are the right type
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
-
-    def test_get_excluded_hours_for_crontab_tasks(self):
-        now_hour = timezone.localtime(timezone.now()).hour
-        excluded_hours = self.s.get_excluded_hours_for_crontab_tasks()
-
-        assert str(now_hour) not in excluded_hours
-        assert str((now_hour + 1) % 24) not in excluded_hours
-        assert str((now_hour - 1) % 24) not in excluded_hours
-        assert str(4) not in excluded_hours
 
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
@@ -722,7 +766,9 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.schedules_equal(self.s.schedule, self.s.schedule)
 
         monkeypatch.setattr(self.s, 'schedule_changed', lambda: True)
-        assert not self.s.schedules_equal(self.s.schedule, self.s.schedule)
+        assert not self.s.schedules_equal(
+            self.s.schedule, self.s.schedule
+        )
 
     def test_heap_always_return_the_first_item(self):
         interval = 10
@@ -898,6 +944,274 @@ class test_DatabaseScheduler(SchedulerCase):
             assert s._heap[0][2].name != m2.name
             is_due, _ = e2.is_due()
 
+    @pytest.mark.django_db
+    def test_crontab_exclusion_logic_basic(self):
+        current_hour = datetime.now().hour
+        cron_current_hour = CrontabSchedule.objects.create(
+            hour=str(current_hour)
+        )
+        cron_plus_one = CrontabSchedule.objects.create(
+            hour=str((current_hour + 1) % 24)
+        )
+        cron_plus_two = CrontabSchedule.objects.create(
+            hour=str((current_hour + 2) % 24)
+        )
+        cron_minus_one = CrontabSchedule.objects.create(
+            hour=str((current_hour - 1) % 24)
+        )
+        cron_minus_two = CrontabSchedule.objects.create(
+            hour=str((current_hour - 2) % 24)
+        )
+        cron_outside = CrontabSchedule.objects.create(
+            hour=str((current_hour + 5) % 24)
+        )
+
+        # Create a special hour 4 schedule that should always be included
+        cron_hour_four = CrontabSchedule.objects.create(hour='4')
+
+        # Create periodic tasks using these schedules
+        task_current = self.create_model(
+            name='task-current',
+            crontab=cron_current_hour
+        )
+        task_current.save()
+
+        task_plus_one = self.create_model(
+            name='task-plus-one',
+            crontab=cron_plus_one
+        )
+        task_plus_one.save()
+
+        task_plus_two = self.create_model(
+            name='task-plus-two',
+            crontab=cron_plus_two
+        )
+        task_plus_two.save()
+
+        task_minus_one = self.create_model(
+            name='task-minus-one',
+            crontab=cron_minus_one
+        )
+        task_minus_one.save()
+
+        task_minus_two = self.create_model(
+            name='task-minus-two',
+            crontab=cron_minus_two
+        )
+        task_minus_two.save()
+
+        task_outside = self.create_model(
+            name='task-outside',
+            crontab=cron_outside
+        )
+        task_outside.save()
+
+        task_hour_four = self.create_model(
+            name='task-hour-four',
+            crontab=cron_hour_four
+        )
+        task_hour_four.save()
+
+        # Run the scheduler's exclusion logic
+        exclude_query = self.s._get_crontab_exclude_query()
+
+        # Get excluded task IDs
+        excluded_tasks = set(
+            PeriodicTask.objects.filter(exclude_query).values_list(
+                'id', flat=True
+            )
+        )
+
+        # The test that matters is that hour 4 is always included
+        assert task_hour_four.id not in excluded_tasks
+
+        # Assert that tasks within the time window are not excluded
+        for task_id in [task_current.id, task_plus_one.id, task_plus_two.id,
+                        task_minus_one.id, task_minus_two.id]:
+            assert task_id not in excluded_tasks
+
+        if task_outside.crontab.hour != '4':
+            assert task_outside.id in excluded_tasks
+
+    @pytest.mark.django_db
+    def test_crontab_special_hour_four(self):
+        """
+        Test that schedules with hour=4 are always included, regardless of
+        the current time.
+        """
+        # Create a task with hour=4
+        cron_hour_four = CrontabSchedule.objects.create(hour='4')
+        task_hour_four = self.create_model(
+            name='special-cleanup-task',
+            crontab=cron_hour_four
+        )
+
+        # Run the scheduler's exclusion logic
+        exclude_query = self.s._get_crontab_exclude_query()
+
+        # Get excluded task IDs
+        excluded_tasks = set(
+            PeriodicTask.objects.filter(exclude_query).values_list(
+                'id', flat=True
+            )
+        )
+
+        # The hour=4 task should never be excluded
+        assert task_hour_four.id not in excluded_tasks
+
+    @pytest.mark.django_db
+    @patch('django_celery_beat.schedulers.aware_now')
+    @patch('django.utils.timezone.get_current_timezone')
+    def test_crontab_timezone_conversion(self, mock_get_tz, mock_aware_now):
+        # Set up mocks for server timezone and current time
+        from datetime import datetime
+        server_tz = ZoneInfo("Asia/Tokyo")
+
+        mock_get_tz.return_value = server_tz
+
+        # Server time is 17:00 Tokyo time
+        mock_now_dt = datetime(2023, 1, 1, 17, 0, 0, tzinfo=server_tz)
+        mock_aware_now.return_value = mock_now_dt
+
+        # Create tasks with the following crontab schedules:
+        # 1. UTC task at hour 8 - equivalent to 17:00 Tokyo time (current hour)
+        #    - should be included
+        # 2. New York task at hour 3 - equivalent to 17:00 Tokyo time
+        #    (current hour) - should be included
+        # 3. UTC task at hour 3 - equivalent to 12:00 Tokyo time
+        #    - should be excluded (outside window)
+
+        # Create crontab schedules in different timezones
+        utc_current_hour = CrontabSchedule.objects.create(
+            hour='8', timezone='UTC'
+        )
+        ny_current_hour = CrontabSchedule.objects.create(
+            hour='3', timezone='America/New_York'
+        )
+        utc_outside_window = CrontabSchedule.objects.create(
+            hour='3', timezone='UTC'
+        )
+
+        # Create periodic tasks using these schedules
+        task_utc_current = self.create_model(
+            name='utc-current-hour',
+            crontab=utc_current_hour
+        )
+        task_utc_current.save()
+
+        task_ny_current = self.create_model(
+            name='ny-current-hour',
+            crontab=ny_current_hour
+        )
+        task_ny_current.save()
+
+        task_utc_outside = self.create_model(
+            name='utc-outside-window',
+            crontab=utc_outside_window
+        )
+        task_utc_outside.save()
+
+        # Run the scheduler's exclusion logic
+        exclude_query = self.s._get_crontab_exclude_query()
+
+        # Get excluded task IDs
+        excluded_tasks = set(
+            PeriodicTask.objects.filter(exclude_query).values_list(
+                'id', flat=True
+            )
+        )
+
+        # Current hour tasks in different timezones should not be excluded
+        assert task_utc_current.id not in excluded_tasks, (
+            "UTC current hour task should be included"
+        )
+        assert task_ny_current.id not in excluded_tasks, (
+            "New York current hour task should be included"
+        )
+
+        # Task outside window should be excluded
+        assert task_utc_outside.id in excluded_tasks, (
+            "UTC outside window task should be excluded"
+        )
+
+    @pytest.mark.django_db
+    @patch('django.utils.timezone.get_current_timezone')
+    @patch('django_celery_beat.schedulers.aware_now')
+    def test_crontab_timezone_conversion_with_negative_offset_and_dst(
+        self, mock_aware_now, mock_get_tz
+    ):
+        # Set up mocks for server timezone and current time
+        from datetime import datetime
+
+        server_tz = ZoneInfo("UTC")
+
+        mock_get_tz.return_value = server_tz
+
+        # Server time is 17:00 UTC in June
+        mock_now_dt = datetime(2023, 6, 1, 17, 0, 0, tzinfo=server_tz)
+        mock_aware_now.return_value = mock_now_dt
+
+        # Create tasks with the following crontab schedules:
+        # 1. Asia/Tokyo task at hour 2 - equivalent to 17:00 UTC (current hour)
+        #    - should be included
+        # 2. Europe/Paris task at hour 19 - equivalent to 17:00 UTC
+        #    (current hour) - should be included
+        # 3. Europe/Paris task at hour 15 - equivalent to 13:00 UTC
+        #    - should be excluded (outside window)
+
+        # Create crontab schedules in different timezones
+        tokyo_current_hour = CrontabSchedule.objects.create(
+            hour='2', timezone='Asia/Tokyo'
+        )
+        paris_current_hour = CrontabSchedule.objects.create(
+            hour='19', timezone='Europe/Paris'
+        )
+        paris_outside_window = CrontabSchedule.objects.create(
+            hour='14', timezone='Europe/Paris'
+        )
+
+        # Create periodic tasks using these schedules
+        task_utc_current = self.create_model(
+            name='tokyo-current-hour',
+            crontab=tokyo_current_hour
+        )
+        task_utc_current.save()
+
+        task_ny_current = self.create_model(
+            name='paros-current-hour',
+            crontab=paris_current_hour
+        )
+        task_ny_current.save()
+
+        task_utc_outside = self.create_model(
+            name='paris-outside-window',
+            crontab=paris_outside_window
+        )
+        task_utc_outside.save()
+
+        # Run the scheduler's exclusion logic
+        exclude_query = self.s._get_crontab_exclude_query()
+
+        # Get excluded task IDs
+        excluded_tasks = set(
+            PeriodicTask.objects.filter(exclude_query).values_list(
+                'id', flat=True
+            )
+        )
+
+        # Current hour tasks in different timezones should not be excluded
+        assert task_utc_current.id not in excluded_tasks, (
+            "Tokyo current hour task should be included"
+        )
+        assert task_ny_current.id not in excluded_tasks, (
+            "Paris current hour task should be included"
+        )
+
+        # Task outside window should be excluded
+        assert task_utc_outside.id in excluded_tasks, (
+            "Paris outside window task should be excluded"
+        )
+
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
@@ -1018,7 +1332,7 @@ class test_models(SchedulerCase):
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
         assert isdue is False  # False means task isn't due, but keep checking.
         assert (nextcheck > 0) and (isdue is False) or \
-            (nextcheck == s.max_interval) and (isdue is True)
+               (nextcheck == s.max_interval) and (isdue is True)
 
         s2 = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt2 = datetime(day=26, month=7, year=2000, hour=1, minute=0)
@@ -1028,23 +1342,26 @@ class test_models(SchedulerCase):
         isdue2, nextcheck2 = s2.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
         assert (nextcheck2 > 0) and (isdue2 is True) or \
-            (nextcheck2 == s2.max_interval) and (isdue2 is False)
+               (nextcheck2 == s2.max_interval) and (isdue2 is False)
 
     def test_ClockedSchedule_schedule(self):
-        due_datetime = make_aware(datetime(day=26,
-                                           month=7,
-                                           year=3000,
-                                           hour=1,
-                                           minute=0))  # future time
+        due_datetime = make_aware(datetime(
+            day=26,
+            month=7,
+            year=3000,
+            hour=1,
+            minute=0
+        ))  # future time
         s = ClockedSchedule(clocked_time=due_datetime)
         dt = datetime(day=25, month=7, year=2050, hour=1, minute=0)
         dt_lastrun = make_aware(dt)
 
         assert s.schedule is not None
         isdue, nextcheck = s.schedule.is_due(dt_lastrun)
-        assert isdue is False  # False means task isn't due, but keep checking.
+        # False means task isn't due, but keep checking.
+        assert isdue is False
         assert (nextcheck > 0) and (isdue is False) or \
-            (nextcheck == s.max_interval) and (isdue is True)
+               (nextcheck == s.max_interval) and (isdue is True)
 
         due_datetime = make_aware(datetime.now())
         s = ClockedSchedule(clocked_time=due_datetime)

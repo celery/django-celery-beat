@@ -1,7 +1,13 @@
 """Utilities."""
+import datetime
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
 from datetime import timezone as datetime_timezone
+
+try:
+    from zoneinfo import ZoneInfo  # Python 3.9+
+except ImportError:
+    from backports.zoneinfo import ZoneInfo  # Python 3.8
 
 from django.conf import settings
 from django.utils import timezone
@@ -35,6 +41,16 @@ def now():
         return now_localtime(timezone.now())
     else:
         return timezone.now()
+
+
+def aware_now():
+    if getattr(settings, 'USE_TZ', True):
+        # When USE_TZ is True, return timezone.now()
+        return timezone.now()
+    else:
+        # When USE_TZ is False, use the project's timezone
+        project_tz = ZoneInfo(getattr(settings, 'TIME_ZONE', 'UTC'))
+        return datetime.datetime.now(project_tz)
 
 
 def is_database_scheduler(scheduler):
