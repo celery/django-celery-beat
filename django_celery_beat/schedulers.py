@@ -364,7 +364,9 @@ class DatabaseScheduler(Scheduler):
             int: The hour offset
         """
         # Get server timezone
-        server_tz = timezone.get_current_timezone()
+        # this gets django settings and not server's 
+        # server_tz = timezone.get_current_timezone()
+        server_tz = ZoneInfo(str(server_time.tzinfo))
 
         if isinstance(timezone_name, ZoneInfo):
             timezone_name = timezone_name.key
