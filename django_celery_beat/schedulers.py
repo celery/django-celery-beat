@@ -366,6 +366,7 @@ class DatabaseScheduler(Scheduler):
         # Get server timezone
         # this gets django settings and not server's 
         # server_tz = timezone.get_current_timezone()
+        server_time = aware_now()
         server_tz = ZoneInfo(str(server_time.tzinfo))
 
         if isinstance(timezone_name, ZoneInfo):
