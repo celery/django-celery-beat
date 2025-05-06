@@ -272,10 +272,10 @@ class DatabaseScheduler(Scheduler):
             clocked__clocked_time__gt=next_schedule_sync
         )
 
-        # exclude_cron_tasks_query = self._get_crontab_exclude_query()
+        exclude_cron_tasks_query = self._get_crontab_exclude_query()
 
         # Combine the queries for optimal database filtering
-        exclude_query = exclude_clock_tasks_query
+        exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
 
         # Fetch only the tasks we need to consider
         for model in self.Model.objects.enabled().exclude(exclude_query):
