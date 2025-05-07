@@ -19,7 +19,6 @@ from django.db import close_old_connections, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
-from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
@@ -364,8 +363,6 @@ class DatabaseScheduler(Scheduler):
             int: The hour offset
         """
         # Get server timezone
-        # this gets django settings and not server's 
-        # server_tz = timezone.get_current_timezone()
         server_time = aware_now()
         server_tz = ZoneInfo(str(server_time.tzinfo))
 
