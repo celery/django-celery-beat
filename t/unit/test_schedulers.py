@@ -1453,3 +1453,55 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
         assert 'periodic_task_name' in self.captured_headers
         assert self.captured_headers['periodic_task_name'] == self.m1.name
+
+
+
+@pytest.mark.django_db
+class test_timezone_offset_handling:
+    def setup_method(self):
+        self.app = patch("django_celery_beat.schedulers.current_app").start()
+
+    def teardown_method(self):
+        patch.stopall()
+
+    @patch("django_celery_beat.schedulers.aware_now")
+    def test_server_timezone_handling_with_zoneinfo(self, mock_aware_now):
+        """Test handling when server timezone is already a ZoneInfo instance."""
+
+        # Create a mock scheduler with only the methods we need to test
+        class MockScheduler:
+            _get_timezone_offset = schedulers.DatabaseScheduler._get_timezone_offset
+
+        s = MockScheduler()
+
+        tokyo_tz = ZoneInfo("Asia/Tokyo")
+        mock_now = datetime(2023, 1, 1, 12, 0, 0, tzinfo=tokyo_tz)
+        mock_aware_now.return_value = mock_now
+
+        # Test with a different timezone
+        new_york_tz = "America/New_York"
+        offset = s._get_timezone_offset(new_york_tz)  # Pass self explicitly
+
+        # Tokyo is UTC+9, New York is UTC-5, so difference should be 14 hours
+        assert offset == 14
+        assert mock_aware_now.called
+
+    @patch("django_celery_beat.schedulers.aware_now")
+    def test_timezone_offset_with_zoneinfo_object_param(self, mock_aware_now):
+        """Test handling when timezone_name parameter is a ZoneInfo object."""
+
+        class MockScheduler:
+            _get_timezone_offset = schedulers.DatabaseScheduler._get_timezone_offset
+
+        s = MockScheduler()
+
+        tokyo_tz = ZoneInfo("Asia/Tokyo")
+        mock_now = datetime(2023, 1, 1, 12, 0, 0, tzinfo=tokyo_tz)
+        mock_aware_now.return_value = mock_now
+
+        # Test with a ZoneInfo object as parameter
+        new_york_tz = ZoneInfo("America/New_York")
+        offset = s._get_timezone_offset(new_york_tz)  # Pass self explicitly
+
+        # Tokyo is UTC+9, New York is UTC-5, so difference should be 14 hours
+        assert offset == 14
