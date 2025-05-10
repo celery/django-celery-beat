@@ -263,6 +263,22 @@ class DatabaseScheduler(Scheduler):
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
         s = {}
+        for model in self.enabled_models():
+            try:
+                s[model.name] = self.Entry(model, app=self.app)
+            except ValueError:
+                pass
+        return s
+
+    def enabled_models(self):
+        """Return list of enabled periodic tasks.
+
+        Allows overriding how the list of periodic tasks is fetched without
+        duplicating the filtering/querying logic.
+        """
+        return list(self.enabled_models_qs())
+
+    def enabled_models_qs(self):
         next_schedule_sync = now() + datetime.timedelta(
             seconds=SCHEDULE_SYNC_MAX_INTERVAL
         )
@@ -277,12 +293,7 @@ class DatabaseScheduler(Scheduler):
         exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
 
         # Fetch only the tasks we need to consider
-        for model in self.Model.objects.enabled().exclude(exclude_query):
-            try:
-                s[model.name] = self.Entry(model, app=self.app)
-            except ValueError:
-                pass
-        return s
+        return self.Model.objects.enabled().exclude(exclude_query)
 
     def _get_crontab_exclude_query(self):
         """
