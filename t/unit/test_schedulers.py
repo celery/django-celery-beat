@@ -1323,6 +1323,43 @@ class test_models(SchedulerCase):
             field_length = s._meta.get_field(field).max_length
             assert str_length <= field_length
 
+    def test_CrontabSchedule_with_tz(self):
+        # Should instantly run any task that has long-past schedule
+        self.app.conf.beat_cron_starting_deadline = None
+        s = CrontabSchedule(
+            minute="1",
+            hour="*",
+            day_of_week="1",
+            day_of_month="1",
+            day_of_year="1",
+            timezone=ZoneInfo('Asia/Shanghai')
+        )
+        dt = datetime(day=1, month=1, year=2000, hour=0, minute=1)
+        dt_lastrun = make_aware(dt)
+        assert s.schedule is not None
+        is_due, next_check = s.schedule.is_due(dt_lastrun)
+        assert is_due is True
+
+
+    def test_CrontabSchedule_with_tz_and_deadline(self):
+        # At most allows a 300 second difference
+        self.app.conf.beat_cron_starting_deadline = 300
+
+        s = CrontabSchedule(
+            minute="1",
+            hour="*",
+            day_of_week="1",
+            day_of_month="1",
+            day_of_year="1",
+            timezone=ZoneInfo('Asia/Shanghai')
+        )
+        dt = datetime(day=1, month=1, year=2000, hour=0, minute=1)
+        dt_lastrun = make_aware(dt)
+        assert s.schedule is not None
+        is_due, next_check = s.schedule.is_due(dt_lastrun)
+        assert is_due is False
+
+
     def test_SolarSchedule_schedule(self):
         s = SolarSchedule(event='solar_noon', latitude=48.06, longitude=12.86)
         dt = datetime(day=26, month=7, year=2050, hour=1, minute=0)
