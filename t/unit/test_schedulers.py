@@ -1331,7 +1331,7 @@ class test_models(SchedulerCase):
             hour="*",
             day_of_week="1",
             day_of_month="1",
-            day_of_year="1",
+            month_of_year="1",
             timezone=ZoneInfo('Asia/Shanghai')
         )
         dt = datetime(day=1, month=1, year=2000, hour=0, minute=1)
@@ -1350,7 +1350,7 @@ class test_models(SchedulerCase):
             hour="*",
             day_of_week="1",
             day_of_month="1",
-            day_of_year="1",
+            month_of_year="1",
             timezone=ZoneInfo('Asia/Shanghai')
         )
         dt = datetime(day=1, month=1, year=2000, hour=0, minute=1)
