@@ -1455,7 +1455,6 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         assert self.captured_headers['periodic_task_name'] == self.m1.name
 
 
-
 @pytest.mark.django_db
 class test_timezone_offset_handling:
     def setup_method(self):
