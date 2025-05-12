@@ -1229,7 +1229,6 @@ class test_DatabaseScheduler(SchedulerCase):
     @patch('django.utils.timezone.get_current_timezone')
     def test_crontab_timezone_conversion(self, mock_get_tz, mock_aware_now):
         # Set up mocks for server timezone and current time
-        from datetime import datetime
         server_tz = ZoneInfo("Asia/Tokyo")
 
         mock_get_tz.return_value = server_tz
@@ -1306,8 +1305,6 @@ class test_DatabaseScheduler(SchedulerCase):
         self, mock_aware_now, mock_get_tz
     ):
         # Set up mocks for server timezone and current time
-        from datetime import datetime
-
         server_tz = ZoneInfo("UTC")
 
         mock_get_tz.return_value = server_tz

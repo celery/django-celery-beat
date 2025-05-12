@@ -13,13 +13,8 @@ repos:
     hooks:
       - id: flake8
 
-  - repo: https://github.com/asottile/yesqa
-    rev: v1.5.0
-    hooks:
-      - id: yesqa
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-merge-conflict
       - id: check-toml
@@ -38,8 +33,8 @@ repos:
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.13
-    hooks:  # Format before linting
+    rev: v0.12.9
+    hooks:
       - id: ruff-check
       # - id: ruff-format
 

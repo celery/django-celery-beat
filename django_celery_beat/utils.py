@@ -57,9 +57,9 @@ def is_database_scheduler(scheduler):
     """Return true if Celery is configured to use the db scheduler."""
     if not scheduler:
         return False
-    from kombu.utils import symbol_by_name
+    from kombu.utils import symbol_by_name  # noqa: PLC0415
 
-    from .schedulers import DatabaseScheduler
+    from .schedulers import DatabaseScheduler  # noqa: PLC0415
     return (
         scheduler == 'django'
         or issubclass(symbol_by_name(scheduler), DatabaseScheduler)

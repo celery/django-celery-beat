@@ -6,7 +6,7 @@ from celery.utils.time import maybe_make_aware
 from .utils import NEVER_CHECK_TIMEOUT
 
 
-class clocked(schedules.BaseSchedule):
+class clocked(schedules.BaseSchedule):  # noqa: PLW1641
     """clocked schedule.
 
     Depends on PeriodicTask one_off=True
