@@ -1,4 +1,6 @@
 """Beat Scheduler Implementation."""
+from __future__ import annotations
+
 import datetime
 import logging
 import math
@@ -15,7 +17,7 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import close_old_connections, transaction
+from django.db import close_old_connections, connection, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
@@ -337,7 +339,7 @@ class DatabaseScheduler(Scheduler):
                             + 24
                         ) % 24
                     )
-                    for timezone_name in self._get_unique_timezone_names()
+                    for timezone_name in self._get_unique_timezones()
                 ],
                 # Default case - use hour as is
                 default=F('hour_int')
@@ -365,11 +367,25 @@ class DatabaseScheduler(Scheduler):
             f"{hour:02d}" for hour in range(10)
         ]
 
-    def _get_unique_timezone_names(self):
-        """Get a list of all unique timezone names used in CrontabSchedule"""
-        return CrontabSchedule.objects.values_list(
-            'timezone', flat=True
-        ).distinct()
+    def _get_unique_timezones(self) -> set[ZoneInfo]:
+        """Get a set of all unique timezones used in CrontabSchedule"""
+        # sqlite does not support distinct on a column
+        if connection.vendor == 'sqlite':
+            return set(
+                CrontabSchedule.objects.values_list(
+                    'timezone', flat=True
+                )
+            )
+
+        return set(
+            CrontabSchedule.objects.order_by(
+                'timezone'
+            ).distinct(
+                'timezone'
+            ).values_list(
+                'timezone', flat=True
+            )
+        )
 
     def _get_timezone_offset(self, timezone_name):
         """

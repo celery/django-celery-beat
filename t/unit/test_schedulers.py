@@ -1225,6 +1225,21 @@ class test_DatabaseScheduler(SchedulerCase):
         assert task_hour_four.id not in excluded_tasks
 
     @pytest.mark.django_db
+    def test_get_unique_timezones(self):
+        """
+        Test that get unique timezones returns a list of unique timezones
+        """
+        # Create 2 crontabs with same timezone, and 1 with different timezone
+        CrontabSchedule.objects.create(hour='4', timezone='UTC')
+        CrontabSchedule.objects.create(hour='4', timezone='UTC')
+        CrontabSchedule.objects.create(hour='4', timezone='America/New_York')
+
+        timezones = self.s._get_unique_timezones()
+
+        assert len(timezones) == 2
+        assert set(timezones) == {ZoneInfo('UTC'), ZoneInfo('America/New_York')}
+
+    @pytest.mark.django_db
     @patch('django_celery_beat.schedulers.aware_now')
     @patch('django.utils.timezone.get_current_timezone')
     def test_crontab_timezone_conversion(self, mock_get_tz, mock_aware_now):
