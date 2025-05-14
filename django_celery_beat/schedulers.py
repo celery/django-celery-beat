@@ -159,7 +159,7 @@ class ModelEntry(ScheduleEntry):
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.now(datetime.timezone.utc)
         return now
 
     def __next__(self):
@@ -500,7 +500,7 @@ class DatabaseScheduler(Scheduler):
     @property
     def schedule(self):
         initial = update = False
-        current_time = datetime.datetime.now()
+        current_time = now()
 
         if self._initial_read:
             debug('DatabaseScheduler: initial read')
