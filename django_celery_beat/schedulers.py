@@ -133,7 +133,9 @@ class ModelEntry(ScheduleEntry):
         if self.model.expires is not None:
             now = self._default_now()
             if now >= self.model.expires:
-                self._disable(self.model)
+                self.model.no_changes = False
+                self.model.enabled = False
+                self.model.save()
                 # Don't recheck
                 return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
