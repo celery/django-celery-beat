@@ -106,7 +106,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=[
         'ez_setup', 't', 't.*',
     ]),
-    version=meta['version'],
+    version='2.5.1.dev0',
     description=meta['doc'],
     long_description=long_description,
     long_description_content_type=long_description_content_type,
