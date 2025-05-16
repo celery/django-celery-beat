@@ -314,13 +314,13 @@ class DatabaseScheduler(Scheduler):
         ]
         hours_to_include += [4]  # celery's default cleanup task
 
-        # Regex pattern to match only numbers
-        # This ensures we only process numeric hour values
-        numeric_hour_pattern = r'^\d+$'
-
         # Get all tasks with a simple numeric hour value
+        # Create a list of all valid hour values (0-23)
+        valid_hours = [str(hour) for hour in range(24)] + [
+            f"{hour:02d}" for hour in range(10)
+        ]
         numeric_hour_tasks = CrontabSchedule.objects.filter(
-            hour__regex=numeric_hour_pattern
+            hour__in=valid_hours
         )
 
         # Annotate these tasks with their server-hour equivalent
