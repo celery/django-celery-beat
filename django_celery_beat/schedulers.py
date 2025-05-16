@@ -376,9 +376,10 @@ class DatabaseScheduler(Scheduler):
         # Get server timezone
         server_time = aware_now()
         # Use server_time.tzinfo directly if it is already a ZoneInfo instance
-        server_tz = server_time.tzinfo if isinstance(
-            server_time.tzinfo, ZoneInfo
-        ) else ZoneInfo(str(server_time.tzinfo))
+        if isinstance(server_time.tzinfo, ZoneInfo):
+            server_tz = server_time.tzinfo
+        else:
+            server_tz = ZoneInfo(str(server_time.tzinfo))
 
         if isinstance(timezone_name, ZoneInfo):
             timezone_name = timezone_name.key
