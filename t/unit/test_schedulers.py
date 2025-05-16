@@ -1225,8 +1225,8 @@ class test_DatabaseScheduler(SchedulerCase):
         assert task_hour_four.id not in excluded_tasks
 
     @pytest.mark.django_db
-    @patch('django.utils.timezone.get_current_timezone')
     @patch('django_celery_beat.schedulers.aware_now')
+    @patch('django.utils.timezone.get_current_timezone')
     def test_crontab_timezone_conversion(self, mock_get_tz, mock_aware_now):
         # Set up mocks for server timezone and current time
         from datetime import datetime
