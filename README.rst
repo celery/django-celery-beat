@@ -4,10 +4,11 @@
 
 |build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
 
-:Version: 2.8.0
+:Version: 2.8.1
 :Web: http://django-celery-beat.readthedocs.io/
 :Download: http://pypi.python.org/pypi/django-celery-beat
 :Source: http://github.com/celery/django-celery-beat
+:DeepWiki: |deepwiki|
 :Keywords: django, celery, beat, periodic task, cron, scheduling
 
 About
@@ -344,6 +345,11 @@ If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_
 .. |pyimp| image:: https://img.shields.io/pypi/implementation/django-celery-beat.svg#foo
     :alt: Support Python implementations.
     :target: http://pypi.python.org/pypi/django-celery-beat/
+
+.. |deepwiki| image:: https://devin.ai/assets/deepwiki-badge.png
+    :alt: Ask http://DeepWiki.com
+    :target: https://deepwiki.com/celery/django-celery-beat
+    :width: 125px
 
 django-celery-beat as part of the Tidelift Subscription
 -------------------------------------------------------

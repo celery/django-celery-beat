@@ -7,15 +7,22 @@
 Next
 ====
 
+.. _version-2.8.1:
+
+2.8.1
+=====
+:release-date: 2025-05-13
+:release-by: Asif Saif Uddin (@auvipy)
+
+- Fixed regression by big code refactoring.
+
+
 .. _version-2.8.0:
 
 2.8.0
 =====
 :release-date: 2025-04-16
 :release-by: Asif Saif Uddin (@auvipy)
-
-Added
-~~~~~
 
 - Add official support for Django 5.2.
 - Issue 796: remove days of the week from human readable description when the whole week is specified.
