@@ -38,13 +38,7 @@ class TzAwareCrontab(schedules.crontab):
         # convert last_run_at to the schedule timezone
         last_run_at = last_run_at.astimezone(self.tz)
 
-        rem_delta = self.remaining_estimate(last_run_at)
-        rem = max(rem_delta.total_seconds(), 0)
-        due = rem == 0
-        if due:
-            rem_delta = self.remaining_estimate(self.now())
-            rem = max(rem_delta.total_seconds(), 0)
-        return schedstate(due, rem)
+        return super().is_due(last_run_at)
 
     # Needed to support pickling
     def __repr__(self):
