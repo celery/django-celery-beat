@@ -315,13 +315,9 @@ class DatabaseScheduler(Scheduler):
         hours_to_include += [4]  # celery's default cleanup task
 
         # Get all tasks with a simple numeric hour value
-        # Create a list of all valid hour values (0-23).
-        # Both zero-padded ("00"–"09") and non-padded ("0"–"23")
-        valid_hours = [str(hour) for hour in range(24)] + [
-            f"{hour:02d}" for hour in range(10)
-        ]
+        valid_numeric_hours = self._get_valid_hour_formats()
         numeric_hour_tasks = CrontabSchedule.objects.filter(
-            hour__in=valid_hours
+            hour__in=valid_numeric_hours
         )
 
         # Annotate these tasks with their server-hour equivalent
@@ -359,6 +355,15 @@ class DatabaseScheduler(Scheduler):
         )
 
         return exclude_query
+
+    def _get_valid_hour_formats(self):
+        """
+        Return a list of all valid hour values (0-23).
+        Both zero-padded ("00"–"09") and non-padded ("0"–"23")
+        """
+        return [str(hour) for hour in range(24)] + [
+            f"{hour:02d}" for hour in range(10)
+        ]
 
     def _get_unique_timezone_names(self):
         """Get a list of all unique timezone names used in CrontabSchedule"""
