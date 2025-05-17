@@ -332,14 +332,14 @@ class DatabaseScheduler(Scheduler):
                 # Handle each timezone specifically
                 *[
                     When(
-                        timezone=timezone_name,
+                        timezone=timezone,
                         then=(
                             F('hour_int')
-                            + self._get_timezone_offset(timezone_name)
+                            + self._get_timezone_offset(timezone)
                             + 24
                         ) % 24
                     )
-                    for timezone_name in self._get_unique_timezones()
+                    for timezone in self._get_unique_timezones()
                 ],
                 # Default case - use hour as is
                 default=F('hour_int')
@@ -387,7 +387,7 @@ class DatabaseScheduler(Scheduler):
             )
         )
 
-    def _get_timezone_offset(self, timezone_name):
+    def _get_timezone_offset(self, timezone: ZoneInfo) -> int:
         """
         Args:
             timezone_name: The name of the timezone or a ZoneInfo object
@@ -403,17 +403,12 @@ class DatabaseScheduler(Scheduler):
         else:
             server_tz = ZoneInfo(str(server_time.tzinfo))
 
-        if isinstance(timezone_name, ZoneInfo):
-            timezone_name = timezone_name.key
-
-        target_tz = ZoneInfo(timezone_name)
-
         # Use a fixed point in time for the calculation to avoid DST issues
         fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
 
         # Calculate the offset
         dt1 = fixed_dt.replace(tzinfo=server_tz)
-        dt2 = fixed_dt.replace(tzinfo=target_tz)
+        dt2 = fixed_dt.replace(tzinfo=timezone)
 
         # Calculate hour difference
         offset_seconds = (
