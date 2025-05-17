@@ -315,7 +315,11 @@ class DatabaseScheduler(Scheduler):
         hours_to_include += [4]  # celery's default cleanup task
 
         # Get all tasks with a simple numeric hour value
-        # Create a list of all valid hour values (0-23)
+        # Create a list of all valid hour values (0-23).
+        # Both zero-padded ("00"–"09") and non-padded ("0"–"23") formats are included
+        # to account for variations in how hour values are stored in the database.
+        # Some databases or configurations may store single-digit hours without padding,
+        # while others may use zero-padded strings. Including both ensures compatibility.
         # both padded and non-padded
         valid_hours = [str(hour) for hour in range(24)] + [
             f"{hour:02d}" for hour in range(10)
