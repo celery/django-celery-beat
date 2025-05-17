@@ -1247,6 +1247,7 @@ class test_DatabaseScheduler(SchedulerCase):
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
 
+
 @pytest.mark.django_db
 class test_models(SchedulerCase):
 
