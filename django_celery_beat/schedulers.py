@@ -315,10 +315,8 @@ class DatabaseScheduler(Scheduler):
         hours_to_include += [4]  # celery's default cleanup task
 
         # Get all tasks with a simple numeric hour value
-        # Create a list of all valid hour values (0-23)
-        valid_hours = [str(hour) for hour in range(24)] + [
-            f"{hour:02d}" for hour in range(10)
-        ]
+        # Create a list of all valid hour values (0-23), both padded and non-padded
+        valid_hours = [str(hour) if hour >= 10 else f"{hour:02d}" for hour in range(24)]
         numeric_hour_tasks = CrontabSchedule.objects.filter(
             hour__in=valid_hours
         )
