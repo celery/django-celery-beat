@@ -1,7 +1,7 @@
 import math
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from datetime import timezone as dt_timezone
 from itertools import count
 from time import monotonic
@@ -333,7 +333,7 @@ class test_ModelEntry(SchedulerCase):
         assert self.app.timezone.key == 'Europe/Berlin'
 
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.utcnow()
+        right_now = datetime.now(UTC)
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
@@ -364,7 +364,7 @@ class test_ModelEntry(SchedulerCase):
             time.tzset()
         assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.utcnow()
+        right_now = datetime.now(UTC)
         # make sure to use fixed date time
         monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
         m = self.create_model_crontab(
@@ -398,7 +398,7 @@ class test_ModelEntry(SchedulerCase):
             time.tzset()
         assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.utcnow()
+        right_now = datetime.now(UTC)
         # make sure to use fixed date time
         monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
         m = self.create_model_crontab(
@@ -451,7 +451,7 @@ class test_ModelEntry(SchedulerCase):
 
         # simulate last_run_at all none, doing the same thing that
         # _default_now() would do
-        right_now = datetime.utcnow()
+        right_now = datetime.now(UTC)
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
@@ -1679,31 +1679,6 @@ class test_timezone_offset_handling:
         patch.stopall()
 
     @patch("django_celery_beat.schedulers.aware_now")
-    def test_server_timezone_handling_with_zoneinfo(self, mock_aware_now):
-        """Test handling when server timezone
-        is already a ZoneInfo instance."""
-
-        # Create a mock scheduler with only the methods we need to test
-        class MockScheduler:
-            _get_timezone_offset = (
-                schedulers.DatabaseScheduler._get_timezone_offset
-            )
-
-        s = MockScheduler()
-
-        tokyo_tz = ZoneInfo("Asia/Tokyo")
-        mock_now = datetime(2023, 1, 1, 12, 0, 0, tzinfo=tokyo_tz)
-        mock_aware_now.return_value = mock_now
-
-        # Test with a different timezone
-        new_york_tz = "America/New_York"
-        offset = s._get_timezone_offset(new_york_tz)  # Pass self explicitly
-
-        # Tokyo is UTC+9, New York is UTC-5, so difference should be 14 hours
-        assert offset == 14
-        assert mock_aware_now.called
-
-    @patch("django_celery_beat.schedulers.aware_now")
     def test_timezone_offset_with_zoneinfo_object_param(self, mock_aware_now):
         """Test handling when timezone_name parameter is a ZoneInfo object."""
 
@@ -1724,3 +1699,4 @@ class test_timezone_offset_handling:
 
         # Tokyo is UTC+9, New York is UTC-5, so difference should be 14 hours
         assert offset == 14
+        assert mock_aware_now.called
