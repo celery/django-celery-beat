@@ -1,7 +1,7 @@
 import math
 import os
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
 from itertools import count
 from time import monotonic
@@ -333,7 +333,7 @@ class test_ModelEntry(SchedulerCase):
         assert self.app.timezone.key == 'Europe/Berlin'
 
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.now(UTC)
+        right_now = datetime.now(dt_timezone.utc)
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
@@ -364,7 +364,7 @@ class test_ModelEntry(SchedulerCase):
             time.tzset()
         assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.now(UTC)
+        right_now = datetime.now(dt_timezone.utc)
         # make sure to use fixed date time
         monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
         m = self.create_model_crontab(
@@ -398,7 +398,7 @@ class test_ModelEntry(SchedulerCase):
             time.tzset()
         assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = datetime.now(UTC)
+        right_now = datetime.now(dt_timezone.utc)
         # make sure to use fixed date time
         monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
         m = self.create_model_crontab(
@@ -451,7 +451,7 @@ class test_ModelEntry(SchedulerCase):
 
         # simulate last_run_at all none, doing the same thing that
         # _default_now() would do
-        right_now = datetime.now(UTC)
+        right_now = datetime.now(dt_timezone.utc)
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
