@@ -21,10 +21,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from . import querysets, validators
-from .clockedschedule import clocked
-from .tzcrontab import TzAwareCrontab
-from .utils import make_aware, now
+from .. import validators
+from ..clockedschedule import clocked
+from ..tzcrontab import TzAwareCrontab
+from ..utils import make_aware, now
+from ..helpers import periodictasks_model
 
 DAYS = "days"
 HOURS = "hours"
@@ -433,7 +434,8 @@ class AbstractPeriodicTasks(models.Model):
 
     class Meta:
         """Table information."""
-
+        verbose_name = _('periodic task track')
+        verbose_name_plural = _('periodic task tracks')
         abstract = True
 
     @classmethod
@@ -648,7 +650,6 @@ class AbstractPeriodicTask(models.Model):
         help_text=_("Detailed description about the details of this Periodic Task"),
     )
 
-    objects = querysets.PeriodicTaskQuerySet.as_manager()
     no_changes = False
 
     class Meta:
@@ -691,11 +692,11 @@ class AbstractPeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
-        PeriodicTasks.changed(self)
+        periodictasks_model().changed(self)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        PeriodicTasks.changed(self)
+        periodictasks_model().changed(self)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:

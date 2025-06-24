@@ -6,8 +6,10 @@ from .abstract import (
     AbstractIntervalSchedule,
     AbstractPeriodicTask,
     AbstractPeriodicTasks,
-    AbstractSolarSchedule
+    AbstractSolarSchedule,
 )
+from ..querysets import PeriodicTaskQuerySet
+
 
 class SolarSchedule(AbstractSolarSchedule):
     """Schedule following astronomical patterns."""
@@ -16,6 +18,7 @@ class SolarSchedule(AbstractSolarSchedule):
         """Table information."""
 
         abstract = False
+
 
 class IntervalSchedule(AbstractIntervalSchedule):
     """Schedule with a fixed interval."""
@@ -26,14 +29,6 @@ class IntervalSchedule(AbstractIntervalSchedule):
         abstract = False
 
 
-class ClockScheduler(AbstractClockedSchedule):
-    """Schedule with a fixed interval."""
-
-    class Meta(AbstractClockedSchedule.Meta):
-        """Table information."""
-
-        abstract = False
-
 class ClockedSchedule(AbstractClockedSchedule):
     """Schedule with a fixed interval."""
 
@@ -41,6 +36,7 @@ class ClockedSchedule(AbstractClockedSchedule):
         """Table information."""
 
         abstract = False
+
 
 class CrontabSchedule(AbstractCrontabSchedule):
     """Schedule with cron-style syntax."""
@@ -50,13 +46,17 @@ class CrontabSchedule(AbstractCrontabSchedule):
 
         abstract = False
 
+
 class PeriodicTask(AbstractPeriodicTask):
     """Interal task scheduling class."""
+
+    objects = PeriodicTaskQuerySet.as_manager()
 
     class Meta(AbstractPeriodicTask.Meta):
         """Table information."""
 
         abstract = False
+
 
 class PeriodicTasks(AbstractPeriodicTasks):
     """Helper table for tracking updates to periodic tasks."""
@@ -67,19 +67,11 @@ class PeriodicTasks(AbstractPeriodicTasks):
 
 signals.pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
 signals.pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
-signals.pre_delete.connect(
-    PeriodicTasks.update_changed, sender=IntervalSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=IntervalSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=CrontabSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=CrontabSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=SolarSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=SolarSchedule)
-signals.post_delete.connect(
-    PeriodicTasks.update_changed, sender=ClockedSchedule)
-signals.post_save.connect(
-    PeriodicTasks.update_changed, sender=ClockedSchedule)
+signals.pre_delete.connect(PeriodicTasks.update_changed, sender=IntervalSchedule)
+signals.post_save.connect(PeriodicTasks.update_changed, sender=IntervalSchedule)
+signals.post_delete.connect(PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_save.connect(PeriodicTasks.update_changed, sender=CrontabSchedule)
+signals.post_delete.connect(PeriodicTasks.update_changed, sender=SolarSchedule)
+signals.post_save.connect(PeriodicTasks.update_changed, sender=SolarSchedule)
+signals.post_delete.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
+signals.post_save.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)

@@ -2,21 +2,16 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
-from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
-)
 
 def crontabschedule_model():
     """Return the CrontabSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_CRONTABSCHEDULE_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_CRONTABSCHEDULE_MODEL"):
+        from .models.generic import CrontabSchedule
+
         return CrontabSchedule
-    
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_CRONTABSCHEDULE_MODEL
-        )
+        return apps.get_model(settings.CELERY_BEAT_CRONTABSCHEDULE_MODEL)
     except ValueError:
         raise ImproperlyConfigured(
             "CELERY_BEAT_CRONTABSCHEDULE_MODEL must be of the form "
@@ -29,15 +24,16 @@ def crontabschedule_model():
             "been installed"
         )
 
+
 def intervalschedule_model():
     """Return the IntervalSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_INTERVALSCHEDULE_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_INTERVALSCHEDULE_MODEL"):
+        from .models.generic import IntervalSchedule
+
         return IntervalSchedule
-    
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_INTERVALSCHEDULE_MODEL
-        )
+        return apps.get_model(settings.CELERY_BEAT_INTERVALSCHEDULE_MODEL)
     except ValueError:
         raise ImproperlyConfigured(
             "CELERY_BEAT_INTERVALSCHEDULE_MODEL must be of the form "
@@ -50,11 +46,14 @@ def intervalschedule_model():
             "been installed"
         )
 
+
 def periodictask_model():
     """Return the PeriodicTask model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_PERIODICTASK_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_PERIODICTASK_MODEL"):
+        from .models.generic import PeriodicTask
+
         return PeriodicTask
-    
+
     try:
         return apps.get_model(settings.CELERY_BEAT_PERIODICTASK_MODEL)
     except ValueError:
@@ -69,15 +68,16 @@ def periodictask_model():
             "installed"
         )
 
+
 def periodictasks_model():
     """Return the PeriodicTasks model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_PERIODICTASKS_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_PERIODICTASKS_MODEL"):
+        from .models.generic import PeriodicTasks
+
         return PeriodicTasks
-    
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_PERIODICTASKS_MODEL
-        )
+        return apps.get_model(settings.CELERY_BEAT_PERIODICTASKS_MODEL)
     except ValueError:
         raise ImproperlyConfigured(
             "CELERY_BEAT_PERIODICTASKS_MODEL must be of the form "
@@ -90,15 +90,16 @@ def periodictasks_model():
             "installed"
         )
 
+
 def solarschedule_model():
     """Return the SolarSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_SOLARSCHEDULE_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_SOLARSCHEDULE_MODEL"):
+        from .models.generic import SolarSchedule
+
         return SolarSchedule
-    
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_SOLARSCHEDULE_MODEL
-        )
+        return apps.get_model(settings.CELERY_BEAT_SOLARSCHEDULE_MODEL)
     except ValueError:
         raise ImproperlyConfigured(
             "CELERY_BEAT_SOLARSCHEDULE_MODEL must be of the form "
@@ -111,15 +112,16 @@ def solarschedule_model():
             "installed"
         )
 
+
 def clockedschedule_model():
     """Return the ClockedSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_CLOCKEDSCHEDULE_MODEL'):
+    if not hasattr(settings, "CELERY_BEAT_CLOCKEDSCHEDULE_MODEL"):
+        from .models.generic import ClockedSchedule
+
         return ClockedSchedule
-    
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_CLOCKEDSCHEDULE_MODEL
-        )
+        return apps.get_model(settings.CELERY_BEAT_CLOCKEDSCHEDULE_MODEL)
     except ValueError:
         raise ImproperlyConfigured(
             "CELERY_BEAT_CLOCKEDSCHEDULE_MODEL must be of the form "
