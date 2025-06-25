@@ -24,14 +24,9 @@ from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
 from .clockedschedule import clocked
-from .helpers import (
-    clockedschedule_model,
-    crontabschedule_model,
-    intervalschedule_model,
-    periodictask_model,
-    periodictasks_model,
-    solarschedule_model,
-)
+from .helpers import (clockedschedule_model, crontabschedule_model,
+                      intervalschedule_model, periodictask_model,
+                      periodictasks_model, solarschedule_model)
 from .utils import NEVER_CHECK_TIMEOUT, aware_now, now
 
 # This scheduler must wake up more frequently than the

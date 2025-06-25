@@ -9,23 +9,19 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import (
-    FormatException,
-    MissingFieldException,
-    WrongArgumentException,
-    get_description,
-)
+from cron_descriptor import (FormatException, MissingFieldException,
+                             WrongArgumentException, get_description)
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .. import validators
-from ..clockedschedule import clocked
-from ..tzcrontab import TzAwareCrontab
-from ..utils import make_aware, now
-from ..helpers import periodictasks_model
+from django_celery_beat import validators
+from django_celery_beat.clockedschedule import clocked
+from django_celery_beat.helpers import periodictasks_model
+from django_celery_beat.tzcrontab import TzAwareCrontab
+from django_celery_beat.utils import make_aware, now
 
 DAYS = "days"
 HOURS = "hours"
@@ -166,7 +162,7 @@ class AbstractIntervalSchedule(models.Model):
         null=False,
         verbose_name=_("Number of Periods"),
         help_text=_(
-            "Number of interval periods to wait before " "running the task again"
+            "Number of interval periods to wait before running the task again"
         ),
         validators=[MinValueValidator(1)],
     )
@@ -290,7 +286,7 @@ class AbstractCrontabSchedule(models.Model):
         default="*",
         verbose_name=_("Day(s) Of The Month"),
         help_text=_(
-            'Cron Days Of The Month to Run. Use "*" for "all". ' '(Example: "1,15")'
+            'Cron Days Of The Month to Run. Use "*" for "all". (Example: "1,15")'
         ),
         validators=[validators.day_of_month_validator],
     )
@@ -524,14 +520,14 @@ class AbstractPeriodicTask(models.Model):
         blank=True,
         default="[]",
         verbose_name=_("Positional Arguments"),
-        help_text=_("JSON encoded positional arguments " '(Example: ["arg1", "arg2"])'),
+        help_text=_('JSON encoded positional arguments (Example: ["arg1", "arg2"])'),
     )
     kwargs = models.TextField(
         blank=True,
         default="{}",
         verbose_name=_("Keyword Arguments"),
         help_text=_(
-            "JSON encoded keyword arguments " '(Example: {"argument": "value"})'
+            'JSON encoded keyword arguments (Example: {"argument": "value"})'
         ),
     )
 
@@ -542,7 +538,7 @@ class AbstractPeriodicTask(models.Model):
         default=None,
         verbose_name=_("Queue Override"),
         help_text=_(
-            "Queue defined in CELERY_TASK_QUEUES. " "Leave None for default queuing."
+            "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
         ),
     )
 
@@ -611,7 +607,7 @@ class AbstractPeriodicTask(models.Model):
         null=True,
         verbose_name=_("Start Datetime"),
         help_text=_(
-            "Datetime when the schedule should begin " "triggering the task to run"
+            "Datetime when the schedule should begin triggering the task to run"
         ),
     )
     enabled = models.BooleanField(
@@ -636,7 +632,7 @@ class AbstractPeriodicTask(models.Model):
         editable=False,
         verbose_name=_("Total Run Count"),
         help_text=_(
-            "Running count of how many times the schedule " "has triggered the task"
+            "Running count of how many times the schedule has triggered the task"
         ),
     )
     date_changed = models.DateTimeField(
@@ -667,10 +663,10 @@ class AbstractPeriodicTask(models.Model):
 
         if len(selected_schedule_types) == 0:
             raise ValidationError(
-                "One of clocked, interval, crontab, or solar " "must be set."
+                "One of clocked, interval, crontab, or solar must be set."
             )
 
-        err_msg = "Only one of clocked, interval, crontab, " "or solar must be set"
+        err_msg = "Only one of clocked, interval, crontab, or solar must be set"
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:

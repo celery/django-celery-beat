@@ -1,14 +1,12 @@
 from django.db.models import signals
 
-from .abstract import (
-    AbstractClockedSchedule,
-    AbstractCrontabSchedule,
-    AbstractIntervalSchedule,
-    AbstractPeriodicTask,
-    AbstractPeriodicTasks,
-    AbstractSolarSchedule,
-)
-from ..querysets import PeriodicTaskQuerySet
+from django_celery_beat.models.abstract import (AbstractClockedSchedule,
+                                                AbstractCrontabSchedule,
+                                                AbstractIntervalSchedule,
+                                                AbstractPeriodicTask,
+                                                AbstractPeriodicTasks,
+                                                AbstractSolarSchedule)
+from django_celery_beat.querysets import PeriodicTaskQuerySet
 
 
 class SolarSchedule(AbstractSolarSchedule):
