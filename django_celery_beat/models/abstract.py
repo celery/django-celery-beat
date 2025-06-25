@@ -476,7 +476,7 @@ class AbstractPeriodicTask(models.Model):
     # You can only set ONE of the following schedule FK's
     # TODO: Redo this as a GenericForeignKey
     interval = models.ForeignKey(
-        "IntervalSchedule",
+        "django_celery_beat.IntervalSchedule",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -487,7 +487,7 @@ class AbstractPeriodicTask(models.Model):
         ),
     )
     crontab = models.ForeignKey(
-        "CrontabSchedule",
+        "django_celery_beat.CrontabSchedule",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -498,7 +498,7 @@ class AbstractPeriodicTask(models.Model):
         ),
     )
     solar = models.ForeignKey(
-        "SolarSchedule",
+        "django_celery_beat.SolarSchedule",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -509,7 +509,7 @@ class AbstractPeriodicTask(models.Model):
         ),
     )
     clocked = models.ForeignKey(
-        "ClockedSchedule",
+        "django_celery_beat.ClockedSchedule",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
