@@ -1035,6 +1035,24 @@ class test_DatabaseScheduler(SchedulerCase):
         assert not is_due
         assert next_check == pytest.approx(expected_delay, abs=60)
 
+    def test_crontab_with_start_time_before_crontab(self, app):
+        now = app.now()
+        delay_minutes = 2
+        test_start_time = now - timedelta(minutes=delay_minutes)
+        crontab_time = now + timedelta(minutes=delay_minutes)
+
+        # start_time(now - 2min) < now < crontab_time(now + 2min)
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+        is_due, next_check = entry.is_due()
+
+        expected_delay = delay_minutes * 60
+        assert not is_due
+        assert next_check < expected_delay
+
     def test_crontab_with_start_time_different_time_zone(self, app):
         now = app.now()
 
