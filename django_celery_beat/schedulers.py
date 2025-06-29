@@ -107,7 +107,6 @@ class ModelEntry(ScheduleEntry):
                     # last_run_at should be the time the task started.
                     model.last_run_at = model.start_time
 
-
         self.last_run_at = model.last_run_at
 
     def _disable(self, model):
