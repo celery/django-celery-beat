@@ -96,7 +96,7 @@ class ModelEntry(ScheduleEntry):
             model.last_run_at = model.date_changed or self._default_now()
 
             if self.model.start_time:
-                if isinstance(model.schedule, schedules.schedule):
+                if isinstance(model.schedule, schedules.schedule) and not isinstance(model.schedule, schedules.crontab):
                     # if last_run_at is not set and
                     # model.start_time last_run_at should be in way past.
                     # This will trigger the job to run at start_time
