@@ -1134,8 +1134,8 @@ class test_DatabaseScheduler(SchedulerCase):
         time.sleep(3)
         s.tick()
         assert s._heap[0][2].name == m1.name
-        time.sleep(54)
-        s.tick()
+        with patch('time.monotonic', side_effect=lambda: monotonic() + 54):
+            s.tick()
         assert s._heap[0][2].name == m1.name
 
     @pytest.mark.django_db
