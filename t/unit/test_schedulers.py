@@ -1101,31 +1101,42 @@ class test_DatabaseScheduler(SchedulerCase):
         assert next_check == pytest.approx(expected_delay, abs=60)
 
     def test_crontab_with_start_time_tick(self, app):
+        # Ensure the heapq does not block by new task with start_time
         PeriodicTask.objects.all().delete()
         s = self.Scheduler(app=self.app)
         assert not s._heap
 
         m1 = self.create_model_interval(schedule(timedelta(seconds=3)))
         m1.save()
+        s.tick()
+        assert len(s._heap) == 2
 
         now = timezone.now()
         start_time = now + timedelta(minutes=1)
         crontab_trigger_time = now + timedelta(minutes=2)
 
+        # now < start_time(now + 1min) < crontab_time(now + 2min)
         m2 = self.create_model_crontab(
             crontab(minute=f'{crontab_trigger_time.minute}'),
             start_time=start_time)
         m2.save()
+        s.tick()
+        assert len(s._heap) == 3
+        assert s._heap[0][2].name == m1.name
 
         e2 = EntryTrackSave(m2, app=self.app)
-        is_due, _ = e2.is_due()
+        is_due, delay = e2.is_due()
+        assert not is_due
+        assert 60 < delay < 120
 
-        max_iterations = 1000
-        iterations = 0
-        while (not is_due and iterations < max_iterations):
-            s.tick()
-            assert s._heap[0][2].name != m2.name
-            is_due, _ = e2.is_due()
+        # tick twice to make sure the heap is not blocked by m2
+        # before it reaches its start_time
+        time.sleep(3)
+        s.tick()
+        assert s._heap[0][2].name == m1.name
+        time.sleep(54)
+        s.tick()
+        assert s._heap[0][2].name == m1.name
 
     @pytest.mark.django_db
     def test_crontab_exclusion_logic_basic(self):
