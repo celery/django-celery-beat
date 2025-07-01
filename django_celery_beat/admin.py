@@ -281,7 +281,7 @@ class PeriodicTaskInline(admin.TabularInline):
     can_delete = False
     extra = 0
     show_change_link = True
-    verbose_name = "Periodic Tasks Using This Schedule"
+    verbose_name = _("Periodic Tasks Using This Schedule")
     verbose_name_plural = verbose_name
 
     def has_add_permission(self, request, obj):
