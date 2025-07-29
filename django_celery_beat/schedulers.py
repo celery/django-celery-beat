@@ -16,7 +16,7 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Case, F, IntegerField, Q, When
+from django.db.models import Case, ExpressionWrapper, F, Func, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
 from kombu.utils.encoding import safe_repr, safe_str
@@ -331,11 +331,16 @@ class DatabaseScheduler(Scheduler):
                 *[
                     When(
                         timezone=timezone_name,
-                        then=(
-                            F('hour_int')
-                            + self._get_timezone_offset(timezone_name)
-                            + 24
-                        ) % 24
+                        then=ExpressionWrapper(
+                            Func(
+                                F('hour_int')
+                                + self._get_timezone_offset(timezone_name)
+                                + 24,
+                                24,
+                                function='MOD'
+                            ),
+                            output_field=IntegerField(),
+                        ),
                     )
                     for timezone_name in self._get_unique_timezone_names()
                 ],
