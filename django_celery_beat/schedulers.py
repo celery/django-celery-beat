@@ -16,7 +16,8 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Case, ExpressionWrapper, F, Func, IntegerField, Q, When
+from django.db.models import (Case, ExpressionWrapper, F, Func, IntegerField,
+                              Q, When)
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
 from kombu.utils.encoding import safe_repr, safe_str
