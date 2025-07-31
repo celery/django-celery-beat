@@ -12,13 +12,14 @@ except ImportError:
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
-from celery.utils.time import maybe_make_aware
+from celery.utils.time import make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
@@ -117,8 +118,6 @@ class ModelEntry(ScheduleEntry):
         # START DATE: only run after the `start_time`, if one exists.
         if self.model.start_time is not None:
             now = self._default_now()
-            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-                now = maybe_make_aware(self._default_now())
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
@@ -147,19 +146,19 @@ class ModelEntry(ScheduleEntry):
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
-        # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
-        # while maybe_make_aware assumes utc for naive datetimes
-        tz = self.app.timezone
-        last_run_at_in_tz = maybe_make_aware(self.last_run_at).astimezone(tz)
+        last_run_at_in_tz = make_aware(self.last_run_at, self.app.timezone)
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = datetime.datetime.now(self.app.timezone)
+            if getattr(settings, 'USE_TZ', True):
+                now = datetime.datetime.now(self.app.timezone)
+            else:
+                # Remove the time zone information (convert to naive datetime)
+                now = datetime.datetime.now(self.app.timezone).replace(tzinfo=None)
         else:
-            # this ends up getting passed to maybe_make_aware, which expects
-            # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
+            # Use the default time zone time of Django
+            now = timezone.now()
         return now
 
     def __next__(self):
