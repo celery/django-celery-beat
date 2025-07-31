@@ -12,7 +12,7 @@ except ImportError:
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
-from celery.utils.time import make_aware
+from celery.utils.time import make_aware, is_naive
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
@@ -146,7 +146,13 @@ class ModelEntry(ScheduleEntry):
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
-        last_run_at_in_tz = make_aware(self.last_run_at, self.app.timezone)
+        # Handle both naive and timezone-aware last_run_at properly
+        if is_naive(self.last_run_at):
+            # Naive datetime - make it aware using app timezone
+            last_run_at_in_tz = make_aware(self.last_run_at, self.app.timezone)
+        else:
+            # Already timezone-aware - convert to app timezone if needed
+            last_run_at_in_tz = self.last_run_at.astimezone(self.app.timezone)
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
