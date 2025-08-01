@@ -12,7 +12,7 @@ except ImportError:
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
-from celery.utils.time import make_aware, is_naive
+from celery.utils.time import is_naive, make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
