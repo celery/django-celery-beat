@@ -159,7 +159,7 @@ class ModelEntry(ScheduleEntry):
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and getattr(settings, 'USE_TZ', True):
             now = timezone.now().astimezone(self.app.timezone)
         else:
-            # The naive datetime of self.app.timezone
+            # A naive datetime representing local time in the app's timezone
             now = timezone.now().astimezone(self.app.timezone).replace(tzinfo=None)
         return now
 
