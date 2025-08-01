@@ -156,15 +156,11 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            if getattr(settings, 'USE_TZ', True):
-                now = datetime.datetime.now(self.app.timezone)
-            else:
-                # Remove the time zone information (convert to naive datetime)
-                now = datetime.datetime.now(self.app.timezone).replace(tzinfo=None)
+        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and getattr(settings, 'USE_TZ', True):
+            now = timezone.now().astimezone(self.app.timezone)
         else:
-            # Use the default time zone time of Django
-            now = timezone.now()
+            # The naive datetime of self.app.timezone
+            now = timezone.now().astimezone(self.app.timezone).replace(tzinfo=None)
         return now
 
     def __next__(self):
