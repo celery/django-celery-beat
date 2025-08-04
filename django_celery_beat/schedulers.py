@@ -156,13 +156,13 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
+        now = timezone.now().astimezone(self.app.timezone)
         if (getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and
             getattr(settings, 'USE_TZ', True)):
-            now = timezone.now().astimezone(self.app.timezone)
-        else:
-            # A naive datetime representing local time in the app's timezone
-            now = timezone.now().astimezone(self.app.timezone).replace(tzinfo=None)
-        return now
+            return now
+
+        # A naive datetime representing local time in the app's timezone
+        return now.replace(tzinfo=None)
 
     def __next__(self):
         self.model.last_run_at = self._default_now()
