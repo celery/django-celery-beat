@@ -157,11 +157,15 @@ class ModelEntry(ScheduleEntry):
 
     def _default_now(self):
         now = timezone.now().astimezone(self.app.timezone)
-        if (getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and
-            getattr(settings, 'USE_TZ', True)):
+        tz_aware = (
+            getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and
+            getattr(settings, 'USE_TZ', True)
+        )
+        if tz_aware:
             return now
-
-        # A naive datetime representing local time in the app's timezone
+        # Return a naive datetime representing local time in the app's timezone.
+        # This path is taken when either DJANGO_CELERY_BEAT_TZ_AWARE or USE_TZ
+        # is set to False in Django settings.
         return now.replace(tzinfo=None)
 
     def __next__(self):
