@@ -9,7 +9,7 @@ repos:
         args: ["--py37-plus"]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.2.0
+    rev: 7.3.0
     hooks:
       - id: flake8
 
@@ -40,8 +40,8 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.13
     hooks:  # Format before linting
+      - id: ruff-check
       # - id: ruff-format
-      - id: ruff
 
   - repo: https://github.com/tox-dev/pyproject-fmt
     rev: v2.6.0
