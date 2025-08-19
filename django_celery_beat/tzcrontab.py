@@ -7,7 +7,7 @@ from celery import schedules
 schedstate = namedtuple('schedstate', ('is_due', 'next'))
 
 
-class TzAwareCrontab(schedules.crontab):
+class TzAwareCrontab(schedules.crontab):  # noqa: PLW1641
     """Timezone Aware Crontab."""
 
     def __init__(

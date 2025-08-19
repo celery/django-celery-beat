@@ -14,5 +14,5 @@ class BeatConfig(AppConfig):
     default_auto_field = 'django.db.models.AutoField'
 
     def ready(self):
-        from .signals import signals_connect
+        from .signals import signals_connect  # noqa: PLC0415
         signals_connect()

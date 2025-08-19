@@ -18,7 +18,8 @@ __all__ = (
 
 @pytest.fixture(scope='session', autouse=True)
 def setup_default_app_trap():
-    from celery._state import set_default_app
+    from celery._state import set_default_app  # noqa: PLC0415
+
     set_default_app(Trap())
 
 
