@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix: # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
         django-version: ["3.2", "4.2", "5.1", "5.2"]
-        python-version: ['3.8','3.9', '3.10', '3.11', '3.12', '3.13', 'pypy-3.10']
+        python-version: ['3.8','3.9', '3.10', '3.11', '3.12', '3.13', 'pypy-3.11']
         exclude:
           - django-version: "3.2"
             python-version: "3.11"
@@ -50,7 +50,7 @@ jobs:
         python -m pip install tox tox-gh-actions
     - name: Test with tox
       run: |
-        if [ "${{ matrix.python-version }}" != "pypy-3.10" ]; then
+        if [ "${{ matrix.python-version }}" != "pypy-3.11" ]; then
           tox -- --cov=django_celery_beat --cov-report=xml --no-cov-on-fail --cov-report term
         else
           tox
@@ -58,7 +58,7 @@ jobs:
       env:
         DJANGO: ${{ matrix.django-version }}
     - name: Upload coverage reports to Codecov
-      if: ${{ matrix.python-version != 'pypy-3.10' }}
+      if: ${{ matrix.python-version != 'pypy-3.11' }}
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true # optional (default = false)
