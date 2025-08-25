@@ -167,7 +167,6 @@ class ModelEntry(ScheduleEntry):
         self.model.total_run_count += 1
         self.model.no_changes = True
         return self.__class__(self.model)
-    next = __next__  # for 2to3
 
     def save(self):
         # Object may not be synchronized, so only
@@ -175,7 +174,6 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
-
         obj.save()
 
     @classmethod
