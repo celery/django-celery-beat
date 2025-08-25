@@ -314,7 +314,7 @@ class test_ModelEntry(SchedulerCase):
         e2 = self.Entry(m2, app=self.app)
         assert e2.last_run_at is right_now
 
-        e3 = e2.next()
+        e3 = next(e2)
         assert e3.last_run_at > e2.last_run_at
         assert e3.total_run_count == 1
 
