@@ -9,10 +9,11 @@ from datetime import timedelta
 import timezone_field
 from celery import current_app, schedules
 
-try:  # Python >= 3.11 can use cron_descriptor >= 2.0 which uses *Error exceptions.
+# Python >= 3.11 can use cron_descriptor >= 2.0 which uses *Error exceptions.
+try:
     from cron_descriptor import (FormatError, MissingFieldError,
                                  WrongArgumentError, get_description)
-except ImportError:  # Python < 3.11 must use cron_descriptor < 2.0 which uses *Exception exceptions.
+except ImportError:
     from cron_descriptor import FormatException as FormatError
     from cron_descriptor import MissingFieldException as MissingFieldError
     from cron_descriptor import WrongArgumentException as WrongArgumentError
