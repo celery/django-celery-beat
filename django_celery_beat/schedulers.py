@@ -165,7 +165,7 @@ class ModelEntry(ScheduleEntry):
             return now
         # Return a naive datetime representing local time in the app's timezone.
         # This path is taken when either DJANGO_CELERY_BEAT_TZ_AWARE or USE_TZ
-        # is set to False in Django settings.
+        # is set to False in Django settings (i.e., if either is False).
         return now.replace(tzinfo=None)
 
     def __next__(self):
