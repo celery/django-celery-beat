@@ -95,7 +95,7 @@ class ModelEntry(ScheduleEntry):
         if not model.last_run_at:
             model.last_run_at = model.date_changed or self._default_now()
 
-            if self.model.start_time:
+            if model.start_time:
                 if isinstance(model.schedule, schedules.schedule) \
                         and not isinstance(model.schedule, schedules.crontab):
                     # if last_run_at is not set and
