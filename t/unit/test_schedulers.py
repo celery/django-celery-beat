@@ -1104,12 +1104,12 @@ class test_DatabaseScheduler(SchedulerCase):
         # Ensure the heapq does not block by new task with start_time
         PeriodicTask.objects.all().delete()
         s = self.Scheduler(app=self.app)
-        assert not s._heap
+        assert s.get_scheduled_tasks() == []
 
         m1 = self.create_model_interval(schedule(timedelta(seconds=3)))
         m1.save()
         s.tick()
-        assert len(s._heap) == 2
+        assert len(s.get_scheduled_tasks()) == 2
 
         now = timezone.now()
         start_time = now + timedelta(minutes=1)
