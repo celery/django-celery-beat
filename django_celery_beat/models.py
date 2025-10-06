@@ -433,7 +433,12 @@ class PeriodicTask(models.Model):
     """Model representing a periodic task."""
 
     name = models.CharField(
-        max_length=200, unique=True,
+        max_length=getattr(
+            settings,
+            'DJANGO_CELERY_BEAT_PERIODICTASK_NAME_MAX_LENGTH',
+            200
+        ),
+        unique=True,
         verbose_name=_('Name'),
         help_text=_('Short Description For This Task'),
     )
