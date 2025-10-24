@@ -504,7 +504,7 @@ class DatabaseScheduler(Scheduler):
     @property
     def schedule(self):
         initial = update = False
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now(datetime.UTC)
 
         if self._initial_read:
             debug('DatabaseScheduler: initial read')
