@@ -284,75 +284,8 @@ class DatabaseScheduler(Scheduler):
             clocked__isnull=False,
             clocked__clocked_time__gt=next_schedule_sync
         )
-
-        exclude_cron_tasks_query = self._get_crontab_exclude_query()
-
-        # Combine the queries for optimal database filtering
-        exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
-
         # Fetch only the tasks we need to consider
-        return self.Model.objects.enabled().exclude(exclude_query)
-
-    def _get_crontab_exclude_query(self):
-        """
-        Build a query to exclude crontab tasks based on their hour value,
-        adjusted for timezone differences relative to the server.
-
-        This creates an annotation for each crontab task that represents the
-        server-equivalent hour, then filters on that annotation.
-        """
-        # Get server time based on Django settings
-
-        server_time = aware_now()
-        server_hour = server_time.hour
-
-        # Window of +/- 2 hours around the current hour in server tz.
-        hours_to_include = [
-            (server_hour + offset) % 24 for offset in range(-2, 3)
-        ]
-        hours_to_include += [4]  # celery's default cleanup task
-
-        # Get all tasks with a simple numeric hour value
-        valid_numeric_hours = self._get_valid_hour_formats()
-        numeric_hour_tasks = CrontabSchedule.objects.filter(
-            hour__in=valid_numeric_hours
-        )
-
-        # Annotate these tasks with their server-hour equivalent
-        annotated_tasks = numeric_hour_tasks.annotate(
-            # Cast hour string to integer
-            hour_int=Cast('hour', IntegerField()),
-
-            # Calculate server-hour based on timezone offset
-            server_hour=Case(
-                # Handle each timezone specifically
-                *[
-                    When(
-                        timezone=timezone_name,
-                        then=(
-                            F('hour_int')
-                            + self._get_timezone_offset(timezone_name)
-                            + 24
-                        ) % 24
-                    )
-                    for timezone_name in self._get_unique_timezone_names()
-                ],
-                # Default case - use hour as is
-                default=F('hour_int')
-            )
-        )
-
-        excluded_hour_task_ids = annotated_tasks.exclude(
-            server_hour__in=hours_to_include
-        ).values_list('id', flat=True)
-
-        # Build the final exclude query:
-        # Exclude crontab tasks that are not in our include list
-        exclude_query = Q(crontab__isnull=False) & Q(
-            crontab__id__in=excluded_hour_task_ids
-        )
-
-        return exclude_query
+        return self.Model.objects.enabled().exclude(exclude_clock_tasks_query)
 
     def _get_valid_hour_formats(self):
         """
