@@ -3,7 +3,7 @@ exclude: "migrations"
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.1
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         args: ["--py37-plus"]
@@ -33,7 +33,7 @@ repos:
         args: [--target-version, "3.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.5
+    rev: v0.14.6
     hooks:
       - id: ruff-check
       # - id: ruff-format
