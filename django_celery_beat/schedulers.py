@@ -537,7 +537,7 @@ class DryRunDatabaseScheduler(DatabaseScheduler):
 
     def apply_entry(self, entry, producer=None):
         """
-        Overwritten method to log the triggered tasks instead of actually running it.
+        Overwritten method to log the triggered tasks instead of actually running them.
         """
         debug(
             'Dry-run mode: Skipping task %s %s %s',
