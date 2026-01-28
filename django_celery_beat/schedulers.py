@@ -542,3 +542,25 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+
+class DryRunDatabaseScheduler(DatabaseScheduler):
+    """
+    DatabaseScheduler in dry-run mode.
+
+    The Scheduler reads Periodic Tasks from the database but does not execute them,
+    only logging when they would have been triggered.
+    Useful in environments where tasks should not actually run, but the scheduler
+    must remain operational.
+    """
+
+    def apply_entry(self, entry, producer=None):
+        """
+        Overwritten method to log the triggered tasks instead of actually running them.
+        """
+        debug(
+            'Dry-run mode: Skipping task %s %s %s',
+            entry.task,
+            entry.args,
+            entry.kwargs
+        )
