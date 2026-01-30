@@ -65,6 +65,7 @@ jobs:
       if: ${{ matrix.python-version != 'pypy-3.11' }}
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true # optional (default = false)
