@@ -128,12 +128,6 @@ lint.pylint.allow-magic-value-types = [
 ]
 lint.pylint.max-args = 8 # Default: 5
 
-[tool.coverage.run]
-branch = true
-cover_pylib = false
-include = [ "*django_celery_beat/*" ]
-omit = [ "django_celery_beat.tests.*" ]
-
 [tool.coverage.report]
 exclude_lines = [
   "pragma: no cover",
@@ -149,3 +143,8 @@ omit = [
   "*/docs/*",
   "*/test_*.py",
 ]
+[tool.coverage.run]
+branch = true
+cover_pylib = false
+include = [ "*django_celery_beat/*" ]
+omit = [ "django_celery_beat.tests.*" ]
