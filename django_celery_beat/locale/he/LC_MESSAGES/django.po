@@ -1,0 +1,539 @@
+# Hebrew translation strings for django-celery-beat.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR @ShlomoCode 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-24 18:44+0000\n"
+"PO-Revision-Date: 2026-01-24 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Hebrew\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: django_celery_beat/admin.py:61
+msgid "Task (registered)"
+msgstr "משימה (רשומה)"
+
+#: django_celery_beat/admin.py:65
+msgid "Task (custom)"
+msgstr "משימה (מותאמת אישית)"
+
+#: django_celery_beat/admin.py:82
+msgid "Need name of task"
+msgstr "נדרש שם משימה"
+
+#: django_celery_beat/admin.py:88 django_celery_beat/models.py:638
+msgid "Only one can be set, in expires and expire_seconds"
+msgstr "לא ניתן להגדיר גם expires וגם expire_seconds"
+
+#: django_celery_beat/admin.py:98
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "לא ניתן לפענח את ה-JSON: %s"
+
+#: django_celery_beat/admin.py:127
+msgid "Schedule"
+msgstr "תזמון"
+
+#: django_celery_beat/admin.py:132
+msgid "Arguments"
+msgstr "פרמטרים"
+
+#: django_celery_beat/admin.py:136
+msgid "Execution Options"
+msgstr "אפשרויות הרצה"
+
+#: django_celery_beat/admin.py:174
+msgid "Enable selected tasks"
+msgstr "הפעל משימות נבחרות"
+
+#: django_celery_beat/admin.py:182
+#, python-brace-format
+msgid "{0} task was successfully enabled"
+msgid_plural "{0} tasks were successfully enabled"
+msgstr[0] "משימה אחת הופעלה בהצלחה"
+msgstr[1] "{0} משימות הופעלו בהצלחה"
+
+#: django_celery_beat/admin.py:189
+msgid "Disable selected tasks"
+msgstr "השבת משימות נבחרות"
+
+#: django_celery_beat/admin.py:197
+#, python-brace-format
+msgid "{0} task was successfully disabled"
+msgid_plural "{0} tasks were successfully disabled"
+msgstr[0] "משימה אחת הושבתה בהצלחה"
+msgstr[1] "{0} משימות הושבתו בהצלחה"
+
+#: django_celery_beat/admin.py:210
+msgid "Toggle activity of selected tasks"
+msgstr "החלף מצב פעילות של משימות נבחרות"
+
+#: django_celery_beat/admin.py:218
+#, python-brace-format
+msgid "{0} task was successfully toggled"
+msgid_plural "{0} tasks were successfully toggled"
+msgstr[0] "מצב משימה אחת שונה בהצלחה"
+msgstr[1] "מצב {0} משימות שונה בהצלחה"
+
+#: django_celery_beat/admin.py:225
+msgid "Run selected tasks"
+msgstr "הרץ משימות נבחרות"
+
+#: django_celery_beat/admin.py:246
+#, python-brace-format
+msgid "task \"{not_found_task_name}\" not found"
+msgstr "לא נמצאה משימה בשם \"{not_found_task_name}\""
+
+#: django_celery_beat/admin.py:269
+#, python-brace-format
+msgid "{0} task{1} {2} successfully run"
+msgstr "{0} משימ{1} הורצ{2} בהצלחה"
+
+#: django_celery_beat/admin.py:272
+msgid "was,were"
+msgstr "ה,ות"
+
+#: django_celery_beat/admin.py:284
+msgid "Periodic Tasks Using This Schedule"
+msgstr "משימות מתוזמנות המשתמשות בתזמון זה"
+
+#: django_celery_beat/apps.py:13
+msgid "Periodic Tasks"
+msgstr "משימות מתוזמנות"
+
+#: django_celery_beat/models.py:31
+msgid "Days"
+msgstr "ימים"
+
+#: django_celery_beat/models.py:32
+msgid "Hours"
+msgstr "שעות"
+
+#: django_celery_beat/models.py:33
+msgid "Minutes"
+msgstr "דקות"
+
+#: django_celery_beat/models.py:34
+msgid "Seconds"
+msgstr "שניות"
+
+#: django_celery_beat/models.py:35
+msgid "Microseconds"
+msgstr "אלפיות-שנייה"
+
+#: django_celery_beat/models.py:39
+msgid "Day"
+msgstr "יום"
+
+#: django_celery_beat/models.py:40
+msgid "Hour"
+msgstr "שעה"
+
+#: django_celery_beat/models.py:41
+msgid "Minute"
+msgstr "דקה"
+
+#: django_celery_beat/models.py:42
+msgid "Second"
+msgstr "שנייה"
+
+#: django_celery_beat/models.py:43
+msgid "Microsecond"
+msgstr "אלפית-שנייה"
+
+#: django_celery_beat/models.py:47
+msgid "Astronomical dawn"
+msgstr "שחר אסטרונומי"
+
+#: django_celery_beat/models.py:48
+msgid "Civil dawn"
+msgstr "שחר אזרחי"
+
+#: django_celery_beat/models.py:49
+msgid "Nautical dawn"
+msgstr "שחר ימי"
+
+#: django_celery_beat/models.py:50
+msgid "Astronomical dusk"
+msgstr "דמדומים אסטרונומיים"
+
+#: django_celery_beat/models.py:51
+msgid "Civil dusk"
+msgstr "דמדומים אזרחיים"
+
+#: django_celery_beat/models.py:52
+msgid "Nautical dusk"
+msgstr "דמדומים ימיים"
+
+#: django_celery_beat/models.py:53
+msgid "Solar noon"
+msgstr "צהרי שמש"
+
+#: django_celery_beat/models.py:54
+msgid "Sunrise"
+msgstr "זריחה"
+
+#: django_celery_beat/models.py:55
+msgid "Sunset"
+msgstr "שקיעה"
+
+#: django_celery_beat/models.py:89
+msgid "Solar Event"
+msgstr "אירוע שמש"
+
+#: django_celery_beat/models.py:90
+msgid "The type of solar event when the job should run"
+msgstr "סוג אירוע השמש שבו המשימה צריכה לרוץ"
+
+#: django_celery_beat/models.py:94
+msgid "Latitude"
+msgstr "קו רוחב"
+
+#: django_celery_beat/models.py:95
+msgid "Run the task when the event happens at this latitude"
+msgstr "הרץ את המשימה כשהאירוע מתרחש בקו רוחב זה"
+
+#: django_celery_beat/models.py:100
+msgid "Longitude"
+msgstr "קו אורך"
+
+#: django_celery_beat/models.py:101
+msgid "Run the task when the event happens at this longitude"
+msgstr "הרץ את המשימה כשהאירוע מתרחש בקו אורך זה"
+
+#: django_celery_beat/models.py:108
+msgid "solar event"
+msgstr "אירוע שמש"
+
+#: django_celery_beat/models.py:109
+msgid "solar events"
+msgstr "אירועי שמש"
+
+#: django_celery_beat/models.py:159
+msgid "Number of Periods"
+msgstr "מספר תקופות"
+
+#: django_celery_beat/models.py:160
+msgid "Number of interval periods to wait before running the task again"
+msgstr "מספר תקופות המרווח להמתנה לפני הרצת המשימה שוב"
+
+#: django_celery_beat/models.py:166
+msgid "Interval Period"
+msgstr "מרווח זמן"
+
+#: django_celery_beat/models.py:167
+msgid "The type of period between task runs (Example: days)"
+msgstr "סוג התקופה בין הרצות המשימה (דוגמה: ימים)"
+
+#: django_celery_beat/models.py:173
+msgid "interval"
+msgstr "מרווח"
+
+#: django_celery_beat/models.py:174
+msgid "intervals"
+msgstr "מרווחים"
+
+#: django_celery_beat/models.py:201
+msgid "every {}"
+msgstr "כל {}"
+
+#: django_celery_beat/models.py:206
+msgid "every {} {}"
+msgstr "כל {} {}"
+
+#: django_celery_beat/models.py:217
+msgid "Clock Time"
+msgstr "זמן קבוע"
+
+#: django_celery_beat/models.py:218
+msgid "Run the task at clocked time"
+msgstr "הרץ את המשימה בזמן קבוע"
+
+#: django_celery_beat/models.py:224 django_celery_beat/models.py:225
+msgid "clocked"
+msgstr "זמן קבוע"
+
+#: django_celery_beat/models.py:265
+msgid "Minute(s)"
+msgstr "דקה/ות"
+
+#: django_celery_beat/models.py:267
+msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
+msgstr "דקות Cron להרצה. השתמש ב-\"*\" עבור \"הכל\". (דוגמה: \"0,30\")"
+
+#: django_celery_beat/models.py:272
+msgid "Hour(s)"
+msgstr "שעה/ות"
+
+#: django_celery_beat/models.py:274
+msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
+msgstr "שעות Cron להרצה. השתמש ב-\"*\" עבור \"הכל\". (דוגמה: \"8,20\")"
+
+#: django_celery_beat/models.py:279
+msgid "Day(s) Of The Month"
+msgstr "יום/ימים בחודש"
+
+#: django_celery_beat/models.py:281
+msgid ""
+"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr "ימים בחודש להרצת Cron. השתמש ב-\"*\" עבור \"הכל\". (דוגמה: \"1,15\")"
+
+#: django_celery_beat/models.py:287
+msgid "Month(s) Of The Year"
+msgstr "חודש/ים בשנה"
+
+#: django_celery_beat/models.py:289
+msgid ""
+"Cron Months (1-12) Of The Year to Run. Use \"*\" for \"all\". (Example: "
+"\"1,12\")"
+msgstr ""
+"חודשים (1-12) בשנה להרצת Cron. השתמש ב-\"*\" עבור \"הכל\". (דוגמה: \"1,12\")"
+
+#: django_celery_beat/models.py:295
+msgid "Day(s) Of The Week"
+msgstr "ימים בשבוע"
+
+#: django_celery_beat/models.py:297
+msgid ""
+"Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, "
+"Monday is 1. (Example: \"0,5\")"
+msgstr ""
+"ימים בשבוע להרצת Cron. השתמש ב-\"*\" עבור \"הכל\", יום ראשון הוא 0 או 7, "
+"יום שני הוא 1. (דוגמה: \"0,5\")"
+
+#: django_celery_beat/models.py:305
+msgid "Cron Timezone"
+msgstr "אזור זמן Cron"
+
+#: django_celery_beat/models.py:307
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
+msgstr "אזור הזמן להרצת תזמון Cron. ברירת המחדל היא UTC."
+
+#: django_celery_beat/models.py:313
+msgid "crontab"
+msgstr "crontab"
+
+#: django_celery_beat/models.py:314
+msgid "crontabs"
+msgstr "crontabs"
+
+#: django_celery_beat/models.py:412
+msgid "periodic task track"
+msgstr "מעקב משימה מתוזמנת"
+
+#: django_celery_beat/models.py:413
+msgid "periodic task tracks"
+msgstr "מעקבי משימות מתוזמנות"
+
+#: django_celery_beat/models.py:437
+msgid "Name"
+msgstr "שם"
+
+#: django_celery_beat/models.py:438
+msgid "Short Description For This Task"
+msgstr "תיאור קצר למשימה זו"
+
+#: django_celery_beat/models.py:443
+msgid ""
+"The Name of the Celery Task that Should be Run.  (Example: \"proj.tasks."
+"import_contacts\")"
+msgstr "שם משימת Celery שצריכה לרוץ. (דוגמה: \"proj.tasks.import_contacts\")"
+
+#: django_celery_beat/models.py:451
+msgid "Interval Schedule"
+msgstr "תזמון מרווחים"
+
+#: django_celery_beat/models.py:452
+msgid ""
+"Interval Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr "תזמון מרווחים להרצת המשימה. הגדר רק סוג תזמון אחד, השאר את האחרים ריקים."
+
+#: django_celery_beat/models.py:457
+msgid "Crontab Schedule"
+msgstr "תזמון Crontab"
+
+#: django_celery_beat/models.py:458
+msgid ""
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr "תזמון Crontab להרצת המשימה. הגדר רק סוג תזמון אחד, השאר את האחרים ריקים."
+
+#: django_celery_beat/models.py:463
+msgid "Solar Schedule"
+msgstr "תזמון שמש"
+
+#: django_celery_beat/models.py:464
+msgid ""
+"Solar Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr "תזמון שמש להרצת המשימה. הגדר רק סוג תזמון אחד, השאר את האחרים ריקים."
+
+#: django_celery_beat/models.py:469
+msgid "Clocked Schedule"
+msgstr "תזמון זמן קבוע"
+
+#: django_celery_beat/models.py:470
+msgid ""
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr "תזמון זמן קבוע להרצת המשימה. הגדר רק סוג תזמון אחד, השאר את האחרים ריקים."
+
+#: django_celery_beat/models.py:476
+msgid "Positional Arguments"
+msgstr "ארגומנטים לפי מיקום"
+
+#: django_celery_beat/models.py:478
+msgid "JSON encoded positional arguments (Example: [\"arg1\", \"arg2\"])"
+msgstr "ארגומנטים לפי מיקום בקידוד JSON (דוגמה: [\"arg1\", \"arg2\"])"
+
+#: django_celery_beat/models.py:483
+msgid "Keyword Arguments"
+msgstr "ארגומנטים עם מפתחות"
+
+#: django_celery_beat/models.py:485
+msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
+msgstr "ארגומנטים עם מפתחות בקידוד JSON (דוגמה: {\"argument\": \"value\"})"
+
+#: django_celery_beat/models.py:491
+msgid "Queue Override"
+msgstr "דריסת תור"
+
+#: django_celery_beat/models.py:493
+msgid "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
+msgstr "תור מוגדר ב-CELERY_TASK_QUEUES. השאר ריק לתור ברירת מחדל."
+
+#: django_celery_beat/models.py:502
+msgid "Exchange"
+msgstr "Exchange"
+
+#: django_celery_beat/models.py:503
+msgid "Override Exchange for low-level AMQP routing"
+msgstr "דריסת Exchange לניתוב AMQP ברמה נמוכה"
+
+#: django_celery_beat/models.py:507
+msgid "Routing Key"
+msgstr "מפתח ניתוב"
+
+#: django_celery_beat/models.py:508
+msgid "Override Routing Key for low-level AMQP routing"
+msgstr "דריסת מפתח ניתוב לניתוב AMQP ברמה נמוכה"
+
+#: django_celery_beat/models.py:512
+msgid "AMQP Message Headers"
+msgstr "כותרות הודעת AMQP"
+
+#: django_celery_beat/models.py:513
+msgid "JSON encoded message headers for the AMQP message."
+msgstr "כותרות הודעה בקידוד JSON עבור הודעת AMQP."
+
+#: django_celery_beat/models.py:519
+msgid "Priority"
+msgstr "עדיפות"
+
+#: django_celery_beat/models.py:521
+msgid ""
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
+"reversed, 0 is highest)."
+msgstr ""
+"מספר עדיפות בין 0 ל-255. נתמך על ידי: RabbitMQ, Redis (עדיפות הפוכה, 0 הוא "
+"הגבוה ביותר)."
+
+#: django_celery_beat/models.py:526
+msgid "Expires Datetime"
+msgstr "תאריך ושעת תפוגה"
+
+#: django_celery_beat/models.py:528
+msgid ""
+"Datetime after which the schedule will no longer trigger the task to run"
+msgstr "תאריך ושעה שאחריהם התזמון לא יפעיל עוד את המשימה"
+
+#: django_celery_beat/models.py:533
+msgid "Expires timedelta with seconds"
+msgstr "תפוגה בשניות"
+
+#: django_celery_beat/models.py:535
+msgid ""
+"Timedelta with seconds which the schedule will no longer trigger the task to "
+"run"
+msgstr "הפרש זמן בשניות שאחריו התזמון לא יפעיל עוד את המשימה"
+
+#: django_celery_beat/models.py:541
+msgid "One-off Task"
+msgstr "משימה חד-פעמית"
+
+#: django_celery_beat/models.py:543
+msgid "If True, the schedule will only run the task a single time"
+msgstr "אם True, התזמון יריץ את המשימה פעם אחת בלבד"
+
+#: django_celery_beat/models.py:547
+msgid "Start Datetime"
+msgstr "תאריך ושעת התחלה"
+
+#: django_celery_beat/models.py:549
+msgid "Datetime when the schedule should begin triggering the task to run"
+msgstr "תאריך ושעה שבהם התזמון צריך להתחיל להפעיל את המשימה"
+
+#: django_celery_beat/models.py:554
+msgid "Enabled"
+msgstr "מופעל"
+
+#: django_celery_beat/models.py:555
+msgid "Set to False to disable the schedule"
+msgstr "הגדר ל-False כדי להשבית את התזמון"
+
+#: django_celery_beat/models.py:560
+msgid "Last Run Datetime"
+msgstr "תאריך ושעת הרצה אחרונה"
+
+#: django_celery_beat/models.py:562
+msgid ""
+"Datetime that the schedule last triggered the task to run. Reset to None if "
+"enabled is set to False."
+msgstr ""
+"תאריך ושעה שבהם התזמון הפעיל לאחרונה את המשימה. מתאפס ל-None אם מופעל מוגדר "
+"ל-False."
+
+#: django_celery_beat/models.py:567
+msgid "Total Run Count"
+msgstr "מספר הרצות כולל"
+
+#: django_celery_beat/models.py:569
+msgid "Running count of how many times the schedule has triggered the task"
+msgstr "ספירה של כמה פעמים התזמון הפעיל את המשימה"
+
+#: django_celery_beat/models.py:574
+msgid "Last Modified"
+msgstr "שינוי אחרון"
+
+#: django_celery_beat/models.py:575
+msgid "Datetime that this PeriodicTask was last modified"
+msgstr "תאריך ושעה שבהם משימה מתוזמנת זו שונתה לאחרונה"
+
+#: django_celery_beat/models.py:579
+msgid "Description"
+msgstr "תיאור"
+
+#: django_celery_beat/models.py:581
+msgid "Detailed description about the details of this Periodic Task"
+msgstr "תיאור מפורט על פרטי משימה מתוזמנת זו"
+
+#: django_celery_beat/models.py:590
+msgid "periodic task"
+msgstr "משימה מתוזמנת"
+
+#: django_celery_beat/models.py:591
+msgid "periodic tasks"
+msgstr "משימות מתוזמנות"
+
+#: django_celery_beat/templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr "בית"
