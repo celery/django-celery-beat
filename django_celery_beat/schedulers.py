@@ -148,7 +148,7 @@ class ModelEntry(ScheduleEntry):
 
         # Handle both naive and timezone-aware last_run_at properly
         if is_naive(self.last_run_at):
-            # Naive datetime - make it aware using app timezone
+            # Naive datetime - interpret as already in app timezone and attach tzinfo
             last_run_at_in_tz = make_aware(self.last_run_at, self.app.timezone)
         else:
             # Already timezone-aware - convert to app timezone if needed
