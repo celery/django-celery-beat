@@ -1,6 +1,5 @@
 [tool.ruff]
 target-version = "py38"
-
 lint.select = [
   "A",     # flake8-builtins
   "AIR",   # Airflow
@@ -126,25 +125,24 @@ lint.pylint.allow-magic-value-types = [
   "int",
   "str",
 ]
-lint.pylint.max-args = 8 # Default: 5
+lint.pylint.max-args = 8  # Default: 5
 
-[tool.coverage.report]
-exclude_lines = [
-  "pragma: no cover",
-  "if TYPE_CHECKING:",
+[tool.coverage]
+run.branch = true
+run.cover_pylib = false
+run.include = [ "*django_celery_beat/*" ]
+run.omit = [ "django_celery_beat.tests.*" ]
+report.exclude_lines = [
   "except ImportError:",
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
 ]
-omit = [
-  "*/python?.?/*",
-  "*/site-packages/*",
-  "*/pypy/*",
+report.omit = [
   "*/.tox/*",
   "*/docker/*",
   "*/docs/*",
+  "*/pypy/*",
+  "*/python?.?/*",
+  "*/site-packages/*",
   "*/test_*.py",
 ]
-[tool.coverage.run]
-branch = true
-cover_pylib = false
-include = [ "*django_celery_beat/*" ]
-omit = [ "django_celery_beat.tests.*" ]
