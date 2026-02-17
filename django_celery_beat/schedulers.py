@@ -430,7 +430,7 @@ class DatabaseScheduler(Scheduler):
             return False
 
         try:
-            if ts and ts > (last if last else ts):
+            if ts and ts > (last or ts):
                 return True
         finally:
             self._last_timestamp = ts
