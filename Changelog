@@ -7,6 +7,24 @@
 Next
 ====
 
+.. _version-2.9.0:
+
+2.9.0
+=====
+:release-date: 2026-02-24
+:release-by: Asif Saif Uddin (@auvipy)
+
+- Added DeepWiki to README
+- refactor: use in operator instead of regex operator in crontab query to fix mssql regression
+- refactor: tzaware crontab is due method
+- feat: enable translation to PeriodicTaskInline verbose name
+- Remove Python2 'next' assignment in scheduler
+- Avoid the breaking change in dependency cron_descriptor v2
+- GitHub Actions: Test on Python 3.14 release candidate 2
+- Remove upper bound on Django version
+- Add Django 6.0 support
+
+
 .. _version-2.8.1:
 
 2.8.1
