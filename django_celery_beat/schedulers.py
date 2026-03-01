@@ -167,11 +167,12 @@ class ModelEntry(ScheduleEntry):
                 return timezone.now().astimezone(self.app.timezone)
             # Express the time in Django's default timezone.
             return timezone.now()
-        # Backwards compatibility: when Django timezone support is
-        # disabled (USE_TZ=False), use a naive UTC datetime, matching
-        # the historical behavior of django-celery-beat (which used
-        # datetime.utcnow() when timezone awareness was disabled).
-        return datetime.datetime.utcnow()
+        # When Django timezone support is disabled (USE_TZ=False),
+        # return a naive datetime representing the current time in the
+        # Celery app's timezone. This keeps the stored naive value in
+        # the same timezone that `is_due()` assumes for naive
+        # `last_run_at` values, avoiding drift by the timezone offset.
+        return datetime.datetime.now(tz=self.app.timezone).replace(tzinfo=None)
 
     def __next__(self):
         self.model.last_run_at = self._default_now()
