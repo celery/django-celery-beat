@@ -364,7 +364,7 @@ class test_ModelEntry(SchedulerCase):
             time.tzset()
         assert self.app.timezone.key == 'Europe/Berlin'
         # simulate last_run_at from DB - not TZ aware but localtime
-        right_now = timezone.now().astimezone(self.app.timezone).replace(tzinfo=None)
+        right_now = datetime.now(self.app.timezone).replace(tzinfo=None)
         # make sure to use fixed date time
         monkeypatch.setattr(self.Entry, '_default_now', lambda o: right_now)
         m = self.create_model_crontab(
