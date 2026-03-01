@@ -156,18 +156,21 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        tz_aware = (
-            getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and
-            getattr(settings, 'USE_TZ', True)
-        )
-        if tz_aware:
-            # Return an aware datetime in the app's timezone.
-            return timezone.now().astimezone(self.app.timezone)
-        # Backwards compatibility: when timezone awareness is disabled,
-        # use a naive UTC datetime, matching the historical behavior of
-        # django-celery-beat (which used datetime.utcnow() when
-        # DJANGO_CELERY_BEAT_TZ_AWARE was False). This avoids changing
-        # the interpretation of existing naive timestamps stored in the DB.
+        use_tz = getattr(settings, 'USE_TZ', False)
+        if use_tz:
+            # When Django timezone support is enabled, always return an
+            # aware datetime to match the ORM's contract. Use
+            # DJANGO_CELERY_BEAT_TZ_AWARE only to decide which timezone
+            # the aware value should be expressed in.
+            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+                # Express the time in the Celery app's timezone.
+                return timezone.now().astimezone(self.app.timezone)
+            # Express the time in Django's default timezone.
+            return timezone.now()
+        # Backwards compatibility: when Django timezone support is
+        # disabled (USE_TZ=False), use a naive UTC datetime, matching
+        # the historical behavior of django-celery-beat (which used
+        # datetime.utcnow() when timezone awareness was disabled).
         return datetime.datetime.utcnow()
 
     def __next__(self):
