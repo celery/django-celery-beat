@@ -146,13 +146,21 @@ class ModelEntry(ScheduleEntry):
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
-        # Handle both naive and timezone-aware last_run_at properly
+        # Handle both naive and timezone-aware last_run_at properly.
+        # For backwards compatibility with _default_now() when USE_TZ=False,
+        # treat naive last_run_at as UTC and then convert to the app timezone.
         if is_naive(self.last_run_at):
-            # Naive datetime - interpret as already in app timezone and attach tzinfo
-            last_run_at_in_tz = make_aware(self.last_run_at, self.app.timezone)
+            last_run_at_aware = self.last_run_at.replace(tzinfo=datetime.timezone.utc)
         else:
-            # Already timezone-aware - convert to app timezone if needed
-            last_run_at_in_tz = self.last_run_at.astimezone(self.app.timezone)
+            last_run_at_aware = self.last_run_at
+
+        # Ensure we have a tzinfo object for the app timezone.
+        if isinstance(self.app.timezone, str):
+            app_tz = ZoneInfo(self.app.timezone)
+        else:
+            app_tz = self.app.timezone
+
+        last_run_at_in_tz = last_run_at_aware.astimezone(app_tz)
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
