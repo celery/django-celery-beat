@@ -156,17 +156,19 @@ class ModelEntry(ScheduleEntry):
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        now = timezone.now().astimezone(self.app.timezone)
         tz_aware = (
             getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True) and
             getattr(settings, 'USE_TZ', True)
         )
         if tz_aware:
-            return now
-        # Return a naive datetime representing local time in the app's timezone.
-        # This path is taken when either DJANGO_CELERY_BEAT_TZ_AWARE or USE_TZ
-        # is set to False in Django settings (i.e., if either is False).
-        return now.replace(tzinfo=None)
+            # Return an aware datetime in the app's timezone.
+            return timezone.now().astimezone(self.app.timezone)
+        # Backwards compatibility: when timezone awareness is disabled,
+        # use a naive UTC datetime, matching the historical behavior of
+        # django-celery-beat (which used datetime.utcnow() when
+        # DJANGO_CELERY_BEAT_TZ_AWARE was False). This avoids changing
+        # the interpretation of existing naive timestamps stored in the DB.
+        return datetime.datetime.utcnow()
 
     def __next__(self):
         self.model.last_run_at = self._default_now()
