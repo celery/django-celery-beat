@@ -564,3 +564,17 @@ class DryRunDatabaseScheduler(DatabaseScheduler):
             entry.args,
             entry.kwargs
         )
+
+    def sync(self):
+        """
+        Override sync to avoid persisting execution metadata in dry-run mode.
+
+        In DatabaseScheduler, sync() saves dirty entries (including updated
+        last_run_at and total_run_count) back to the database. For a dry-run
+        scheduler this would be misleading, since tasks are never actually run.
+
+        By overriding sync as a no-op, we ensure that dry-run operation does not
+        modify PeriodicTask records in the database while still allowing the
+        scheduler machinery to operate normally.
+        """
+        debug('Dry-run mode: Skipping database sync of scheduled tasks.')
