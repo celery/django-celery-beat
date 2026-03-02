@@ -561,7 +561,6 @@ class test_ModelEntry(SchedulerCase):
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -617,7 +616,6 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
 class test_DatabaseScheduler(SchedulerCase):
     Scheduler = TrackingScheduler
 
-    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
@@ -1588,7 +1586,6 @@ class test_model_PeriodicTasks(SchedulerCase):
 
 @pytest.mark.django_db
 class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
-    @pytest.mark.django_db
     @pytest.fixture(autouse=True)
     def setup_scheduler(self, app):
         self.app = app
