@@ -542,3 +542,39 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+
+class DryRunDatabaseScheduler(DatabaseScheduler):
+    """
+    DatabaseScheduler in dry-run mode.
+
+    The Scheduler reads Periodic Tasks from the database but does not execute them,
+    only logging when they would have been triggered.
+    Useful in environments where tasks should not actually run, but the scheduler
+    must remain operational.
+    """
+
+    def apply_entry(self, entry, producer=None):
+        """
+        Overwritten method to log the triggered tasks instead of actually running them.
+        """
+        debug(
+            'Dry-run mode: Skipping task %s %s %s',
+            entry.task,
+            entry.args,
+            entry.kwargs
+        )
+
+    def sync(self):
+        """
+        Override sync to avoid persisting execution metadata in dry-run mode.
+
+        In DatabaseScheduler, sync() saves dirty entries (including updated
+        last_run_at and total_run_count) back to the database. For a dry-run
+        scheduler this would be misleading, since tasks are never actually run.
+
+        By overriding sync as a no-op, we ensure that dry-run operation does not
+        modify PeriodicTask records in the database while still allowing the
+        scheduler machinery to operate normally.
+        """
+        debug('Dry-run mode: Skipping database sync of scheduled tasks.')
