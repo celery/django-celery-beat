@@ -8,14 +8,15 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
+# cron-descriptor >= 2.0 renamed *Exception to *Error
+from cron_descriptor import get_description
 try:
     from cron_descriptor import (FormatError, MissingFieldError,
-                                 WrongArgumentError, get_description)
+                                 WrongArgumentError)
 except ImportError:
     from cron_descriptor import (FormatException as FormatError,
                                  MissingFieldException as MissingFieldError,
-                                 WrongArgumentException as WrongArgumentError,
-                                 get_description)
+                                 WrongArgumentException as WrongArgumentError)
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
