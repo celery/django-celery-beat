@@ -173,6 +173,9 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        constraints = [
+            models.UniqueConstraint(fields=["every", "period"], name="unique_interval")
+        ]
 
     @property
     def schedule(self):
@@ -214,8 +217,9 @@ class ClockedSchedule(models.Model):
     """clocked schedule."""
 
     clocked_time = models.DateTimeField(
-        verbose_name=_('Clock Time'),
-        help_text=_('Run the task at clocked time'),
+        verbose_name=_("Clock Time"),
+        help_text=_("Run the task at clocked time"),
+        unique=True,
     )
 
     class Meta:
@@ -314,6 +318,19 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "minute",
+                    "hour",
+                    "day_of_month",
+                    "month_of_year",
+                    "day_of_week",
+                    "timezone",
+                ],
+                name="unique_crontab",
+            )
+        ]
 
     @property
     def human_readable(self):
