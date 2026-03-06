@@ -8,8 +8,15 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import (FormatException, MissingFieldException,
-                             WrongArgumentException, get_description)
+# cron-descriptor >= 2.0 renamed *Exception to *Error
+from cron_descriptor import get_description
+try:
+    from cron_descriptor import (FormatError, MissingFieldError,
+                                 WrongArgumentError)
+except ImportError:
+    from cron_descriptor import (FormatException as FormatError,
+                                 MissingFieldException as MissingFieldError,
+                                 WrongArgumentException as WrongArgumentError)
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -340,9 +347,9 @@ class CrontabSchedule(models.Model):
         try:
             human_readable = get_description(cron_expression)
         except (
-            MissingFieldException,
-            FormatException,
-            WrongArgumentException
+            MissingFieldError,
+            FormatError,
+            WrongArgumentError
         ):
             return f'{cron_expression} {str(self.timezone)}'
         return f'{human_readable} {str(self.timezone)}'
