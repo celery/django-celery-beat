@@ -12,13 +12,14 @@ except ImportError:
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
 from celery.utils.log import get_logger
-from celery.utils.time import maybe_make_aware
+from celery.utils.time import is_naive, make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
@@ -117,8 +118,6 @@ class ModelEntry(ScheduleEntry):
         # START DATE: only run after the `start_time`, if one exists.
         if self.model.start_time is not None:
             now = self._default_now()
-            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-                now = maybe_make_aware(self._default_now())
             if now < self.model.start_time:
                 # The datetime is before the start date - don't run.
                 # send a delay to retry on start_time
@@ -147,20 +146,41 @@ class ModelEntry(ScheduleEntry):
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
-        # CAUTION: make_aware assumes settings.TIME_ZONE for naive datetimes,
-        # while maybe_make_aware assumes utc for naive datetimes
-        tz = self.app.timezone
-        last_run_at_in_tz = maybe_make_aware(self.last_run_at).astimezone(tz)
+        # Handle both naive and timezone-aware last_run_at properly.
+        # For backwards compatibility with _default_now() when USE_TZ=False,
+        # treat naive last_run_at as UTC and then convert to the app timezone.
+        if is_naive(self.last_run_at):
+            last_run_at_aware = self.last_run_at.replace(tzinfo=datetime.timezone.utc)
+        else:
+            last_run_at_aware = self.last_run_at
+
+        # Ensure we have a tzinfo object for the app timezone.
+        if isinstance(self.app.timezone, str):
+            app_tz = ZoneInfo(self.app.timezone)
+        else:
+            app_tz = self.app.timezone
+
+        last_run_at_in_tz = last_run_at_aware.astimezone(app_tz)
         return self.schedule.is_due(last_run_at_in_tz)
 
     def _default_now(self):
-        if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = datetime.datetime.now(self.app.timezone)
-        else:
-            # this ends up getting passed to maybe_make_aware, which expects
-            # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
-        return now
+        use_tz = getattr(settings, 'USE_TZ', False)
+        if use_tz:
+            # When Django timezone support is enabled, always return an
+            # aware datetime to match the ORM's contract. Use
+            # DJANGO_CELERY_BEAT_TZ_AWARE only to decide which timezone
+            # the aware value should be expressed in.
+            if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
+                # Express the time in the Celery app's timezone.
+                return timezone.now().astimezone(self.app.timezone)
+            # Express the time in Django's default timezone.
+            return timezone.now()
+        # When Django timezone support is disabled (USE_TZ=False),
+        # return a naive datetime representing the current time in the
+        # Celery app's timezone. This keeps the stored naive value in
+        # the same timezone that `is_due()` assumes for naive
+        # `last_run_at` values, avoiding drift by the timezone offset.
+        return datetime.datetime.now(tz=self.app.timezone).replace(tzinfo=None)
 
     def __next__(self):
         self.model.last_run_at = self._default_now()
