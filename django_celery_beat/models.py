@@ -9,7 +9,7 @@ from datetime import timedelta
 import timezone_field
 from celery import current_app, schedules
 # cron-descriptor >= 2.0 renamed *Exception to *Error
-from cron_descriptor import get_description
+from cron_descriptor import Options as CronDescriptorOptions, get_description
 try:
     from cron_descriptor import (FormatError, MissingFieldError,
                                  WrongArgumentError)
@@ -27,6 +27,9 @@ from . import querysets, validators
 from .clockedschedule import clocked
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
+
+_CRON_DESCRIPTOR_OPTIONS = CronDescriptorOptions()
+_CRON_DESCRIPTOR_OPTIONS.use_24hour_time_format = False
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -345,7 +348,9 @@ class CrontabSchedule(models.Model):
             day_of_week
         )
         try:
-            human_readable = get_description(cron_expression)
+            human_readable = get_description(
+                cron_expression, _CRON_DESCRIPTOR_OPTIONS
+            )
         except (
             MissingFieldError,
             FormatError,
