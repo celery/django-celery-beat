@@ -268,35 +268,35 @@ class HumanReadableTestCase(TestCase):
         )
         self.assertEqual(cron.human_readable, "At 02:30 PM UTC")
 
-    @patch(
-        "django_celery_beat.models.get_description",
-        side_effect=FormatError("bad"),
-    )
-    def test_format_error_fallback(self, _mock_desc):
+    def test_format_error_fallback(self):
         """FormatError falls back to raw cron expression."""
         cron = CrontabSchedule.objects.create(
             hour="2", minute="0", day_of_week="mon",
         )
-        self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=FormatError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
 
-    @patch(
-        "django_celery_beat.models.get_description",
-        side_effect=MissingFieldError("bad"),
-    )
-    def test_missing_field_error_fallback(self, _mock_desc):
+    def test_missing_field_error_fallback(self):
         """MissingFieldError falls back to raw cron expression."""
         cron = CrontabSchedule.objects.create(
             hour="2", minute="0", day_of_week="mon",
         )
-        self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=MissingFieldError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
 
-    @patch(
-        "django_celery_beat.models.get_description",
-        side_effect=WrongArgumentError("bad"),
-    )
-    def test_wrong_argument_error_fallback(self, _mock_desc):
+    def test_wrong_argument_error_fallback(self):
         """WrongArgumentError falls back to raw cron expression."""
         cron = CrontabSchedule.objects.create(
             hour="2", minute="0", day_of_week="mon",
         )
-        self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=WrongArgumentError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
