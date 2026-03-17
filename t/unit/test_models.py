@@ -1,5 +1,6 @@
 import datetime
 import os
+from unittest.mock import patch
 
 try:
     from zoneinfo import ZoneInfo, available_timezones
@@ -19,8 +20,9 @@ from django.utils import timezone
 
 from django_celery_beat import migrations as beat_migrations
 from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
-                                       IntervalSchedule, PeriodicTasks,
-                                       SolarSchedule,
+                                       FormatError, IntervalSchedule,
+                                       MissingFieldError, PeriodicTasks,
+                                       SolarSchedule, WrongArgumentError,
                                        crontab_schedule_celery_timezone)
 from t.proj.models import O2OToPeriodicTasks
 
@@ -256,3 +258,45 @@ class HumanReadableTestCase(TestCase):
                 f"At 02:00 AM{expected} UTC",
                 day_day_of_week,
             )
+
+    def test_uses_12h_time_format(self):
+        """Ensure human_readable uses 12-hour format regardless of default."""
+        cron = CrontabSchedule.objects.create(
+            hour="14",
+            minute="30",
+            day_of_week="*",
+        )
+        self.assertEqual(cron.human_readable, "At 02:30 PM UTC")
+
+    def test_format_error_fallback(self):
+        """FormatError falls back to raw cron expression."""
+        cron = CrontabSchedule.objects.create(
+            hour="2", minute="0", day_of_week="mon",
+        )
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=FormatError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
+
+    def test_missing_field_error_fallback(self):
+        """MissingFieldError falls back to raw cron expression."""
+        cron = CrontabSchedule.objects.create(
+            hour="2", minute="0", day_of_week="mon",
+        )
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=MissingFieldError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
+
+    def test_wrong_argument_error_fallback(self):
+        """WrongArgumentError falls back to raw cron expression."""
+        cron = CrontabSchedule.objects.create(
+            hour="2", minute="0", day_of_week="mon",
+        )
+        with patch(
+            "django_celery_beat.models.get_description",
+            side_effect=WrongArgumentError("bad"),
+        ):
+            self.assertEqual(cron.human_readable, "0 2 * * 1 UTC")
