@@ -8,8 +8,18 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
-from cron_descriptor import (FormatException, MissingFieldException,
-                             WrongArgumentException, get_description)
+# cron-descriptor >= 2.0 renamed *Exception to *Error
+from cron_descriptor import Options as CronDescriptorOptions
+from cron_descriptor import get_description
+
+try:
+    from cron_descriptor import (FormatError, MissingFieldError,
+                                 WrongArgumentError)
+except ImportError:  # pragma: no cover
+    from cron_descriptor import (FormatException as FormatError,
+                                 MissingFieldException as MissingFieldError,
+                                 WrongArgumentException as WrongArgumentError)
+
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -20,6 +30,9 @@ from . import querysets, validators
 from .clockedschedule import clocked
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
+
+_CRON_DESCRIPTOR_OPTIONS = CronDescriptorOptions()
+_CRON_DESCRIPTOR_OPTIONS.use_24hour_time_format = False
 
 DAYS = 'days'
 HOURS = 'hours'
@@ -338,11 +351,13 @@ class CrontabSchedule(models.Model):
             day_of_week
         )
         try:
-            human_readable = get_description(cron_expression)
+            human_readable = get_description(
+                cron_expression, _CRON_DESCRIPTOR_OPTIONS
+            )
         except (
-            MissingFieldException,
-            FormatException,
-            WrongArgumentException
+            MissingFieldError,
+            FormatError,
+            WrongArgumentError
         ):
             return f'{cron_expression} {str(self.timezone)}'
         return f'{human_readable} {str(self.timezone)}'
