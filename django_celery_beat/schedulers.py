@@ -175,21 +175,21 @@ class ModelEntry(ScheduleEntry):
         datetime (also in the Celery app's timezone), regardless of USE_TZ.
         """
         tz_aware = getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True)
+        tz = self.app.timezone
+        if isinstance(tz, str):
+            tz = ZoneInfo(tz)
         if tz_aware:
             # Start from Django's notion of "now".
             current = timezone.now()
             # If Django returned a naive datetime (e.g. USE_TZ=False), make it
             # aware in the Celery app's timezone.
             if is_naive(current):
-                return make_aware(current, timezone=self.app.timezone)
+                return timezone.make_aware(current, timezone=tz)
             # If it's already aware, express it in the Celery app's timezone.
-            return current.astimezone(self.app.timezone)
+            return current.astimezone(tz)
         # For tz-unaware beat operation, return a naive datetime representing
         # the current time in the Celery app's timezone. This keeps the stored
         # naive value aligned with what is_due() assumes for naive last_run_at.
-        tz = self.app.timezone
-        if isinstance(tz, str):
-            tz = ZoneInfo(tz)
         return datetime.datetime.now(tz=tz).replace(tzinfo=None)
 
     def __next__(self):
