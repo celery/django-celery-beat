@@ -181,7 +181,10 @@ class ModelEntry(ScheduleEntry):
         # Celery app's timezone. This keeps the stored naive value in
         # the same timezone that `is_due()` assumes for naive
         # `last_run_at` values, avoiding drift by the timezone offset.
-        return datetime.datetime.now(tz=self.app.timezone).replace(tzinfo=None)
+        tz = self.app.timezone
+        if isinstance(tz, str):
+            tz = ZoneInfo(tz)
+        return datetime.datetime.now(tz=tz).replace(tzinfo=None)
 
     def __next__(self):
         self.model.last_run_at = self._default_now()
