@@ -147,22 +147,23 @@ class ModelEntry(ScheduleEntry):
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
         # Handle both naive and timezone-aware last_run_at properly.
-        # For backwards compatibility with _default_now() when USE_TZ=False,
-        # treat naive last_run_at as UTC and then convert to the app timezone.
-        if is_naive(self.last_run_at):
-            last_run_at_aware = self.last_run_at.replace(tzinfo=datetime.timezone.utc)
-        else:
-            last_run_at_aware = self.last_run_at
-
+        # For consistency with _default_now(), interpret naive last_run_at
+        # values as being expressed in the Celery app's timezone.
         # Ensure we have a tzinfo object for the app timezone.
         if isinstance(self.app.timezone, str):
             app_tz = ZoneInfo(self.app.timezone)
         else:
             app_tz = self.app.timezone
 
-        last_run_at_in_tz = last_run_at_aware.astimezone(app_tz)
-        return self.schedule.is_due(last_run_at_in_tz)
+        if is_naive(self.last_run_at):
+            # last_run_at is a naive datetime that should be understood as
+            # representing local time in app_tz.
+            last_run_at_aware = self.last_run_at.replace(tzinfo=app_tz)
+        else:
+            # Convert any aware last_run_at into the app timezone.
+            last_run_at_aware = self.last_run_at.astimezone(app_tz)
 
+        return self.schedule.is_due(last_run_at_aware)
     def _default_now(self):
         use_tz = getattr(settings, 'USE_TZ', False)
         if use_tz:
