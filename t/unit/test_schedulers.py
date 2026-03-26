@@ -451,7 +451,7 @@ class test_ModelEntry(SchedulerCase):
 
         # simulate last_run_at all none, doing the same thing that
         # _default_now() would do
-        right_now = timezone.now().astimezone(self.app.timezone).replace(tzinfo=None)
+        right_now = datetime.now(self.app.timezone).replace(tzinfo=None)
 
         m = self.create_model_crontab(
             crontab(minute='*/10'),
