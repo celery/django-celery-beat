@@ -181,11 +181,12 @@ class ModelEntry(ScheduleEntry):
         if tz_aware:
             # Start from Django's notion of "now".
             current = timezone.now()
-            # If Django returned a naive datetime (e.g. USE_TZ=False), make it
-            # aware in the Celery app's timezone.
+            # If Django returned a naive datetime (e.g. USE_TZ=False), first make
+            # it aware in Django's default timezone, then convert to the app TZ.
             if is_naive(current):
-                return timezone.make_aware(current, timezone=tz)
-            # If it's already aware, express it in the Celery app's timezone.
+                default_tz = timezone.get_default_timezone()
+                current = timezone.make_aware(current, timezone=default_tz)
+            # At this point, current is aware; express it in the Celery app TZ.
             return current.astimezone(tz)
         # For tz-unaware beat operation, return a naive datetime representing
         # the current time in the Celery app's timezone. This keeps the stored
