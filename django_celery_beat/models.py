@@ -15,7 +15,7 @@ from cron_descriptor import get_description
 try:
     from cron_descriptor import (FormatError, MissingFieldError,
                                  WrongArgumentError)
-except ImportError:
+except ImportError:  # pragma: no cover
     from cron_descriptor import (FormatException as FormatError,
                                  MissingFieldException as MissingFieldError,
                                  WrongArgumentException as WrongArgumentError)
