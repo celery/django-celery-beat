@@ -175,7 +175,7 @@ class ModelEntry(ScheduleEntry):
                 # Express the time in the Celery app's timezone.
                 return timezone.now().astimezone(self.app.timezone)
             # Express the time in Django's default timezone.
-            return timezone.now()
+            return timezone.localtime(timezone.now(), timezone.get_default_timezone())
         # When Django timezone support is disabled (USE_TZ=False),
         # return a naive datetime representing the current time in the
         # Celery app's timezone. This keeps the stored naive value in
