@@ -67,7 +67,7 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         fail_ci_if_error: true # optional (default = false)
         token: ${{ secrets.CODECOV_TOKEN }}
