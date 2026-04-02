@@ -56,6 +56,18 @@ class EntrySaveRaises(schedulers.ModelEntry):
         raise RuntimeError('this is expected')
 
 
+class DryRunTrackingScheduler(schedulers.DryRunDatabaseScheduler):
+    Entry = EntryTrackSave
+
+    def __init__(self, *args, **kwargs):
+        self.flushed = 0
+        schedulers.DryRunDatabaseScheduler.__init__(self, *args, **kwargs)
+
+    def sync(self):
+        self.flushed += 1
+        schedulers.DryRunDatabaseScheduler.sync(self)
+
+
 class TrackingScheduler(schedulers.DatabaseScheduler):
     Entry = EntryTrackSave
 
@@ -66,7 +78,6 @@ class TrackingScheduler(schedulers.DatabaseScheduler):
     def sync(self):
         self.flushed += 1
         schedulers.DatabaseScheduler.sync(self)
-
 
 @pytest.mark.django_db
 class SchedulerCase:
@@ -1406,6 +1417,56 @@ class test_DatabaseScheduler(SchedulerCase):
         for hour_str in valid_hours:
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
+
+@pytest.mark.django_db
+class test_DryRunDatabaseScheduler(SchedulerCase):
+    Scheduler = DryRunTrackingScheduler
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.app.conf.beat_schedule = {}
+
+        self.m1 = self.create_model_interval(
+            schedule(timedelta(seconds=10)),
+            last_run_at=self.app.now() - timedelta(days=1),
+        )
+        self.m1.save()
+        self.m1.refresh_from_db()
+
+        self.s = self.Scheduler(app=self.app)
+
+    def test_apply_entry_logs_without_dispatching(self):
+        entry = self.s.schedule[self.m1.name]
+        self.s.apply_async = MagicMock()
+
+        with patch('django_celery_beat.schedulers.debug') as mock_debug:
+            self.s.apply_entry(entry)
+
+        self.s.apply_async.assert_not_called()
+        mock_debug.assert_called_once_with(
+            'Dry-run mode: Skipping task %s %s %s',
+            entry.task,
+            entry.args,
+            entry.kwargs,
+        )
+
+    def test_sync_does_not_persist_run_metadata(self):
+        entry = self.s.schedule[self.m1.name]
+        initial_flushes = self.s.flushed
+        original_last_run_at = entry.model.last_run_at
+        original_total_run_count = entry.model.total_run_count
+
+        entry.model.last_run_at = entry.last_run_at + timedelta(hours=1)
+        entry.model.total_run_count += 1
+        self.s._dirty.add(entry.name)
+
+        self.s.sync()
+        self.m1.refresh_from_db()
+
+        assert self.s.flushed == initial_flushes + 1
+        assert self.m1.last_run_at == original_last_run_at
+        assert self.m1.total_run_count == original_total_run_count
 
 
 @pytest.mark.django_db
