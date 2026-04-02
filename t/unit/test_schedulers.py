@@ -1432,7 +1432,6 @@ class test_DryRunDatabaseScheduler(SchedulerCase):
             last_run_at=self.app.now() - timedelta(days=1),
         )
         self.m1.save()
-        self.m1.refresh_from_db()
 
         self.s = self.Scheduler(app=self.app)
 
