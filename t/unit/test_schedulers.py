@@ -79,6 +79,7 @@ class TrackingScheduler(schedulers.DatabaseScheduler):
         self.flushed += 1
         schedulers.DatabaseScheduler.sync(self)
 
+
 @pytest.mark.django_db
 class SchedulerCase:
 
@@ -1417,6 +1418,7 @@ class test_DatabaseScheduler(SchedulerCase):
         for hour_str in valid_hours:
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
+
 
 @pytest.mark.django_db
 class test_DryRunDatabaseScheduler(SchedulerCase):
