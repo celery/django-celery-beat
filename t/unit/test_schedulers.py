@@ -612,8 +612,8 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert self.m1.crontab is None
 
     def test_expires_option_mapped_to_expire_seconds(self):
-        """Test that 'expires' in options is accepted as alias for
-        'expire_seconds', matching standard Celery apply_async API."""
+        """Test that numeric 'expires' values in options are accepted as
+        an alias for 'expire_seconds'."""
         name = f'expires_test{next(_ids)}'
         self.app.conf.beat_schedule[name] = {
             'task': f'djcelery.unittest.add{next(_ids)}',
