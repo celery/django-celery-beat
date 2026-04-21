@@ -95,11 +95,11 @@ msgstr "לא נמצאה משימה בשם \"{not_found_task_name}\""
 #: django_celery_beat/admin.py:269
 #, python-brace-format
 msgid "{0} task{1} {2} successfully run"
-msgstr "{0} משימ{1} הורצ{2} בהצלחה"
+msgstr "{0} משימות {2} בהצלחה"
 
 #: django_celery_beat/admin.py:272
 msgid "was,were"
-msgstr "ה,ות"
+msgstr "הורצה,הורצו"
 
 #: django_celery_beat/admin.py:284
 msgid "Periodic Tasks Using This Schedule"
