@@ -1,7 +1,7 @@
 setuptools>=40.8.0
 wheel>=0.46.3
 flake8>=3.8.3
-tox>=2.3.1
+tox>=4.30.3
 sphinx2rst>=1.0
 bumpversion
 pydocstyle
