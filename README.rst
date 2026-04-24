@@ -2,7 +2,7 @@
  Database-backed Periodic Tasks
 =====================================================================
 
-|build-status| |coverage| |license| |wheel| |pyversion| |pyimp|
+|build-status| |coverage| |license| |pyversion| |pyimp|
 
 :Version: 2.9.0
 :Web: http://django-celery-beat.readthedocs.io/
@@ -333,10 +333,6 @@ If you have a project that is time zone naive, you can set ``DJANGO_CELERY_BEAT_
 .. |license| image:: https://img.shields.io/pypi/l/django-celery-beat.svg#foo
     :alt: BSD License
     :target: https://opensource.org/licenses/BSD-3-Clause
-
-.. |wheel| image:: https://img.shields.io/pypi/wheel/django-celery-beat.svg#foo
-    :alt: django-celery-beat can be installed via wheel
-    :target: http://pypi.python.org/pypi/django-celery-beat/
 
 .. |pyversion| image:: https://img.shields.io/pypi/pyversions/django-celery-beat.svg#foo
     :alt: Supported Python versions.
