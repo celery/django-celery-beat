@@ -611,6 +611,35 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         assert self.m1.interval
         assert self.m1.crontab is None
 
+    def test_expires_option_mapped_to_expire_seconds(self):
+        """Test that numeric 'expires' values in options are accepted as
+        an alias for 'expire_seconds'."""
+        name = f'expires_test{next(_ids)}'
+        self.app.conf.beat_schedule[name] = {
+            'task': f'djcelery.unittest.add{next(_ids)}',
+            'schedule': timedelta(seconds=300),
+            'options': {'expires': 60},
+        }
+        s = self.Scheduler(app=self.app)
+        entry = s.schedule[name]
+        assert entry.model.expire_seconds == 60
+        assert entry.model.expires is None
+        assert entry.options['expires'] == 60
+
+    def test_expire_seconds_takes_precedence_over_expires(self):
+        """When both 'expire_seconds' and 'expires' are provided,
+        'expire_seconds' wins."""
+        name = f'expires_precedence{next(_ids)}'
+        self.app.conf.beat_schedule[name] = {
+            'task': f'djcelery.unittest.add{next(_ids)}',
+            'schedule': timedelta(seconds=300),
+            'options': {'expire_seconds': 120, 'expires': 60},
+        }
+        s = self.Scheduler(app=self.app)
+        entry = s.schedule[name]
+        assert entry.model.expire_seconds == 120
+        assert entry.options['expires'] == 120
+
 
 @pytest.mark.django_db
 class test_DatabaseScheduler(SchedulerCase):
