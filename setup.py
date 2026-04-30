@@ -126,6 +126,7 @@ setuptools.setup(
     entry_points={
         'celery.beat_schedulers': [
             'django = django_celery_beat.schedulers:DatabaseScheduler',
+            'django_strict = django_celery_beat.schedulers:StrictDatabaseScheduler',
         ],
     },
     include_package_data=True,
