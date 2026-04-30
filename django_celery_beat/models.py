@@ -569,6 +569,16 @@ class PeriodicTask(models.Model):
         verbose_name=_('Enabled'),
         help_text=_('Set to False to disable the schedule'),
     )
+    from_configuration = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name=_('From configuration'),
+        help_text=_(
+            'Set automatically when the task is imported from the celery '
+            'beat_schedule configuration. Edits made here will be reverted '
+            'on the next celery beat startup. Remove the entry from '
+            'beat_schedule to manage this task only via the database.'),
+    )
     last_run_at = models.DateTimeField(
         auto_now=False, auto_now_add=False,
         editable=False, blank=True, null=True,
