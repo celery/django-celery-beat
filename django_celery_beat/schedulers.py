@@ -189,8 +189,10 @@ class ModelEntry(ScheduleEntry):
 
     @classmethod
     def from_entry(cls, name, app=None, **entry):
+        defaults = cls._unpack_fields(**entry)
+        defaults['from_configuration'] = True
         obj, created = PeriodicTask._default_manager.update_or_create(
-            name=name, defaults=cls._unpack_fields(**entry),
+            name=name, defaults=defaults,
         )
         return cls(obj, app=app)
 
@@ -255,8 +257,10 @@ class DatabaseScheduler(Scheduler):
             or DEFAULT_MAX_INTERVAL)
 
     def setup_schedule(self):
-        self.install_default_entries(self.schedule)
-        self.update_from_dict(self.app.conf.beat_schedule)
+        installed_names = set()
+        installed_names |= self.install_default_entries(self.schedule)
+        installed_names |= self.update_from_dict(self.app.conf.beat_schedule)
+        self._disable_removed_from_configuration(installed_names)
 
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
@@ -471,17 +475,20 @@ class DatabaseScheduler(Scheduler):
 
     def update_from_dict(self, mapping):
         s = {}
+        installed = set()
         for name, entry_fields in mapping.items():
             try:
                 entry = self.Entry.from_entry(name,
                                               app=self.app,
                                               **entry_fields)
+                installed.add(name)
                 if entry.model.enabled:
                     s[name] = entry
 
             except Exception as exc:
                 logger.exception(ADD_ENTRY_ERROR, name, exc, entry_fields)
         self.schedule.update(s)
+        return installed
 
     def install_default_entries(self, data):
         entries = {}
@@ -493,7 +500,27 @@ class DatabaseScheduler(Scheduler):
                     'options': {'expire_seconds': 12 * 3600},
                 },
             )
-        self.update_from_dict(entries)
+        return self.update_from_dict(entries)
+
+    def _disable_removed_from_configuration(self, installed_names):
+        """Disable rows imported from config whose names are no longer there.
+
+        Tasks created directly (admin/ORM) have ``from_configuration=False``
+        and are left untouched. We disable rather than delete so history
+        (last_run_at, total_run_count) is preserved and admins can review
+        what disappeared.
+        """
+        qs = self.Model.objects.filter(
+            from_configuration=True, enabled=True,
+        ).exclude(name__in=installed_names)
+        removed = list(qs.values_list('name', flat=True))
+        if removed:
+            qs.update(enabled=False, last_run_at=None)
+            PeriodicTasks.update_changed()
+            info(
+                'DatabaseScheduler: Disabled %d task(s) removed from '
+                'configuration: %s', len(removed), ', '.join(removed),
+            )
 
     def schedules_equal(self, *args, **kwargs):
         if self._heap_invalidated:
