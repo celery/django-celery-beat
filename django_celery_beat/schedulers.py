@@ -191,6 +191,10 @@ class ModelEntry(ScheduleEntry):
     def from_entry(cls, name, app=None, **entry):
         defaults = cls._unpack_fields(**entry)
         defaults['from_configuration'] = True
+        # Config is the source of truth: re-add to beat_schedule re-enables a
+        # row we previously auto-disabled, and overrides any manual disable
+        # done in the admin (the admin warns about this).
+        defaults['enabled'] = True
         obj, created = PeriodicTask._default_manager.update_or_create(
             name=name, defaults=defaults,
         )

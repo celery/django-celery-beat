@@ -590,16 +590,20 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
                 assert e.model.expires is None
                 assert e.model.expire_seconds == 12 * 3600
 
-    def test_periodic_task_model_disabled_schedule(self):
-        self.m1.enabled = False
+    def test_periodic_task_model_disabled_schedule_is_re_enabled(self):
+        # Disabling a row that is still in beat_schedule does not stick:
+        # config is the source of truth, so the import re-enables it.
+        # (The admin warns that edits to imported tasks revert on restart.)
         self.m1.save()
+        PeriodicTask.objects.filter(name=self.entry_name).update(enabled=False)
 
         s = self.Scheduler(app=self.app)
         sched = s.schedule
-        assert sched
-        assert len(sched) == 1
+        assert len(sched) == 2
         assert 'celery.backend_cleanup' in sched
-        assert self.entry_name not in sched
+        assert self.entry_name in sched
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is True
 
     def test_periodic_task_model_schedule_type_change(self):
         self.m1.interval = None
@@ -682,19 +686,22 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         assert cleanup.enabled is False
         assert cleanup.from_configuration is True
 
-    def test_re_added_task_keeps_manual_disable(self):
-        # Imported, then user manually disables in admin/ORM.
+    def test_re_adding_task_to_configuration_re_enables_it(self):
+        # First run: imported and enabled.
+        self.Scheduler(app=self.app)
+
+        # Remove from config and re-run: orphan-disable kicks in.
+        original_schedule = dict(self.app.conf.beat_schedule)
+        self.app.conf.beat_schedule = {}
         self.Scheduler(app=self.app)
         task = PeriodicTask.objects.get(name=self.entry_name)
-        task.enabled = False
-        task.save()
+        assert task.enabled is False
 
-        # Re-running with the entry still in config must not re-enable;
-        # update_or_create only writes the fields in defaults, and enabled
-        # is intentionally not among them.
+        # Re-add to config and re-run: row is re-enabled.
+        self.app.conf.beat_schedule = original_schedule
         self.Scheduler(app=self.app)
         task.refresh_from_db()
-        assert task.enabled is False
+        assert task.enabled is True
         assert task.from_configuration is True
 
 

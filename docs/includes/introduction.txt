@@ -191,15 +191,16 @@ Two consequences follow:
 
 * If you remove an entry from ``CELERY_BEAT_SCHEDULE`` and restart **beat**,
   the corresponding ``PeriodicTask`` row is automatically **disabled** (not
-  deleted) on next startup. Tasks created by hand via the admin or the ORM
-  are never touched.
+  deleted) on next startup. Re-adding the entry to ``CELERY_BEAT_SCHEDULE``
+  and restarting **beat** re-enables the row. Tasks created by hand via the
+  admin or the ORM are never touched.
 
 * Edits made in the Django admin to a task imported from configuration are
   **reverted on the next beat restart**, because the configuration is
-  re-imported via ``update_or_create``. The admin shows a warning banner on
-  the change form for these tasks. To make changes durable, edit the task
-  in your application configuration, or remove it from
-  ``CELERY_BEAT_SCHEDULE`` first.
+  re-imported via ``update_or_create`` and ``enabled`` is restored to
+  ``True``. The admin shows a warning banner on the change form for these
+  tasks. To make changes durable, edit the task in your application
+  configuration, or remove it from ``CELERY_BEAT_SCHEDULE`` first.
 
 
 Example running periodic tasks
