@@ -557,8 +557,8 @@ class StrictDatabaseScheduler(DatabaseScheduler):
     """
 
     def setup_schedule(self):
-        super().setup_schedule()
         self._disable_unknown_tasks()
+        super().setup_schedule()
 
     def _disable_unknown_tasks(self):
         for task in self.Model.objects.enabled():
