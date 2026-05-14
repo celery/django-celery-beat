@@ -196,11 +196,14 @@ class IntervalSchedule(models.Model):
 
     @classmethod
     def from_schedule(cls, schedule, period=SECONDS):
-        every = max(schedule.run_every.total_seconds(), 0)
+        period_delta = timedelta(**{period: 1})
+        every = max(schedule.run_every // period_delta, 0)
         try:
             return cls.objects.get(every=every, period=period)
         except cls.DoesNotExist:
-            return cls(every=every, period=period)
+            instance = cls(every=every, period=period)
+            instance.full_clean()
+            return instance
         except MultipleObjectsReturned:
             return cls.objects.filter(every=every, period=period).first()
 

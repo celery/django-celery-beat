@@ -1433,7 +1433,7 @@ class test_models(SchedulerCase):
 
     def test_PeriodicTask_unicode_interval(self):
         p = self.create_model_interval(schedule(timedelta(seconds=10)))
-        assert str(p) == f'{p.name}: every 10.0 seconds'
+        assert str(p) == f'{p.name}: every 10 seconds'
 
     def test_PeriodicTask_unicode_crontab(self):
         p = self.create_model_crontab(crontab(
