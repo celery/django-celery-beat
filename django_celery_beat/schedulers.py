@@ -265,13 +265,6 @@ class DatabaseScheduler(Scheduler):
         installed_names |= self.install_default_entries(self.schedule)
         installed_names |= self.update_from_dict(self.app.conf.beat_schedule)
         self._disable_removed_from_configuration(installed_names)
-        # Accessing ``self.schedule`` above may populate the in-memory cache
-        # from database rows that were enabled before
-        # ``_disable_removed_from_configuration`` ran. Invalidate the cached
-        # schedule and heap so the next read rebuilds from the updated DB
-        # state and won't dispatch removed tasks on startup.
-        self._schedule = {}
-        self._heap_invalidated = True
 
     def all_as_schedule(self):
         debug('DatabaseScheduler: Fetching database schedule')
