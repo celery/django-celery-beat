@@ -637,7 +637,6 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         self.app.conf.beat_schedule = {self.entry_name: entry}
 
     def test_disables_task_when_removed_from_configuration(self):
-        # First run: task imported from config, row created and enabled.
         scheduler = self.Scheduler(app=self.app)
         task = PeriodicTask.objects.get(name=self.entry_name)
         assert task.enabled is True
@@ -645,12 +644,12 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         task.last_run_at = timezone.now()
         task.save()
 
-        # Remove from configuration and re-run the scheduler.
+        # Remove from configuration and reprocess.
         self.app.conf.beat_schedule = {}
-        self.Scheduler(app=self.app)
+        scheduler.setup_schedule()
 
         # Row preserved, but disabled. last_run_at cleared.
-        task = PeriodicTask.objects.get(name=self.entry_name)
+        task.refresh_from_db()
         assert task.enabled is False
         assert task.from_configuration is True
         assert task.last_run_at is None
@@ -670,9 +669,8 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         assert orm_task.from_configuration is False
 
     def test_backend_cleanup_disabled_when_result_expires_cleared(self):
-        # First run with result_expires set: backend_cleanup is enabled.
         self.app.conf.result_expires = 3600
-        self.Scheduler(app=self.app)
+        scheduler = self.Scheduler(app=self.app)
         cleanup = PeriodicTask.objects.get(name='celery.backend_cleanup')
         assert cleanup.enabled is True
         assert cleanup.from_configuration is True
@@ -681,29 +679,52 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         # so the orphan-disable step disables the existing row.
         self.app.conf.result_expires = 0
         self.app.conf.beat_schedule = {}
-        self.Scheduler(app=self.app)
+        scheduler.setup_schedule()
 
         cleanup.refresh_from_db()
         assert cleanup.enabled is False
         assert cleanup.from_configuration is True
 
     def test_re_adding_task_to_configuration_re_enables_it(self):
-        # First run: imported and enabled.
-        self.Scheduler(app=self.app)
+        scheduler = self.Scheduler(app=self.app)
 
-        # Remove from config and re-run: orphan-disable kicks in.
+        # Remove from config and reprocess: orphan-disable kicks in.
         original_schedule = dict(self.app.conf.beat_schedule)
         self.app.conf.beat_schedule = {}
-        self.Scheduler(app=self.app)
+        scheduler.setup_schedule()
         task = PeriodicTask.objects.get(name=self.entry_name)
         assert task.enabled is False
 
-        # Re-add to config and re-run: row is re-enabled.
+        # Re-add to config and reprocess: row is re-enabled.
         self.app.conf.beat_schedule = original_schedule
-        self.Scheduler(app=self.app)
+        scheduler.setup_schedule()
         task.refresh_from_db()
         assert task.enabled is True
         assert task.from_configuration is True
+
+    def test_invalid_edit_disables_task(self):
+        # An entry edited to an invalid form (e.g. unrecognized schedule
+        # type) must NOT silently keep running on the old stale schedule.
+        # The existing DB row gets disabled; the error is logged.
+        scheduler = self.Scheduler(app=self.app)
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is True
+
+        broken_entry = dict(
+            task='djcelery.unittest.add',
+            schedule=object(),
+            args=(),
+            relative=False,
+            kwargs={},
+            options={'queue': 'extra_queue'},
+        )
+        self.app.conf.beat_schedule = {self.entry_name: broken_entry}
+        scheduler.setup_schedule()
+
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.from_configuration is True
+        assert self.entry_name not in scheduler.schedule
 
 
 @pytest.mark.django_db
