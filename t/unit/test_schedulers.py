@@ -638,7 +638,7 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
 
     def test_disables_task_when_removed_from_configuration(self):
         # First run: task imported from config, row created and enabled.
-        self.Scheduler(app=self.app)
+        scheduler = self.Scheduler(app=self.app)
         task = PeriodicTask.objects.get(name=self.entry_name)
         assert task.enabled is True
         assert task.from_configuration is True
@@ -654,6 +654,7 @@ class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
         assert task.enabled is False
         assert task.from_configuration is True
         assert task.last_run_at is None
+        assert self.entry_name not in scheduler.schedule
 
     def test_does_not_touch_orm_created_tasks(self):
         # Drop config entirely; only an ORM-created task exists.
