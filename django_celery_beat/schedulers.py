@@ -270,7 +270,7 @@ class DatabaseScheduler(Scheduler):
         # ``_disable_removed_from_configuration`` ran. Invalidate the cached
         # schedule and heap so the next read rebuilds from the updated DB
         # state and won't dispatch removed tasks on startup.
-        self._schedule = None
+        self._schedule = {}
         self._heap_invalidated = True
 
     def all_as_schedule(self):
