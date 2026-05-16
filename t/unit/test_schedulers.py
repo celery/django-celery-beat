@@ -559,6 +559,7 @@ class test_ModelEntry(SchedulerCase):
     def test_disable_passes_update_fields(self):
         """_disable() must not do a full-model save — only the DB-writable field."""
         m = self.create_model_interval(schedule(timedelta(seconds=10)))
+        m.pk = 1  # simulate a DB-persisted instance
         e = self.Entry(m, app=self.app)
         with patch.object(m, 'save') as mock_save:
             e._disable(m)
@@ -573,6 +574,7 @@ class test_ModelEntry(SchedulerCase):
             last_run_at=one_interval_ago,
             total_run_count=1,
         )
+        m.pk = 1  # simulate a DB-persisted instance
         e = self.Entry(m, app=self.app)
         with patch.object(m, 'save') as mock_save:
             e.is_due()
