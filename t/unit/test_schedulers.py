@@ -565,7 +565,7 @@ class test_ModelEntry(SchedulerCase):
         mock_save.assert_called_once_with(update_fields=['no_changes', 'enabled'])
 
     def test_one_off_expiry_passes_update_fields(self):
-        """is_due() for an exhausted one-off task must save only the three changed fields."""
+        """is_due() for exhausted one-off task saves only the three changed fields."""
         one_interval_ago = self.app.now() - timedelta(seconds=1)
         m = self.create_model_interval(
             schedule(timedelta(seconds=1)),
@@ -581,7 +581,7 @@ class test_ModelEntry(SchedulerCase):
         )
 
     def test_entry_save_passes_update_fields(self):
-        """ModelEntry.save() must forward update_fields to avoid clobbering concurrent writes."""
+        """ModelEntry.save() forwards update_fields — no full-model clobber."""
         m = self.create_model_interval(schedule(timedelta(seconds=10)))
         m.save()
         e = self.Entry(m, app=self.app)
