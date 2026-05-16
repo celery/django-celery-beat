@@ -557,15 +557,15 @@ class test_ModelEntry(SchedulerCase):
         assert delay == NEVER_CHECK_TIMEOUT
 
     def test_disable_passes_update_fields(self):
-        """_disable() must not do a full-model save — only the two toggled fields."""
+        """_disable() must not do a full-model save — only the DB-writable field."""
         m = self.create_model_interval(schedule(timedelta(seconds=10)))
         e = self.Entry(m, app=self.app)
         with patch.object(m, 'save') as mock_save:
             e._disable(m)
-        mock_save.assert_called_once_with(update_fields=['no_changes', 'enabled'])
+        mock_save.assert_called_once_with(update_fields=['enabled'])
 
     def test_one_off_expiry_passes_update_fields(self):
-        """is_due() for exhausted one-off task saves only the three changed fields."""
+        """is_due() for exhausted one-off task saves only the DB-writable fields."""
         one_interval_ago = self.app.now() - timedelta(seconds=1)
         m = self.create_model_interval(
             schedule(timedelta(seconds=1)),
@@ -577,7 +577,7 @@ class test_ModelEntry(SchedulerCase):
         with patch.object(m, 'save') as mock_save:
             e.is_due()
         mock_save.assert_called_once_with(
-            update_fields=['enabled', 'total_run_count', 'no_changes']
+            update_fields=['enabled', 'total_run_count']
         )
 
     def test_entry_save_passes_update_fields(self):
@@ -588,7 +588,9 @@ class test_ModelEntry(SchedulerCase):
         mock_obj = MagicMock()
         with patch.object(type(m)._default_manager, 'get', return_value=mock_obj):
             e.save()
-        mock_obj.save.assert_called_once_with(update_fields=e.save_fields)
+        mock_obj.save.assert_called_once_with(
+            update_fields=[f for f in e.save_fields if f != 'no_changes']
+        )
 
 
 @pytest.mark.django_db

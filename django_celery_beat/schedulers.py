@@ -107,7 +107,7 @@ class ModelEntry(ScheduleEntry):
     def _disable(self, model):
         model.no_changes = True
         model.enabled = False
-        model.save(update_fields=['no_changes', 'enabled'])
+        model.save(update_fields=['enabled'])
 
     def is_due(self):
         if not self.model.enabled:
@@ -143,7 +143,7 @@ class ModelEntry(ScheduleEntry):
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
-            self.model.save(update_fields=['enabled', 'total_run_count', 'no_changes'])
+            self.model.save(update_fields=['enabled', 'total_run_count'])
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
@@ -174,7 +174,7 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
-        obj.save(update_fields=self.save_fields)
+        obj.save(update_fields=[f for f in self.save_fields if f != 'no_changes'])
 
     @classmethod
     def to_model_schedule(cls, schedule):
