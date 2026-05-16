@@ -556,6 +556,40 @@ class test_ModelEntry(SchedulerCase):
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
 
+    def test_disable_passes_update_fields(self):
+        """_disable() must not do a full-model save — only the two toggled fields."""
+        m = self.create_model_interval(schedule(timedelta(seconds=10)))
+        e = self.Entry(m, app=self.app)
+        with patch.object(m, 'save') as mock_save:
+            e._disable(m)
+        mock_save.assert_called_once_with(update_fields=['no_changes', 'enabled'])
+
+    def test_one_off_expiry_passes_update_fields(self):
+        """is_due() for an exhausted one-off task must save only the three changed fields."""
+        one_interval_ago = self.app.now() - timedelta(seconds=1)
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=1)),
+            one_off=True,
+            last_run_at=one_interval_ago,
+            total_run_count=1,
+        )
+        e = self.Entry(m, app=self.app)
+        with patch.object(m, 'save') as mock_save:
+            e.is_due()
+        mock_save.assert_called_once_with(
+            update_fields=['enabled', 'total_run_count', 'no_changes']
+        )
+
+    def test_entry_save_passes_update_fields(self):
+        """ModelEntry.save() must forward update_fields to avoid clobbering concurrent writes."""
+        m = self.create_model_interval(schedule(timedelta(seconds=10)))
+        m.save()
+        e = self.Entry(m, app=self.app)
+        mock_obj = MagicMock()
+        with patch.object(type(m)._default_manager, 'get', return_value=mock_obj):
+            e.save()
+        mock_obj.save.assert_called_once_with(update_fields=e.save_fields)
+
 
 @pytest.mark.django_db
 class test_DatabaseSchedulerFromAppConf(SchedulerCase):
