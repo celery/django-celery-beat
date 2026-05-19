@@ -18,6 +18,8 @@ import pytest
 from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import DatabaseError
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 
@@ -842,6 +844,54 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 2
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
+
+    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(self):
+        # Disable m1 - its 10s interval would outrace m2 to the heap top
+        # on slow runs
+        self.m1.enabled = False
+        self.m1.save()
+
+        # Initial state: m2 starts overdue (interval is 20min,
+        # last run 30min ago)
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.last_run_at = timezone.now() - timedelta(minutes=30)
+        m2.save()
+
+        with patch.object(self.s, 'apply_entry') as apply_entry:
+            # First tick: m2 fires.
+            self.s.tick()
+            PeriodicTasks.update_changed()
+
+            with patch.object(schedulers.ModelEntry, 'save',
+                              side_effect=DatabaseError('boom')):
+                # Second tick: must not re-dispatch m2
+                self.s.tick()
+
+        m2_dispatches = [
+            call for call in apply_entry.call_args_list
+            if call.args and call.args[0].name == self.m2.name
+        ]
+        assert len(m2_dispatches) == 1
+
+    def test_sync_keeps_only_failed_entries_dirty_after_partial_success(self):
+        # reserve() advances each entry and adds it to _dirty.
+        self.s.reserve(self.s.schedule[self.m1.name])
+        self.s.reserve(self.s.schedule[self.m2.name])
+
+        saved = []
+
+        def fake_save(entry):
+            saved.append(entry.name)
+            if entry.name == self.m2.name:
+                raise ObjectDoesNotExist('gone')
+            # m1: succeed (no-op)
+
+        with patch.object(schedulers.ModelEntry, 'save', autospec=True,
+                          side_effect=fake_save):
+            self.s.sync()
+
+        assert set(saved) == {self.m1.name, self.m2.name}
+        assert self.s._dirty == {self.m2.name}
 
     def test_periodic_task_disabled_and_enabled(self):
         # Get the entry for m2

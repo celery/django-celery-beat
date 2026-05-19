@@ -446,18 +446,15 @@ class DatabaseScheduler(Scheduler):
     def sync(self):
         if logger.isEnabledFor(logging.DEBUG):
             debug('Writing entries...')
-        _tried = set()
-        _failed = set()
+        success = set()
         try:
             close_old_connections()
-
-            while self._dirty:
-                name = self._dirty.pop()
+            for name in self._dirty:
                 try:
                     self._schedule[name].save()
-                    _tried.add(name)
-                except (KeyError, TypeError, ObjectDoesNotExist):
-                    _failed.add(name)
+                    success.add(name)
+                except (KeyError, TypeError, ObjectDoesNotExist) as exc:
+                    debug('Skipping dirty entry %r in sync(): %r', name, exc)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)
         except InterfaceError:
@@ -466,8 +463,7 @@ class DatabaseScheduler(Scheduler):
                 'waiting to retry in next call...'
             )
         finally:
-            # retry later, only for the failed ones
-            self._dirty |= _failed
+            self._dirty -= success
 
     def update_from_dict(self, mapping):
         s = {}
@@ -501,6 +497,19 @@ class DatabaseScheduler(Scheduler):
             return False
         return super().schedules_equal(*args, **kwargs)
 
+    def _refresh_schedule(self):
+        fresh = self.all_as_schedule()
+        if not self._schedule:
+            return fresh
+        # Dirty entries aren't saved yet, keep their in-memory last_run_at / total_run_count
+        for name in self._dirty:
+            if name not in fresh or name not in self._schedule:
+                continue
+            old, new = self._schedule[name], fresh[name]
+            new.last_run_at = new.model.last_run_at = old.model.last_run_at
+            new.total_run_count = new.model.total_run_count = old.model.total_run_count
+        return fresh
+
     @property
     def schedule(self):
         initial = update = False
@@ -532,7 +541,7 @@ class DatabaseScheduler(Scheduler):
 
         if update:
             self.sync()
-            self._schedule = self.all_as_schedule()
+            self._schedule = self._refresh_schedule()
             # the schedule changed, invalidate the heap in Scheduler.tick
             if not initial:
                 self._heap = []
