@@ -502,13 +502,14 @@ class DatabaseScheduler(Scheduler):
         if not self._schedule:
             return fresh
         # Dirty entries aren't saved yet,
-        # keep their in-memory last_run_at / total_run_count
+        # keep their in-memory run metadata
         for name in self._dirty:
             if name not in fresh or name not in self._schedule:
                 continue
             old, new = self._schedule[name], fresh[name]
             new.last_run_at = new.model.last_run_at = old.model.last_run_at
             new.total_run_count = new.model.total_run_count = old.model.total_run_count
+            new.model.no_changes = old.model.no_changes
         return fresh
 
     @property
