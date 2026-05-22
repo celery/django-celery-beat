@@ -21,14 +21,15 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 
-from django_celery_beat import schedulers
+from django_celery_beat import schedulers, utils
 from django_celery_beat.admin import PeriodicTaskAdmin
 from django_celery_beat.clockedschedule import clocked
 from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
                                        IntervalSchedule, PeriodicTask,
                                        PeriodicTasks, SolarSchedule)
 from django_celery_beat.tzcrontab import TzAwareCrontab
-from django_celery_beat.utils import NEVER_CHECK_TIMEOUT, make_aware
+from django_celery_beat.utils import (NEVER_CHECK_TIMEOUT,
+                                      SCHEDULE_SYNC_MAX_INTERVAL, make_aware)
 
 _ids = count(0)
 
@@ -1582,6 +1583,74 @@ class test_model_PeriodicTasks(SchedulerCase):
         y = PeriodicTasks.last_change()
         assert y
         assert y > x
+
+    def test_clocked_create_in_window_tracks_change(self):
+        assert PeriodicTasks.last_change() is None
+        ClockedSchedule.objects.create(
+            clocked_time=make_aware(datetime.now() + timedelta(minutes=2))
+        )
+        assert PeriodicTasks.last_change() is not None
+
+    def test_clocked_create_just_past_window_tracks_change(self):
+        # Just past the sync window but within one beat loop of it: must
+        # still track, since the next sync may not run before it is due.
+        assert PeriodicTasks.last_change() is None
+        soon = datetime.now() + timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL + 2)
+        ClockedSchedule.objects.create(clocked_time=make_aware(soon))
+        assert PeriodicTasks.last_change() is not None
+
+    def test_clocked_create_within_configured_loop_tracks_change(
+            self, monkeypatch):
+        # A larger configured beat loop widens the next-sync deadline, so a
+        # task that would skip under the default loop must still track.
+        monkeypatch.setattr(
+            utils.current_app.conf, "beat_max_loop_interval", 600)
+        assert PeriodicTasks.last_change() is None
+        soon = datetime.now() + timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL + 60)
+        ClockedSchedule.objects.create(clocked_time=make_aware(soon))
+        assert PeriodicTasks.last_change() is not None
+
+    def test_clocked_create_out_of_window_skips_change(self):
+        assert PeriodicTasks.last_change() is None
+        ClockedSchedule.objects.create(
+            clocked_time=make_aware(datetime.now() + timedelta(minutes=10))
+        )
+        assert PeriodicTasks.last_change() is None
+
+    def test_clocked_update_out_of_window_tracks_change(self):
+        cs = ClockedSchedule.objects.create(
+            clocked_time=make_aware(datetime.now() + timedelta(minutes=10))
+        )
+        assert PeriodicTasks.last_change() is None
+        cs.clocked_time = make_aware(datetime.now() + timedelta(minutes=11))
+        cs.save()
+        assert PeriodicTasks.last_change() is not None
+
+    def test_task_clocked_create_in_window_tracks_change(self):
+        m = self.create_model_clocked(
+            clocked(make_aware(datetime.now() + timedelta(minutes=2)))
+        )
+        before = PeriodicTasks.last_change()
+        m.save()
+        assert PeriodicTasks.last_change() > before
+
+    def test_task_clocked_create_out_of_window_skips_change(self):
+        assert PeriodicTasks.last_change() is None
+        m = self.create_model_clocked(
+            clocked(make_aware(datetime.now() + timedelta(minutes=10)))
+        )
+        m.save()
+        assert PeriodicTasks.last_change() is None
+
+    def test_task_clocked_update_out_of_window_tracks_change(self):
+        m = self.create_model_clocked(
+            clocked(make_aware(datetime.now() + timedelta(minutes=10)))
+        )
+        m.save()
+        assert PeriodicTasks.last_change() is None
+        m.args = '[16, 16]'
+        m.save()
+        assert PeriodicTasks.last_change() is not None
 
 
 @pytest.mark.django_db

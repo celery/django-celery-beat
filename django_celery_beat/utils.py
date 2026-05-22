@@ -9,12 +9,18 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo  # Python 3.8
 
+from celery import current_app
 from django.conf import settings
 from django.utils import timezone
 
 is_aware = timezone.is_aware
 # celery schedstate return None will make it not work
 NEVER_CHECK_TIMEOUT = 100000000
+# This scheduler must wake up more frequently than the
+# regular of 5 minutes because it needs to take external
+# changes to the schedule into account.
+DEFAULT_MAX_INTERVAL = 5  # seconds
+SCHEDULE_SYNC_MAX_INTERVAL = 300  # 5 minutes
 
 # see Issue #222
 now_localtime = getattr(timezone, 'template_localtime', timezone.localtime)
@@ -64,3 +70,15 @@ def is_database_scheduler(scheduler):
         scheduler == 'django'
         or issubclass(symbol_by_name(scheduler), DatabaseScheduler)
     )
+
+
+def next_schedule_sync_at():
+    """Scheduled time of the next full schedule sync."""
+    return now() + datetime.timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL)
+
+
+def next_schedule_sync_by():
+    """Latest time by which the next full schedule sync must have run."""
+    max_interval = (
+        current_app.conf.beat_max_loop_interval or DEFAULT_MAX_INTERVAL)
+    return next_schedule_sync_at() + datetime.timedelta(seconds=max_interval)
