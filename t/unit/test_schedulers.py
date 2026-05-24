@@ -893,6 +893,19 @@ class test_DatabaseScheduler(SchedulerCase):
         assert set(saved) == {self.m1.name, self.m2.name}
         assert self.s._dirty == {self.m2.name}
 
+    def test_refresh_schedule_skips_dirty_entry_missing_from_db(self):
+        # reserve() advances m2 and marks it dirty.
+        self.s.reserve(self.s.schedule[self.m2.name])
+        assert self.m2.name in self.s._dirty
+
+        # The dirty entry is deleted before it gets synced, so it's
+        # absent from the freshly loaded schedule.
+        PeriodicTask.objects.filter(pk=self.m2.pk).delete()
+
+        fresh = self.s._refresh_schedule()
+        # The stale dirty entry is skipped, not carried over or raised on.
+        assert self.m2.name not in fresh
+
     def test_periodic_task_disabled_and_enabled(self):
         # Get the entry for m2
         e1 = self.s.schedule[self.m2.name]
