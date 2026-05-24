@@ -651,7 +651,9 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
+        created = self._state.adding
         super().save(*args, **kwargs)
+        PeriodicTasks.changed(self, created=created)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
