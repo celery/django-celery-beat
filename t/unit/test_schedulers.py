@@ -1617,6 +1617,16 @@ class test_model_PeriodicTasks(SchedulerCase):
         )
         assert PeriodicTasks.last_change() is None
 
+    @override_settings(USE_TZ=True)
+    def test_clocked_create_out_of_window_tz_mismatch_skips_change(self):
+        # Far future + tz mismatch: a NAIVE clocked_time vs the aware
+        # next-sync deadline (USE_TZ=True) must skip the change
+        assert PeriodicTasks.last_change() is None
+        ClockedSchedule.objects.create(
+            clocked_time=datetime.now() + timedelta(minutes=10)
+        )
+        assert PeriodicTasks.last_change() is None
+
     def test_clocked_update_out_of_window_tracks_change(self):
         cs = ClockedSchedule.objects.create(
             clocked_time=make_aware(datetime.now() + timedelta(minutes=10))
@@ -1639,6 +1649,19 @@ class test_model_PeriodicTasks(SchedulerCase):
         m = self.create_model_clocked(
             clocked(make_aware(datetime.now() + timedelta(minutes=10)))
         )
+        m.save()
+        assert PeriodicTasks.last_change() is None
+
+    @override_settings(USE_TZ=True)
+    def test_task_clocked_create_out_of_window_tz_mismatch_skips_change(self):
+        # Far future + tz mismatch: PeriodicTasks.changed compares the in-memory
+        # clocked.clocked_time (forced naive here) with the aware
+        # next-sync deadline (USE_TZ=True) and must skip
+        assert PeriodicTasks.last_change() is None
+        m = self.create_model_clocked(
+            clocked(datetime.now() + timedelta(minutes=10))
+        )
+        m.clocked.clocked_time = datetime.now() + timedelta(minutes=10)  # naive
         m.save()
         assert PeriodicTasks.last_change() is None
 

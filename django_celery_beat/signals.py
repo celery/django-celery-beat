@@ -1,5 +1,5 @@
 """Django Application signals."""
-from .utils import next_schedule_sync_by
+from .utils import clocked_due_after_next_sync
 
 
 def signals_connect():
@@ -44,7 +44,7 @@ def signals_connect():
 
 
 def clocked_schedule_post_save(sender, instance, created, **kwargs):
-    if created and instance.clocked_time > next_schedule_sync_by():
+    if created and clocked_due_after_next_sync(instance.clocked_time):
         # No forced reload needed: a regular sync will happen before this task is due
         return
     from .models import PeriodicTasks  # noqa: PLC0415

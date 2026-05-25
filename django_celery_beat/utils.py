@@ -72,13 +72,28 @@ def is_database_scheduler(scheduler):
     )
 
 
-def next_schedule_sync_at():
+def next_schedule_sync_at(now_func=now):
     """Scheduled time of the next full schedule sync."""
-    return now() + datetime.timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL)
+    return now_func() + datetime.timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL)
 
 
-def next_schedule_sync_by():
+def next_schedule_sync_by(now_func=now):
     """Latest time by which the next full schedule sync must have run."""
     max_interval = (
         current_app.conf.beat_max_loop_interval or DEFAULT_MAX_INTERVAL)
-    return next_schedule_sync_at() + datetime.timedelta(seconds=max_interval)
+    return next_schedule_sync_at(now_func) + datetime.timedelta(seconds=max_interval)
+
+
+def clocked_due_after_next_sync(clocked_time):
+    """True if the clocked task is due after the next full schedule sync."""
+    use_tz = getattr(settings, 'USE_TZ', False)
+    clocked_aware = timezone.is_aware(clocked_time)
+    now_func = now
+    # keep clocked_time and the deadline both aware or both naive
+    if clocked_aware and not use_tz:
+        now_func = aware_now
+    elif use_tz and not clocked_aware:
+        clocked_time = timezone.make_aware(
+            clocked_time, timezone.get_default_timezone()
+        )
+    return clocked_time > next_schedule_sync_by(now_func)
