@@ -17,8 +17,8 @@ is_aware = timezone.is_aware
 # celery schedstate return None will make it not work
 NEVER_CHECK_TIMEOUT = 100000000
 # This scheduler must wake up more frequently than the
-# regular of 5 minutes because it needs to take external
-# changes to the schedule into account.
+# regular interval of 5 minutes because it needs to take
+# external changes to the schedule into account.
 DEFAULT_MAX_INTERVAL = 5  # seconds
 SCHEDULE_SYNC_MAX_INTERVAL = 300  # 5 minutes
 
