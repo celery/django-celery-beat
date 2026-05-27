@@ -5,6 +5,7 @@
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
+from django.conf import settings
 import django_celery_beat.validators
 import timezone_field.fields
 
@@ -114,7 +115,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='periodictask',
             name='name',
-            field=models.CharField(help_text='Short Description For This Task', max_length=200, unique=True, verbose_name='Name'),
+            field=models.CharField(
+                help_text='Short Description For This Task',
+                max_length=getattr(
+                    settings,
+                    'DJANGO_CELERY_BEAT_PERIODICTASK_NAME_MAX_LENGTH',
+                    200
+                ),
+                unique=True,
+                verbose_name='Name'
+            ),
         ),
         migrations.AlterField(
             model_name='periodictask',
