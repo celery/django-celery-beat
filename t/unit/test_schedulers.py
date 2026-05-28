@@ -1033,6 +1033,76 @@ class test_DatabaseScheduler(SchedulerCase):
         assert not is_due
         assert next_check == pytest.approx(expected_delay, abs=60)
 
+    def test_oneoff_crontab_fixed_date_does_not_delay_past_start_time(
+            self, app):
+        """Regression test for issue #1044.
+
+        A one-off PeriodicTask with a CrontabSchedule pinned to a specific
+        calendar date (day_of_month + month_of_year fixed) must wake up at
+        start_time, not at the next matching crontab date -- which can be
+        years in the future.
+
+        Before PR #844 (released in 2.8.0), is_due returned a delay of
+        ``(start_time - now)``. After #844, it returns
+        ``(crontab.due_start_time - now)``, which for fixed-date crontabs
+        computes the *next* matching date -- typically one year out for a
+        day_of_month + month_of_year pin -- causing tasks to fire ~5
+        minutes late (when the forced sync interval expires) instead of
+        at start_time.
+        """
+        now = app.now()
+
+        delay_minutes = 2
+        test_start_time = now + timedelta(minutes=delay_minutes)
+
+        task = self.create_model_crontab(
+            crontab(
+                minute=f'{test_start_time.minute}',
+                hour=f'{test_start_time.hour}',
+                day_of_month=f'{test_start_time.day}',
+                month_of_year=f'{test_start_time.month}',
+            ),
+            start_time=test_start_time,
+            one_off=True,
+        )
+
+        entry = EntryTrackSave(task, app=app)
+        is_due, next_check = entry.is_due()
+
+        expected_delay = delay_minutes * 60
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
+    def test_recurring_crontab_with_start_time_unaffected_by_oneoff_cap(
+            self, app):
+        """The fix for #1044 only caps one_off tasks; recurring crontabs
+        are unaffected by the cap and continue to use the post-#844
+        behavior (wake up at the next crontab match after start_time).
+        """
+        now = app.now()
+
+        delay_minutes = 2
+        test_start_time = now + timedelta(minutes=delay_minutes)
+        crontab_time = test_start_time + timedelta(minutes=delay_minutes)
+
+        task = self.create_model_crontab(
+            crontab(minute=f'{crontab_time.minute}'),
+            start_time=test_start_time,
+            one_off=False,
+        )
+
+        entry = EntryTrackSave(task, app=app)
+        is_due, next_check = entry.is_due()
+
+        # Same expectation as
+        # test_crontab_with_start_time_between_now_and_crontab
+        # (4 minutes = start_time delay + crontab delay).
+        expected_delay = 2 * delay_minutes * 60
+
+        assert not is_due
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
     def test_crontab_with_start_time_different_time_zone(self, app):
         now = app.now()
 
