@@ -124,6 +124,15 @@ class ModelEntry(ScheduleEntry):
                 # send a delay to retry on start_time
                 current_tz = now.tzinfo
                 start_time = self.model.due_start_time(current_tz)
+                if self.model.one_off:
+                    # For a one-off PeriodicTask whose CrontabSchedule pins
+                    # day_of_month + month_of_year + day_of_week to fixed
+                    # values, CrontabSchedule.due_start_time() returns the
+                    # *next* matching calendar date, which is years in the
+                    # future. Without this cap, the task is delayed ~5
+                    # minutes (until the forced sync interval expires)
+                    # instead of firing at start_time. See issue #1044.
+                    start_time = min(start_time, self.model.start_time)
                 time_remaining = start_time - now
                 delay = math.ceil(time_remaining.total_seconds())
 
