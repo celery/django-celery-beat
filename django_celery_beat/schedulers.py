@@ -1,4 +1,6 @@
 """Beat Scheduler Implementation."""
+from __future__ import annotations
+
 import datetime
 import logging
 import math
@@ -15,7 +17,7 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import close_old_connections, transaction
+from django.db import close_old_connections, connection, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
@@ -328,14 +330,14 @@ class DatabaseScheduler(Scheduler):
                 # Handle each timezone specifically
                 *[
                     When(
-                        timezone=timezone_name,
+                        timezone=timezone,
                         then=(
                             F('hour_int')
-                            + self._get_timezone_offset(timezone_name)
+                            + self._get_timezone_offset(timezone)
                             + 24
                         ) % 24
                     )
-                    for timezone_name in self._get_unique_timezone_names()
+                    for timezone in self._get_unique_timezones()
                 ],
                 # Default case - use hour as is
                 default=F('hour_int')
@@ -363,13 +365,27 @@ class DatabaseScheduler(Scheduler):
             f"{hour:02d}" for hour in range(10)
         ]
 
-    def _get_unique_timezone_names(self):
-        """Get a list of all unique timezone names used in CrontabSchedule"""
-        return CrontabSchedule.objects.values_list(
-            'timezone', flat=True
-        ).distinct()
+    def _get_unique_timezones(self) -> set[ZoneInfo]:
+        """Get a set of all unique timezones used in CrontabSchedule"""
+        # sqlite does not support distinct on a column
+        if connection.vendor == 'sqlite':
+            return set(
+                CrontabSchedule.objects.values_list(
+                    'timezone', flat=True
+                )
+            )
 
-    def _get_timezone_offset(self, timezone_name):
+        return set(
+            CrontabSchedule.objects.order_by(
+                'timezone'
+            ).distinct(
+                'timezone'
+            ).values_list(
+                'timezone', flat=True
+            )
+        )
+
+    def _get_timezone_offset(self, timezone: ZoneInfo) -> int:
         """
         Args:
             timezone_name: The name of the timezone or a ZoneInfo object
@@ -385,17 +401,12 @@ class DatabaseScheduler(Scheduler):
         else:
             server_tz = ZoneInfo(str(server_time.tzinfo))
 
-        if isinstance(timezone_name, ZoneInfo):
-            timezone_name = timezone_name.key
-
-        target_tz = ZoneInfo(timezone_name)
-
         # Use a fixed point in time for the calculation to avoid DST issues
         fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
 
         # Calculate the offset
         dt1 = fixed_dt.replace(tzinfo=server_tz)
-        dt2 = fixed_dt.replace(tzinfo=target_tz)
+        dt2 = fixed_dt.replace(tzinfo=timezone)
 
         # Calculate hour difference
         offset_seconds = (
