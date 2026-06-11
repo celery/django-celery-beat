@@ -228,6 +228,31 @@ with only one command (recommended for **development environment only**):
 3. Now you can add and manage your periodic tasks from the Django Admin interface.
 
 
+Choosing a scheduler
+~~~~~~~~~~~~~~~~~~~~
+
+This package ships two scheduler classes. Pick based on whether the
+beat process has the same task registry as the workers that consume
+its messages:
+
+- ``django_celery_beat.schedulers:StrictDatabaseScheduler``
+  (alias ``django_strict``): **recommended when all periodic tasks are
+  defined in the same Django app that runs beat** — i.e. beat imports
+  every task it dispatches. At startup it disables any enabled
+  ``PeriodicTask`` whose dotted task name is not registered with the
+  running Celery app, which prevents ``NotRegistered`` errors that
+  otherwise persist indefinitely after a task is removed from the
+  codebase. Disabled rows are not deleted; they can be re-enabled from
+  the admin if the task name becomes registered again.
+
+- ``django_celery_beat.schedulers:DatabaseScheduler`` (alias
+  ``django``): **the default — use it for mixed deployments** where
+  beat dispatches tasks to workers running different codebases (and
+  therefore the beat process does not import every task it routes).
+  In that setup, an unknown name is expected, not an error, so the
+  strict variant would incorrectly disable valid tasks.
+
+
 
 Working with django-celery-results
 -----------------------------------

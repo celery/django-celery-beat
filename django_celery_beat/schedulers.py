@@ -542,3 +542,30 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+
+class StrictDatabaseScheduler(DatabaseScheduler):
+    """A :class:`DatabaseScheduler` that disables any periodic task whose
+    Celery task name is not registered with the running app.
+
+    Useful in deployments where periodic tasks may be removed
+    from the codebase while their database rows linger with
+    ``enabled=True``. With the default :class:`DatabaseScheduler`, beat
+    keeps dispatching those tasks and workers raise ``NotRegistered``
+    indefinitely. With this scheduler, such tasks are disabled at
+    startup so they stop being dispatched.
+    """
+
+    def setup_schedule(self):
+        self._disable_unknown_tasks()
+        super().setup_schedule()
+
+    def _disable_unknown_tasks(self):
+        for task in self.Model.objects.enabled():
+            if task.task not in self.app.tasks:
+                warning(
+                    'Disabling unregistered periodic task %r (task=%r)',
+                    task.name, task.task,
+                )
+                task.enabled = False
+                task.save()

@@ -1409,6 +1409,37 @@ class test_DatabaseScheduler(SchedulerCase):
 
 
 @pytest.mark.django_db
+class test_StrictDatabaseScheduler(SchedulerCase):
+    Scheduler = schedulers.StrictDatabaseScheduler
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.app.conf.beat_schedule = {}
+
+        self.known = self.create_model_interval(
+            schedule(timedelta(seconds=10)),
+            task='celery.backend_cleanup',
+        )
+        self.known.save()
+
+        self.unknown = self.create_model_interval(
+            schedule(timedelta(seconds=10)),
+            task='nonexistent.task.that.was.removed',
+        )
+        self.unknown.save()
+
+    def test_unregistered_task_is_disabled(self):
+        self.Scheduler(app=self.app)
+
+        self.unknown.refresh_from_db()
+        assert self.unknown.enabled is False
+
+        self.known.refresh_from_db()
+        assert self.known.enabled is True
+
+
+@pytest.mark.django_db
 class test_models(SchedulerCase):
 
     def test_IntervalSchedule_unicode(self):
