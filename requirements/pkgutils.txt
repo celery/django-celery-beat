@@ -1,4 +1,4 @@
-setuptools>=40.8.0
+setuptools>=82.0.1
 flake8>=7.3.0
 tox>=4.30.3
 sphinx2rst>=1.0
