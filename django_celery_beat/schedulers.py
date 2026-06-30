@@ -107,7 +107,7 @@ class ModelEntry(ScheduleEntry):
     def _disable(self, model):
         model.no_changes = True
         model.enabled = False
-        update_fields = None if model._state.adding else ['enabled']
+        update_fields = None if model._state.adding else ['enabled', 'last_run_at']
         model.save(update_fields=update_fields)
 
     def is_due(self):
