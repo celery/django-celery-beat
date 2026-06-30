@@ -4,4 +4,4 @@ django-timezone-field>=7.2.1
 backports.zoneinfo; python_version<"3.9"
 tzdata
 python-crontab>=3.3.0
-cron-descriptor>=2.0.8,<3.0.0
+cron-descriptor>=2.1.0,<3.0.0
