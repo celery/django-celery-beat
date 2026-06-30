@@ -25,13 +25,9 @@ from kombu.utils.json import dumps, loads
 from .clockedschedule import clocked
 from .models import (ClockedSchedule, CrontabSchedule, IntervalSchedule,
                      PeriodicTask, PeriodicTasks, SolarSchedule)
-from .utils import NEVER_CHECK_TIMEOUT, aware_now, now
-
-# This scheduler must wake up more frequently than the
-# regular of 5 minutes because it needs to take external
-# changes to the schedule into account.
-DEFAULT_MAX_INTERVAL = 5  # seconds
-SCHEDULE_SYNC_MAX_INTERVAL = 300  # 5 minutes
+from .utils import (DEFAULT_MAX_INTERVAL, NEVER_CHECK_TIMEOUT,
+                    SCHEDULE_SYNC_MAX_INTERVAL, aware_now,
+                    next_schedule_sync_at)
 
 ADD_ENTRY_ERROR = """\
 Cannot add entry %r to database schedule: %r. Contents: %r
@@ -277,9 +273,7 @@ class DatabaseScheduler(Scheduler):
         return list(self.enabled_models_qs())
 
     def enabled_models_qs(self):
-        next_schedule_sync = now() + datetime.timedelta(
-            seconds=SCHEDULE_SYNC_MAX_INTERVAL
-        )
+        next_schedule_sync = next_schedule_sync_at()
         exclude_clock_tasks_query = Q(
             clocked__isnull=False,
             clocked__clocked_time__gt=next_schedule_sync

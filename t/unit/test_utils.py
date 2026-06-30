@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 import pytest
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from django_celery_beat.utils import aware_now
+from django_celery_beat.utils import aware_now, clocked_due_after_next_sync
 
 
 @pytest.mark.django_db
@@ -28,3 +30,8 @@ class TestUtils(TestCase):
             result = aware_now()
             assert timezone.is_aware(result)
             assert str(result.tzinfo) == "UTC"
+
+    @override_settings(USE_TZ=False)
+    def test_aware_clocked_use_tz_false(self):
+        assert clocked_due_after_next_sync(aware_now() + timedelta(days=1))
+        assert not clocked_due_after_next_sync(aware_now())
