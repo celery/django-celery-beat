@@ -214,7 +214,9 @@ class ModelEntry(ScheduleEntry):
     @classmethod
     def _unpack_options(cls, queue=None, exchange=None, routing_key=None,
                         priority=None, headers=None, expire_seconds=None,
-                        **kwargs):
+                        expires=None, **kwargs):
+        if expire_seconds is None and expires is not None:
+            expire_seconds = expires
         return {
             'queue': queue,
             'exchange': exchange,
