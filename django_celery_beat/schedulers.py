@@ -159,7 +159,7 @@ class ModelEntry(ScheduleEntry):
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
+            now = datetime.datetime.utcnow()  # noqa: DTZ003 We want a naive datetime
         return now
 
     def __next__(self):
@@ -391,7 +391,7 @@ class DatabaseScheduler(Scheduler):
         target_tz = ZoneInfo(timezone_name)
 
         # Use a fixed point in time for the calculation to avoid DST issues
-        fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
+        fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0, tzinfo=server_time.tzinfo)
 
         # Calculate the offset
         dt1 = fixed_dt.replace(tzinfo=server_tz)
@@ -515,7 +515,7 @@ class DatabaseScheduler(Scheduler):
     @property
     def schedule(self):
         initial = update = False
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now()  # noqa: DTZ005 fixme? See issue #1059
 
         if self._initial_read:
             debug('DatabaseScheduler: initial read')
