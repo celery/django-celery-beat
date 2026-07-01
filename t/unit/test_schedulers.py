@@ -592,16 +592,20 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
                 assert e.model.expires is None
                 assert e.model.expire_seconds == 12 * 3600
 
-    def test_periodic_task_model_disabled_schedule(self):
-        self.m1.enabled = False
+    def test_periodic_task_model_disabled_schedule_is_re_enabled(self):
+        # Disabling a row that is still in beat_schedule does not stick:
+        # config is the source of truth, so the import re-enables it.
+        # (The admin warns that edits to imported tasks revert on restart.)
         self.m1.save()
+        PeriodicTask.objects.filter(name=self.entry_name).update(enabled=False)
 
         s = self.Scheduler(app=self.app)
         sched = s.schedule
-        assert sched
-        assert len(sched) == 1
+        assert len(sched) == 2
         assert 'celery.backend_cleanup' in sched
-        assert self.entry_name not in sched
+        assert self.entry_name in sched
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is True
 
     def test_periodic_task_model_schedule_type_change(self):
         self.m1.interval = None
@@ -612,6 +616,117 @@ class test_DatabaseSchedulerFromAppConf(SchedulerCase):
         self.m1.refresh_from_db()
         assert self.m1.interval
         assert self.m1.crontab is None
+
+    def test_imported_task_marked_from_configuration(self):
+        self.Scheduler(app=self.app)
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.from_configuration is True
+        backend_cleanup = PeriodicTask.objects.get(
+            name='celery.backend_cleanup')
+        assert backend_cleanup.from_configuration is True
+
+
+@pytest.mark.django_db
+class test_DatabaseSchedulerRemovedFromConfiguration(SchedulerCase):
+    """Tasks removed from beat_schedule are auto-disabled (#248, #654)."""
+
+    Scheduler = TrackingScheduler
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.entry_name, entry = self.create_conf_entry()
+        self.app.conf.beat_schedule = {self.entry_name: entry}
+
+    def test_disables_task_when_removed_from_configuration(self):
+        scheduler = self.Scheduler(app=self.app)
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is True
+        assert task.from_configuration is True
+        task.last_run_at = timezone.now()
+        task.save()
+
+        # Remove from configuration and reprocess.
+        self.app.conf.beat_schedule = {}
+        scheduler.setup_schedule()
+
+        # Row preserved, but disabled. last_run_at cleared.
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.from_configuration is True
+        assert task.last_run_at is None
+        assert self.entry_name not in scheduler.schedule
+
+    def test_does_not_touch_orm_created_tasks(self):
+        # Drop config entirely; only an ORM-created task exists.
+        self.app.conf.beat_schedule = {}
+        orm_task = self.create_model_interval(schedule(timedelta(seconds=30)))
+        orm_task.name = 'orm-only-task'
+        orm_task.save()
+
+        self.Scheduler(app=self.app)
+
+        orm_task.refresh_from_db()
+        assert orm_task.enabled is True
+        assert orm_task.from_configuration is False
+
+    def test_backend_cleanup_disabled_when_result_expires_cleared(self):
+        self.app.conf.result_expires = 3600
+        scheduler = self.Scheduler(app=self.app)
+        cleanup = PeriodicTask.objects.get(name='celery.backend_cleanup')
+        assert cleanup.enabled is True
+        assert cleanup.from_configuration is True
+
+        # Clear result_expires: install_default_entries no longer adds it,
+        # so the orphan-disable step disables the existing row.
+        self.app.conf.result_expires = 0
+        self.app.conf.beat_schedule = {}
+        scheduler.setup_schedule()
+
+        cleanup.refresh_from_db()
+        assert cleanup.enabled is False
+        assert cleanup.from_configuration is True
+
+    def test_re_adding_task_to_configuration_re_enables_it(self):
+        scheduler = self.Scheduler(app=self.app)
+
+        # Remove from config and reprocess: orphan-disable kicks in.
+        original_schedule = dict(self.app.conf.beat_schedule)
+        self.app.conf.beat_schedule = {}
+        scheduler.setup_schedule()
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is False
+
+        # Re-add to config and reprocess: row is re-enabled.
+        self.app.conf.beat_schedule = original_schedule
+        scheduler.setup_schedule()
+        task.refresh_from_db()
+        assert task.enabled is True
+        assert task.from_configuration is True
+
+    def test_invalid_edit_disables_task(self):
+        # An entry edited to an invalid form (e.g. unrecognized schedule
+        # type) must NOT silently keep running on the old stale schedule.
+        # The existing DB row gets disabled; the error is logged.
+        scheduler = self.Scheduler(app=self.app)
+        task = PeriodicTask.objects.get(name=self.entry_name)
+        assert task.enabled is True
+
+        broken_entry = dict(
+            task='djcelery.unittest.add',
+            schedule=object(),
+            args=(),
+            relative=False,
+            kwargs={},
+            options={'queue': 'extra_queue'},
+        )
+        self.app.conf.beat_schedule = {self.entry_name: broken_entry}
+        scheduler.setup_schedule()
+
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.from_configuration is True
+        assert self.entry_name not in scheduler.schedule
 
 
 @pytest.mark.django_db
@@ -1710,6 +1825,40 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
         assert 'periodic_task_name' in self.captured_headers
         assert self.captured_headers['periodic_task_name'] == self.m1.name
+
+    def test_changeform_warns_for_from_configuration_task(self, monkeypatch):
+        # Bypass the parent's template rendering; we only care about the
+        # message side effect.
+        monkeypatch.setattr(
+            'django.contrib.admin.ModelAdmin.changeform_view',
+            lambda self, request, object_id=None, form_url='',
+            extra_context=None: None,
+        )
+        self.m1.from_configuration = True
+        self.m1.save()
+
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.changeform_view(self.request, object_id=str(self.m1.pk))
+
+        queued = self.request._messages._queued_messages
+        assert len(queued) == 1
+        assert 'CELERY_BEAT_SCHEDULE' in str(queued[0].message)
+
+    def test_changeform_no_warning_for_regular_task(self, monkeypatch):
+        monkeypatch.setattr(
+            'django.contrib.admin.ModelAdmin.changeform_view',
+            lambda self, request, object_id=None, form_url='',
+            extra_context=None: None,
+        )
+        # m1 was created without going through config import.
+        assert self.m1.from_configuration is False
+
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.changeform_view(self.request, object_id=str(self.m1.pk))
+
+        assert self.request._messages._queued_messages == []
 
 
 @pytest.mark.django_db
