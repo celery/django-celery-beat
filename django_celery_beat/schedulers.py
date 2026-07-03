@@ -174,7 +174,13 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
-        obj.save()
+        # IMPORTANT: use update_fields so date_changed (auto_now) is NOT bumped.
+        # Beat detects schedule changes via MAX(date_changed). A full save() here
+        # would update date_changed on every task run, causing schedule_changed()
+        # to always return True and beat to reload the schedule in an infinite loop.
+        # Do not add date_changed or switch to a full save() without revisiting
+        # change detection in PeriodicTasks.last_change().
+        obj.save(update_fields=['last_run_at', 'total_run_count'])
 
     @classmethod
     def to_model_schedule(cls, schedule):

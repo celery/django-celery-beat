@@ -175,6 +175,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     )
     def enable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=True)
+        # queryset.update() bypasses auto_now on date_changed; bump marker.
         PeriodicTasks.update_changed()
         self.message_user(
             request,
@@ -190,6 +191,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     )
     def disable_tasks(self, request, queryset):
         rows_updated = queryset.update(enabled=False, last_run_at=None)
+        # queryset.update() bypasses auto_now on date_changed; bump marker.
         PeriodicTasks.update_changed()
         self.message_user(
             request,
@@ -211,6 +213,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     )
     def toggle_tasks(self, request, queryset):
         rows_updated = self._toggle_tasks_activity(queryset)
+        # queryset.update() bypasses auto_now on date_changed; bump marker.
         PeriodicTasks.update_changed()
         self.message_user(
             request,

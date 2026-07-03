@@ -23,7 +23,8 @@ except ImportError:  # pragma: no cover
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
 from . import querysets, validators
@@ -114,6 +115,12 @@ class SolarSchedule(models.Model):
         help_text=_('Run the task when the event happens at this longitude'),
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -179,6 +186,12 @@ class IntervalSchedule(models.Model):
         verbose_name=_('Interval Period'),
         help_text=_('The type of period between task runs (Example: days)'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -232,6 +245,12 @@ class ClockedSchedule(models.Model):
     clocked_time = models.DateTimeField(
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        null=True,
+        verbose_name=_('Last Modified'),
     )
 
     class Meta:
@@ -321,6 +340,12 @@ class CrontabSchedule(models.Model):
         verbose_name=_('Cron Timezone'),
         help_text=_(
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        db_index=True,
+        null=True,
+        verbose_name=_('Last Modified'),
     )
 
     class Meta:
@@ -415,16 +440,17 @@ class CrontabSchedule(models.Model):
 
 
 class PeriodicTasks(models.Model):
-    """Helper table for tracking updates to periodic tasks.
+    """Out-of-band change marker for the beat scheduler.
 
-    This stores a single row with ``ident=1``. ``last_update`` is updated via
-    signals whenever anything changes in the :class:`~.PeriodicTask` model.
-    Basically this acts like a DB data audit trigger.
-    Doing this so we also track deletions, and not just insert/update.
+    This stores a single row with ``ident=1``. ``last_change_marker`` is
+    bumped for changes not captured by ``auto_now`` timestamps on
+    :class:`~.PeriodicTask` or schedule models (deletions and admin bulk
+    ``queryset.update()``). Inserts and in-place edits are detected by
+    reading ``MAX(date_changed)`` / ``MAX(updated_at)`` instead.
     """
 
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
-    last_update = models.DateTimeField(null=False)
+    last_change_marker = models.DateTimeField(null=False)
 
     class Meta:
         verbose_name = _('periodic task track')
@@ -437,14 +463,40 @@ class PeriodicTasks(models.Model):
 
     @classmethod
     def update_changed(cls, **kwargs):
-        cls.objects.update_or_create(ident=1, defaults={'last_update': now()})
+        def _bump():
+            updated = cls.objects.filter(ident=1).update(
+                last_change_marker=now(),
+            )
+            if not updated:
+                try:
+                    cls.objects.create(ident=1, last_change_marker=now())
+                except IntegrityError:
+                    cls.objects.filter(ident=1).update(
+                        last_change_marker=now(),
+                    )
+
+        transaction.on_commit(_bump)
 
     @classmethod
     def last_change(cls):
+        stamps = []
         try:
-            return cls.objects.get(ident=1).last_update
+            marker = cls.objects.get(ident=1).last_change_marker
+            if marker:
+                stamps.append(marker)
         except cls.DoesNotExist:
             pass
+        for model, field in (
+            (PeriodicTask, 'date_changed'),
+            (IntervalSchedule, 'updated_at'),
+            (CrontabSchedule, 'updated_at'),
+            (SolarSchedule, 'updated_at'),
+            (ClockedSchedule, 'updated_at'),
+        ):
+            val = model.objects.aggregate(m=Max(field))['m']
+            if val:
+                stamps.append(val)
+        return max(stamps) if stamps else None
 
 
 class PeriodicTask(models.Model):
@@ -589,6 +641,7 @@ class PeriodicTask(models.Model):
     )
     date_changed = models.DateTimeField(
         auto_now=True,
+        db_index=True,
         verbose_name=_('Last Modified'),
         help_text=_('Datetime that this PeriodicTask was last modified'),
     )
@@ -644,7 +697,6 @@ class PeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
-        PeriodicTasks.changed(self)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)

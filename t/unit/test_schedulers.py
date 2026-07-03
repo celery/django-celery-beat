@@ -756,7 +756,7 @@ class test_DatabaseScheduler(SchedulerCase):
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
-    def test_schedule_changed(self):
+    def test_schedule_changed(self, django_capture_on_commit_callbacks):
         self.m2.args = '[16, 16]'
         self.m2.save()
         e2 = self.s.schedule[self.m2.name]
@@ -769,7 +769,8 @@ class test_DatabaseScheduler(SchedulerCase):
         e1 = self.s.schedule[self.m1.name]
         assert e1.args == [32, 32]
 
-        self.m3.delete()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m3.delete()
         with pytest.raises(KeyError):
             self.s.schedule.__getitem__(self.m3.name)
 
@@ -820,8 +821,8 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s._dirty.add(self.m2.name)
         self.s.sync()
 
-        e2 = self.s.schedule[self.m2.name]
-        assert e2.last_run_at == last_run2
+        m2_db = PeriodicTask.objects.get(pk=self.m2.pk)
+        assert m2_db.last_run_at == last_run2
 
     def test_sync_syncs_before_save(self):
         # Get the entry for m2
@@ -845,7 +846,9 @@ class test_DatabaseScheduler(SchedulerCase):
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
 
-    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(self):
+    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(
+            self, django_capture_on_commit_callbacks,
+    ):
         # Disable m1 - its 10s interval would outrace m2 to the heap top
         # on slow runs
         self.m1.enabled = False
@@ -860,7 +863,8 @@ class test_DatabaseScheduler(SchedulerCase):
         with patch.object(self.s, 'apply_entry') as apply_entry:
             # First tick: m2 fires.
             self.s.tick()
-            PeriodicTasks.update_changed()
+            with django_capture_on_commit_callbacks(execute=True):
+                PeriodicTasks.update_changed()
 
             with patch.object(schedulers.ModelEntry, 'save',
                               side_effect=DatabaseError('boom')):
@@ -1629,6 +1633,138 @@ class test_models(SchedulerCase):
         isdue2, nextcheck2 = s.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
         assert (nextcheck2 == NEVER_CHECK_TIMEOUT) and (isdue2 is True)
+
+
+@pytest.mark.django_db
+class test_change_detection(SchedulerCase):
+    """Tests for pull-based schedule change detection (issue #1000)."""
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.app.conf.beat_schedule = {}
+        self.m1 = self.create_model_interval(schedule(timedelta(seconds=10)))
+        self.m1.save()
+        self.s = TrackingScheduler(app=self.app)
+
+    def test_housekeeping_save_does_not_trigger_schedule_reload(self):
+        entry = self.s.schedule[self.m1.name]
+        before_last_change = PeriodicTasks.last_change()
+        before_date_changed = PeriodicTask.objects.get(
+            pk=self.m1.pk,
+        ).date_changed
+        self.s._last_timestamp = before_last_change
+        self.s.reserve(entry)
+        self.s.sync()
+        after_date_changed = PeriodicTask.objects.get(
+            pk=self.m1.pk,
+        ).date_changed
+        assert after_date_changed == before_date_changed
+        assert PeriodicTasks.last_change() == before_last_change
+        assert not self.s.schedule_changed()
+
+    @pytest.mark.parametrize('schedule_model,field_name', [
+        (IntervalSchedule, 'every'),
+        (CrontabSchedule, 'minute'),
+        (SolarSchedule, 'latitude'),
+        (ClockedSchedule, 'clocked_time'),
+    ])
+    def test_in_place_schedule_edit_advances_last_change(
+            self, schedule_model, field_name,
+    ):
+        if schedule_model is IntervalSchedule:
+            task = self.create_model_interval(schedule(timedelta(seconds=10)))
+        elif schedule_model is CrontabSchedule:
+            task = self.create_model_crontab(crontab(minute='1,2'))
+        elif schedule_model is SolarSchedule:
+            task = self.create_model_solar(
+                solar('solar_noon', 48.06, 12.86),
+            )
+        else:
+            due = make_aware(datetime.now() + timedelta(minutes=5))
+            task = self.create_model_clocked(clocked(due))
+        task.save()
+        before = PeriodicTasks.last_change()
+        if schedule_model is IntervalSchedule:
+            schedule_obj = task.interval
+        elif schedule_model is CrontabSchedule:
+            schedule_obj = task.crontab
+        elif schedule_model is SolarSchedule:
+            schedule_obj = task.solar
+        else:
+            schedule_obj = task.clocked
+        if field_name == 'every':
+            schedule_obj.every += 1
+        elif field_name == 'minute':
+            schedule_obj.minute = '3,4'
+        elif field_name == 'latitude':
+            schedule_obj.latitude = 49.0
+        else:
+            schedule_obj.clocked_time = schedule_obj.clocked_time + timedelta(
+                minutes=1,
+            )
+        schedule_obj.save()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_delete_advances_last_change(
+            self, django_capture_on_commit_callbacks,
+    ):
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m1.delete()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_bulk_update_advances_last_change(
+            self, django_capture_on_commit_callbacks,
+    ):
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTask.objects.filter(pk=self.m1.pk).update(args='[99]')
+            PeriodicTasks.update_changed()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_schedule_save_does_not_bump_change_marker(self):
+        interval = self.m1.interval
+        try:
+            marker_before = PeriodicTasks.objects.get(
+                ident=1,
+            ).last_change_marker
+        except PeriodicTasks.DoesNotExist:
+            marker_before = None
+        before_last_change = PeriodicTasks.last_change()
+        interval.every += 1
+        interval.save()
+        assert PeriodicTasks.last_change() > before_last_change
+        if marker_before is None:
+            assert not PeriodicTasks.objects.filter(ident=1).exists()
+        else:
+            marker_after = PeriodicTasks.objects.get(
+                ident=1,
+            ).last_change_marker
+            assert marker_after == marker_before
+
+    def test_schedule_delete_bumps_change_marker(
+            self, django_capture_on_commit_callbacks,
+    ):
+        interval = IntervalSchedule.objects.create(every=5, period=DAYS)
+        with django_capture_on_commit_callbacks(execute=True):
+            interval.delete()
+        assert PeriodicTasks.objects.filter(ident=1).exists()
+
+    def test_delete_max_date_changed_row_remains_detectable(
+            self, django_capture_on_commit_callbacks,
+    ):
+        time.sleep(0.01)
+        self.m1.args = '[1, 2]'
+        self.m1.save()
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m1.delete()
+        after = PeriodicTasks.last_change()
+        assert after >= before
 
 
 @pytest.mark.django_db
