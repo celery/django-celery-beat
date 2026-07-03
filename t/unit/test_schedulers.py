@@ -19,6 +19,7 @@ from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from django.db.utils import DatabaseError
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
@@ -1663,7 +1664,7 @@ class test_change_detection(SchedulerCase):
         assert PeriodicTasks.last_change() == before_last_change
         assert not self.s.schedule_changed()
 
-    @pytest.mark.parametrize('schedule_model,field_name', [
+    @pytest.mark.parametrize(('schedule_model', 'field_name'), [
         (IntervalSchedule, 'every'),
         (CrontabSchedule, 'minute'),
         (SolarSchedule, 'latitude'),
@@ -1765,6 +1766,61 @@ class test_change_detection(SchedulerCase):
             self.m1.delete()
         after = PeriodicTasks.last_change()
         assert after >= before
+
+    def test_update_changed_integrity_error_fallback(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTasks.objects.create(
+            ident=1, last_change_marker=timezone.now(),
+        )
+        real_filter = PeriodicTasks.objects.filter
+        update_calls = []
+
+        def filtering(*args, **kwargs):
+            qs = real_filter(*args, **kwargs)
+            if kwargs == {'ident': 1}:
+                original_update = qs.update
+
+                def spy_update(**fields):
+                    update_calls.append(fields)
+                    if len(update_calls) == 1:
+                        return 0
+                    return original_update(**fields)
+
+                qs.update = spy_update
+            return qs
+
+        with patch.object(
+            PeriodicTasks.objects, 'filter', side_effect=filtering,
+        ), patch.object(
+            PeriodicTasks.objects, 'create', side_effect=IntegrityError,
+        ), django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+
+        assert len(update_calls) == 2
+
+    def test_last_change_uses_change_marker(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTask.objects.all().delete()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+        marker = PeriodicTasks.objects.get(ident=1).last_change_marker
+        assert PeriodicTasks.last_change() == marker
+
+    def test_last_change_skips_falsy_marker(self):
+        PeriodicTask.objects.all().delete()
+        IntervalSchedule.objects.all().delete()
+        CrontabSchedule.objects.all().delete()
+        SolarSchedule.objects.all().delete()
+        ClockedSchedule.objects.all().delete()
+        PeriodicTasks.objects.create(
+            ident=1, last_change_marker=timezone.now(),
+        )
+        mock_row = MagicMock()
+        mock_row.last_change_marker = None
+        with patch.object(PeriodicTasks.objects, 'get', return_value=mock_row):
+            assert PeriodicTasks.last_change() is None
 
 
 @pytest.mark.django_db
