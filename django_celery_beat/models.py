@@ -481,21 +481,21 @@ class PeriodicTasks(models.Model):
     def last_change(cls):
         stamps = []
         try:
-            marker = cls.objects.get(ident=1).last_change_marker
-            if marker:
+            if marker := cls.objects.get(ident=1).last_change_marker:
                 stamps.append(marker)
         except cls.DoesNotExist:
             pass
-        for model, field in (
-            (PeriodicTask, 'date_changed'),
-            (IntervalSchedule, 'updated_at'),
-            (CrontabSchedule, 'updated_at'),
-            (SolarSchedule, 'updated_at'),
-            (ClockedSchedule, 'updated_at'),
-        ):
-            val = model.objects.aggregate(m=Max(field))['m']
-            if val:
-                stamps.append(val)
+        stamps.extend(
+            val
+            for model, field in (
+                (PeriodicTask, 'date_changed'),
+                (IntervalSchedule, 'updated_at'),
+                (CrontabSchedule, 'updated_at'),
+                (SolarSchedule, 'updated_at'),
+                (ClockedSchedule, 'updated_at'),
+            )
+            if (val := model.objects.aggregate(m=Max(field))['m'])
+        )
         return max(stamps) if stamps else None
 
 
