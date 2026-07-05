@@ -1799,6 +1799,28 @@ class test_change_detection(SchedulerCase):
 
         assert len(update_calls) == 2
 
+    def test_update_changed_skips_create_when_row_exists(
+            self, django_capture_on_commit_callbacks,
+    ):
+        old = timezone.now() - timedelta(days=1)
+        PeriodicTasks.objects.create(ident=1, last_update=old)
+        with patch.object(PeriodicTasks.objects, 'create') as mock_create:
+            with django_capture_on_commit_callbacks(execute=True):
+                PeriodicTasks.update_changed()
+            mock_create.assert_not_called()
+        new = PeriodicTasks.objects.get(ident=1).last_update
+        assert new > old
+
+    def test_update_changed_creates_marker_row_when_absent(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTasks.objects.all().delete()
+        assert not PeriodicTasks.objects.filter(ident=1).exists()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+        row = PeriodicTasks.objects.get(ident=1)
+        assert row.last_update is not None
+
     def test_last_change_uses_change_marker(
             self, django_capture_on_commit_callbacks,
     ):
