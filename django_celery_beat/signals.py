@@ -13,7 +13,7 @@ def signals_connect():
         PeriodicTasks.changed, sender=PeriodicTask
     )
 
-    signals.pre_delete.connect(
+    signals.post_delete.connect(
         PeriodicTasks.update_changed, sender=IntervalSchedule
     )
 

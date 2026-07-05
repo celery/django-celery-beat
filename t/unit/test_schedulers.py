@@ -1732,7 +1732,7 @@ class test_change_detection(SchedulerCase):
         try:
             marker_before = PeriodicTasks.objects.get(
                 ident=1,
-            ).last_change_marker
+            ).last_update
         except PeriodicTasks.DoesNotExist:
             marker_before = None
         before_last_change = PeriodicTasks.last_change()
@@ -1744,7 +1744,7 @@ class test_change_detection(SchedulerCase):
         else:
             marker_after = PeriodicTasks.objects.get(
                 ident=1,
-            ).last_change_marker
+            ).last_update
             assert marker_after == marker_before
 
     def test_schedule_delete_bumps_change_marker(
@@ -1771,7 +1771,7 @@ class test_change_detection(SchedulerCase):
             self, django_capture_on_commit_callbacks,
     ):
         PeriodicTasks.objects.create(
-            ident=1, last_change_marker=timezone.now(),
+            ident=1, last_update=timezone.now(),
         )
         real_filter = PeriodicTasks.objects.filter
         update_calls = []
@@ -1805,7 +1805,7 @@ class test_change_detection(SchedulerCase):
         PeriodicTask.objects.all().delete()
         with django_capture_on_commit_callbacks(execute=True):
             PeriodicTasks.update_changed()
-        marker = PeriodicTasks.objects.get(ident=1).last_change_marker
+        marker = PeriodicTasks.objects.get(ident=1).last_update
         assert PeriodicTasks.last_change() == marker
 
     def test_last_change_skips_falsy_marker(self):
@@ -1815,10 +1815,10 @@ class test_change_detection(SchedulerCase):
         SolarSchedule.objects.all().delete()
         ClockedSchedule.objects.all().delete()
         PeriodicTasks.objects.create(
-            ident=1, last_change_marker=timezone.now(),
+            ident=1, last_update=timezone.now(),
         )
         mock_row = MagicMock()
-        mock_row.last_change_marker = None
+        mock_row.last_update = None
         with patch.object(PeriodicTasks.objects, 'get', return_value=mock_row):
             assert PeriodicTasks.last_change() is None
 

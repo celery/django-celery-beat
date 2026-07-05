@@ -117,7 +117,6 @@ class SolarSchedule(models.Model):
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        db_index=True,
         null=True,
         verbose_name=_('Last Modified'),
     )
@@ -129,6 +128,9 @@ class SolarSchedule(models.Model):
         verbose_name_plural = _('solar events')
         ordering = ('event', 'latitude', 'longitude')
         unique_together = ('event', 'latitude', 'longitude')
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -188,7 +190,6 @@ class IntervalSchedule(models.Model):
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        db_index=True,
         null=True,
         verbose_name=_('Last Modified'),
     )
@@ -199,6 +200,9 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -248,7 +252,6 @@ class ClockedSchedule(models.Model):
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        db_index=True,
         null=True,
         verbose_name=_('Last Modified'),
     )
@@ -259,6 +262,9 @@ class ClockedSchedule(models.Model):
         verbose_name = _('clocked')
         verbose_name_plural = _('clocked')
         ordering = ['clocked_time']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     def __str__(self):
         return f'{make_aware(self.clocked_time)}'
@@ -343,7 +349,6 @@ class CrontabSchedule(models.Model):
     )
     updated_at = models.DateTimeField(
         auto_now=True,
-        db_index=True,
         null=True,
         verbose_name=_('Last Modified'),
     )
@@ -355,6 +360,9 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def human_readable(self):
@@ -442,7 +450,7 @@ class CrontabSchedule(models.Model):
 class PeriodicTasks(models.Model):
     """Out-of-band change marker for the beat scheduler.
 
-    This stores a single row with ``ident=1``. ``last_change_marker`` is
+    This stores a single row with ``ident=1``. ``last_update`` is
     bumped for changes not captured by ``auto_now`` timestamps on
     :class:`~.PeriodicTask` or schedule models (deletions and admin bulk
     ``queryset.update()``). Inserts and in-place edits are detected by
@@ -450,7 +458,7 @@ class PeriodicTasks(models.Model):
     """
 
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
-    last_change_marker = models.DateTimeField(null=False)
+    last_update = models.DateTimeField(null=False)
 
     class Meta:
         verbose_name = _('periodic task track')
@@ -465,14 +473,14 @@ class PeriodicTasks(models.Model):
     def update_changed(cls, **kwargs):
         def _bump():
             updated = cls.objects.filter(ident=1).update(
-                last_change_marker=now(),
+                last_update=now(),
             )
             if not updated:
                 try:
-                    cls.objects.create(ident=1, last_change_marker=now())
+                    cls.objects.create(ident=1, last_update=now())
                 except IntegrityError:
                     cls.objects.filter(ident=1).update(
-                        last_change_marker=now(),
+                        last_update=now(),
                     )
 
         transaction.on_commit(_bump)
@@ -481,7 +489,7 @@ class PeriodicTasks(models.Model):
     def last_change(cls):
         stamps = []
         try:
-            if marker := cls.objects.get(ident=1).last_change_marker:
+            if marker := cls.objects.get(ident=1).last_update:
                 stamps.append(marker)
         except cls.DoesNotExist:
             pass
@@ -641,7 +649,6 @@ class PeriodicTask(models.Model):
     )
     date_changed = models.DateTimeField(
         auto_now=True,
-        db_index=True,
         verbose_name=_('Last Modified'),
         help_text=_('Datetime that this PeriodicTask was last modified'),
     )
@@ -660,6 +667,9 @@ class PeriodicTask(models.Model):
 
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
+        indexes = [
+            models.Index(fields=['date_changed']),
+        ]
 
     def validate_unique(self, *args, **kwargs):
         super().validate_unique(*args, **kwargs)
@@ -697,10 +707,6 @@ class PeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        PeriodicTasks.changed(self)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
