@@ -6,7 +6,7 @@ from django.db.models import signals
 from django.test import override_settings
 
 from django_celery_beat import helpers
-from django_celery_beat.models import PeriodicTask
+from django_celery_beat.models import PeriodicTask, PeriodicTasks
 from django_celery_beat.signals import signals_connect
 from t.proj.models import O2OToPeriodicTasks
 
@@ -46,8 +46,6 @@ def test_abstract_periodic_task_rejects_missing_periodic_tasks_model():
 
 @override_settings(CELERY_BEAT_PERIODICTASKS_MODEL=None)
 def test_abstract_periodic_task_uses_default_periodic_tasks_model_for_none_setting():
-    from django_celery_beat.models import PeriodicTasks
-
     assert PeriodicTask._periodic_tasks_model() is PeriodicTasks
 
 

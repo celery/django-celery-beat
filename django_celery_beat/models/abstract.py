@@ -25,10 +25,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .. import querysets, validators
-from ..clockedschedule import clocked
-from ..tzcrontab import TzAwareCrontab
-from ..utils import make_aware, now
+from django_celery_beat import querysets, validators
+from django_celery_beat.clockedschedule import clocked
+from django_celery_beat.tzcrontab import TzAwareCrontab
+from django_celery_beat.utils import make_aware, now
 
 _CRON_DESCRIPTOR_OPTIONS = CronDescriptorOptions()
 _CRON_DESCRIPTOR_OPTIONS.use_24hour_time_format = False
@@ -357,7 +357,8 @@ class AbstractCrontabSchedule(models.Model):
             day_of_week
         )
         try:
-            from django_celery_beat import models as models_module
+            from django_celery_beat import \
+                models as models_module  # noqa: PLC0415
 
             human_readable = models_module.get_description(
                 cron_expression, _CRON_DESCRIPTOR_OPTIONS
@@ -630,8 +631,10 @@ class AbstractPeriodicTask(models.Model):
                 'must be set.'
             )
 
-        err_msg = 'Only one of clocked, interval, crontab, '\
+        err_msg = (
+            'Only one of clocked, interval, crontab, '
             'or solar must be set'
+        )
         if len(selected_schedule_types) > 1:
             error_info = {}
             for selected_schedule_type in selected_schedule_types:
@@ -661,7 +664,8 @@ class AbstractPeriodicTask(models.Model):
 
     @classmethod
     def _periodic_tasks_model(cls):
-        from django_celery_beat.helpers import periodictasks_model
+        from django_celery_beat.helpers import \
+            periodictasks_model  # noqa: PLC0415
 
         return periodictasks_model()
 
