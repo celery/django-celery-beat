@@ -23,15 +23,6 @@ class IntervalSchedule(AbstractIntervalSchedule):
 
         abstract = False
 
-
-class ClockScheduler(AbstractClockedSchedule):
-    """Schedule with a fixed interval."""
-
-    class Meta(AbstractClockedSchedule.Meta):
-        """Table information."""
-
-        abstract = False
-
 class ClockedSchedule(AbstractClockedSchedule):
     """Schedule with a fixed interval."""
 
