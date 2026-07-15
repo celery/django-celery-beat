@@ -1,11 +1,6 @@
-from .abstract import (
-    AbstractClockedSchedule,
-    AbstractCrontabSchedule,
-    AbstractIntervalSchedule,
-    AbstractPeriodicTask,
-    AbstractPeriodicTasks,
-    AbstractSolarSchedule
-)
+from .abstract import (AbstractClockedSchedule, AbstractCrontabSchedule,
+                       AbstractIntervalSchedule, AbstractPeriodicTask,
+                       AbstractPeriodicTasks, AbstractSolarSchedule)
 
 
 class SolarSchedule(AbstractSolarSchedule):
