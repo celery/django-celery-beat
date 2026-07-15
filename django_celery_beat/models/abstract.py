@@ -10,7 +10,6 @@ import timezone_field
 from celery import current_app, schedules
 # cron-descriptor >= 2.0 renamed *Exception to *Error
 from cron_descriptor import Options as CronDescriptorOptions
-from cron_descriptor import get_description
 
 try:
     from cron_descriptor import (FormatError, MissingFieldError,
@@ -150,6 +149,7 @@ class AbstractSolarSchedule(models.Model):
             self.latitude,
             self.longitude
         )
+
 
 class AbstractIntervalSchedule(models.Model):
     """Abstract schedule executing on a regular interval.
@@ -357,7 +357,9 @@ class AbstractCrontabSchedule(models.Model):
             day_of_week
         )
         try:
-            human_readable = get_description(
+            from django_celery_beat import models as models_module
+
+            human_readable = models_module.get_description(
                 cron_expression, _CRON_DESCRIPTOR_OPTIONS
             )
         except (
@@ -436,7 +438,6 @@ class AbstractPeriodicTasks(models.Model):
         verbose_name = _('periodic task track')
         verbose_name_plural = _('periodic task tracks')
 
-
     @classmethod
     def changed(cls, instance, **kwargs):
         if not instance.no_changes:
@@ -452,6 +453,7 @@ class AbstractPeriodicTasks(models.Model):
             return cls.objects.get(ident=1).last_update
         except cls.DoesNotExist:
             pass
+
 
 class AbstractPeriodicTask(models.Model):
     """Abstract model representing a periodic task."""
@@ -651,6 +653,17 @@ class AbstractPeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
+        self._periodic_tasks_model().changed(self)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self._periodic_tasks_model().changed(self)
+
+    @classmethod
+    def _periodic_tasks_model(cls):
+        from django_celery_beat.helpers import periodictasks_model
+
+        return periodictasks_model()
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:

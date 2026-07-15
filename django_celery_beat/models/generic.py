@@ -7,6 +7,7 @@ from .abstract import (
     AbstractSolarSchedule
 )
 
+
 class SolarSchedule(AbstractSolarSchedule):
     """Schedule following astronomical patterns."""
 
@@ -14,6 +15,7 @@ class SolarSchedule(AbstractSolarSchedule):
         """Table information."""
 
         abstract = False
+
 
 class IntervalSchedule(AbstractIntervalSchedule):
     """Schedule with a fixed interval."""
@@ -23,13 +25,15 @@ class IntervalSchedule(AbstractIntervalSchedule):
 
         abstract = False
 
+
 class ClockedSchedule(AbstractClockedSchedule):
-    """Schedule with a fixed interval."""
+    """Schedule triggered at a fixed date and time."""
 
     class Meta(AbstractClockedSchedule.Meta):
         """Table information."""
 
         abstract = False
+
 
 class CrontabSchedule(AbstractCrontabSchedule):
     """Schedule with cron-style syntax."""
@@ -39,13 +43,15 @@ class CrontabSchedule(AbstractCrontabSchedule):
 
         abstract = False
 
+
 class PeriodicTask(AbstractPeriodicTask):
-    """Interal task scheduling class."""
+    """Periodic task scheduling model."""
 
     class Meta(AbstractPeriodicTask.Meta):
         """Table information."""
 
         abstract = False
+
 
 class PeriodicTasks(AbstractPeriodicTasks):
     """Helper table for tracking updates to periodic tasks."""

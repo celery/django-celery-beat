@@ -12,6 +12,9 @@
 
     django-celery-beat
     django-celery-beat.models
+    django-celery-beat.models.abstract
+    django-celery-beat.models.generic
+    django-celery-beat.helpers
     django-celery-beat.tzcrontab
     django-celery-beat.querysets
     django-celery-beat.schedulers

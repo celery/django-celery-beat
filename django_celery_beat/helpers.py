@@ -1,133 +1,75 @@
+"""Helpers for resolving active django-celery-beat model classes."""
+
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from .models import (
-    PeriodicTask, PeriodicTasks,
-    CrontabSchedule, IntervalSchedule,
-    SolarSchedule, ClockedSchedule
+    ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    PeriodicTasks,
+    SolarSchedule,
 )
 
-def crontabschedule_model():
-    """Return the CrontabSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_CRONTABSCHEDULE_MODEL'):
-        return CrontabSchedule
-    
+
+def _configured_model(setting_name, default_model):
+    """Return the model configured by setting_name or default_model."""
+    model_label = getattr(settings, setting_name, None)
+    if model_label is None:
+        return default_model
+
     try:
-        return apps.get_model(
-            settings.CELERY_BEAT_CRONTABSCHEDULE_MODEL
-        )
-    except ValueError:
+        return apps.get_model(model_label)
+    except ValueError as exc:
         raise ImproperlyConfigured(
-            "CELERY_BEAT_CRONTABSCHEDULE_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
+            f"{setting_name} must be of the form app_label.model_name"
+        ) from exc
+    except LookupError as exc:
         raise ImproperlyConfigured(
-            "CELERY_BEAT_CRONTABSCHEDULE_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_CRONTABSCHEDULE_MODEL}' that has not "
+            f"{setting_name} refers to model {model_label} that has not "
             "been installed"
-        )
+        ) from exc
+
+
+def crontabschedule_model():
+    """Return the CrontabSchedule model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_CRONTABSCHEDULE_MODEL", CrontabSchedule
+    )
+
 
 def intervalschedule_model():
-    """Return the IntervalSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_INTERVALSCHEDULE_MODEL'):
-        return IntervalSchedule
-    
-    try:
-        return apps.get_model(
-            settings.CELERY_BEAT_INTERVALSCHEDULE_MODEL
-        )
-    except ValueError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_INTERVALSCHEDULE_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_INTERVALSCHEDULE_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_INTERVALSCHEDULE_MODEL}' that has not "
-            "been installed"
-        )
+    """Return the IntervalSchedule model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_INTERVALSCHEDULE_MODEL", IntervalSchedule
+    )
+
 
 def periodictask_model():
-    """Return the PeriodicTask model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_PERIODICTASK_MODEL'):
-        return PeriodicTask
-    
-    try:
-        return apps.get_model(settings.CELERY_BEAT_PERIODICTASK_MODEL)
-    except ValueError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_PERIODICTASK_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_PERIODICTASK_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_PERIODICTASK_MODEL}' that has not been "
-            "installed"
-        )
+    """Return the PeriodicTask model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_PERIODICTASK_MODEL", PeriodicTask
+    )
+
 
 def periodictasks_model():
-    """Return the PeriodicTasks model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_PERIODICTASKS_MODEL'):
-        return PeriodicTasks
-    
-    try:
-        return apps.get_model(
-            settings.CELERY_BEAT_PERIODICTASKS_MODEL
-        )
-    except ValueError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_PERIODICTASKS_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_PERIODICTASKS_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_PERIODICTASKS_MODEL}' that has not been "
-            "installed"
-        )
+    """Return the PeriodicTasks model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_PERIODICTASKS_MODEL", PeriodicTasks
+    )
+
 
 def solarschedule_model():
-    """Return the SolarSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_SOLARSCHEDULE_MODEL'):
-        return SolarSchedule
-    
-    try:
-        return apps.get_model(
-            settings.CELERY_BEAT_SOLARSCHEDULE_MODEL
-        )
-    except ValueError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_SOLARSCHEDULE_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_SOLARSCHEDULE_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_SOLARSCHEDULE_MODEL}' that has not been "
-            "installed"
-        )
+    """Return the SolarSchedule model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_SOLARSCHEDULE_MODEL", SolarSchedule
+    )
+
 
 def clockedschedule_model():
-    """Return the ClockedSchedule model that is active in this project."""
-    if not hasattr(settings, 'CELERY_BEAT_CLOCKEDSCHEDULE_MODEL'):
-        return ClockedSchedule
-    
-    try:
-        return apps.get_model(
-            settings.CELERY_BEAT_CLOCKEDSCHEDULE_MODEL
-        )
-    except ValueError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_CLOCKEDSCHEDULE_MODEL must be of the form "
-            "'app_label.model_name'"
-        )
-    except LookupError:
-        raise ImproperlyConfigured(
-            "CELERY_BEAT_CLOCKEDSCHEDULE_MODEL refers to model "
-            f"'{settings.CELERY_BEAT_CLOCKEDSCHEDULE_MODEL}' that has not "
-            "been installed"
-        )
+    """Return the ClockedSchedule model active in this project."""
+    return _configured_model(
+        "CELERY_BEAT_CLOCKEDSCHEDULE_MODEL", ClockedSchedule
+    )
