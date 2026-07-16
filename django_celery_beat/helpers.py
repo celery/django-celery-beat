@@ -18,11 +18,12 @@ def _configured_model(setting_name, default_model):
         return apps.get_model(model_label)
     except ValueError as exc:
         raise ImproperlyConfigured(
-            f"{setting_name} must be of the form app_label.model_name"
+            f"{setting_name} must be of the form app_label.ModelName; "
+            f"got {model_label!r}"
         ) from exc
     except LookupError as exc:
         raise ImproperlyConfigured(
-            f"{setting_name} refers to model {model_label} that has not "
+            f"{setting_name} refers to model {model_label!r} that has not "
             "been installed"
         ) from exc
 
