@@ -664,10 +664,9 @@ class AbstractPeriodicTask(models.Model):
 
     @classmethod
     def _periodic_tasks_model(cls):
-        from django_celery_beat.helpers import \
-            periodictasks_model  # noqa: PLC0415
+        from django_celery_beat import helpers  # noqa: PLC0415
 
-        return periodictasks_model()
+        return helpers.periodictasks_model()
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
