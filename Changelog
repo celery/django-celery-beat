@@ -7,6 +7,17 @@
 Next
 ====
 
+- Fix PeriodicTasks singleton row lock contention under concurrent Beat
+  saves by switching to pull-based change detection (``MAX(date_changed)`` /
+  ``MAX(updated_at)``) and deferring marker writes via
+  ``transaction.on_commit()`` (#1000).
+- **Breaking change:** ``PeriodicTasks.last_update`` is no longer bumped on
+  every ``PeriodicTask`` or schedule save. Only ``PeriodicTasks.last_change()``
+  reflects the latest schedule change; code that reads ``last_update`` directly
+  (monitoring, dashboards, third-party integrations) may see a stale value after
+  normal saves. The marker row is still updated for deletes, admin bulk
+  ``queryset.update()``, and initial singleton creation.
+
 .. _version-2.9.0:
 
 2.9.0

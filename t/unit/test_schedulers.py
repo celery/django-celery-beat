@@ -1727,6 +1727,16 @@ class test_change_detection(SchedulerCase):
         after = PeriodicTasks.last_change()
         assert after > before
 
+    def test_normal_save_does_not_bump_last_update_field(self):
+        marker_time = timezone.now() - timedelta(days=1)
+        PeriodicTasks.objects.create(ident=1, last_update=marker_time)
+        before_last_change = PeriodicTasks.last_change()
+        self.m1.args = '[42]'
+        self.m1.save()
+        after_last_change = PeriodicTasks.last_change()
+        assert after_last_change > before_last_change
+        assert PeriodicTasks.objects.get(ident=1).last_update == marker_time
+
     def test_schedule_save_does_not_bump_change_marker(self):
         interval = self.m1.interval
         try:

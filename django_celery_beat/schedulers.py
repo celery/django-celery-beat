@@ -105,6 +105,9 @@ class ModelEntry(ScheduleEntry):
         self.last_run_at = model.last_run_at
 
     def _disable(self, model):
+        # no_changes is in-memory only; PeriodicTask.save() no longer calls
+        # PeriodicTasks.changed(), so this does not suppress marker bumps on
+        # save. Change detection relies on date_changed (auto_now) instead.
         model.no_changes = True
         model.enabled = False
         model.save()
@@ -142,7 +145,9 @@ class ModelEntry(ScheduleEntry):
                 and self.model.total_run_count > 0:
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
-            self.model.no_changes = False  # Mark the model entry as changed
+            # no_changes is not read on PeriodicTask.save(); this full save
+            # is detected via date_changed (auto_now), not last_update.
+            self.model.no_changes = False
             self.model.save()
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
@@ -165,6 +170,8 @@ class ModelEntry(ScheduleEntry):
     def __next__(self):
         self.model.last_run_at = self._default_now()
         self.model.total_run_count += 1
+        # In-memory flag copied by _refresh_schedule(); not used on the
+        # ModelEntry.save() path (update_fields excludes date_changed).
         self.model.no_changes = True
         return self.__class__(self.model)
 
