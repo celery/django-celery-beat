@@ -8,15 +8,43 @@ Next
 ====
 
 - Fix PeriodicTasks singleton row lock contention under concurrent Beat
-  saves by switching to pull-based change detection (``MAX(date_changed)`` /
-  ``MAX(updated_at)``) and deferring marker writes via
-  ``transaction.on_commit()`` (#1000).
-- **Breaking change:** ``PeriodicTasks.last_update`` is no longer bumped on
-  every ``PeriodicTask`` or schedule save. Only ``PeriodicTasks.last_change()``
-  reflects the latest schedule change; code that reads ``last_update`` directly
-  (monitoring, dashboards, third-party integrations) may see a stale value after
-  normal saves. The marker row is still updated for deletes, admin bulk
-  ``queryset.update()``, and initial singleton creation.
+  saves (#1000) by switching to pull-based change detection:
+
+  - Beat now detects schedule changes via ``PeriodicTasks.last_change()``,
+    which returns the ``MAX()`` of ``PeriodicTask.date_changed``,
+    ``updated_at`` on the four schedule models, and the singleton
+    ``PeriodicTasks.last_update`` marker.
+  - Marker writes (``PeriodicTasks.update_changed()``) are deferred with
+    ``transaction.on_commit()`` so they no longer hold a row lock for the
+    duration of the surrounding request/transaction.
+  - Normal ``PeriodicTask`` / schedule ``save()`` no longer writes to the
+    singleton marker row; deletes and admin bulk ``queryset.update()`` still
+    bump it.
+
+- **Breaking change for undocumented use of ``PeriodicTasks.last_update``:**
+
+  ``last_update`` is an internal marker field. It was never part of the
+  documented public API. The documented interface is
+  ``PeriodicTasks.last_change()`` (what Beat itself uses).
+
+  Before this change, every ``PeriodicTask`` / schedule save bumped
+  ``last_update``, so reading that column looked like a complete change
+  timestamp. After this change:
+
+  - ``last_update`` is only advanced on deletes, admin bulk updates
+    (enable/disable/toggle), and first creation of the singleton row.
+  - A normal ``save()`` leaves ``last_update`` unchanged (it may look stale).
+  - ``PeriodicTasks.last_change()`` still reflects the real latest change.
+
+  If you have monitoring, dashboards, or third-party code that reads
+  ``PeriodicTasks.objects.get(ident=1).last_update`` (or equivalent SQL)
+  instead of calling ``last_change()``, switch to ``last_change()``.
+  Relying on the raw ``last_update`` column will under-report changes
+  after ordinary saves, with no error.
+
+  Documented call sites are unchanged: ``PeriodicTasks.update_changed()`` /
+  ``PeriodicTasks.changed()`` are still the correct way to notify Beat after
+  bulk ``queryset.update()``.
 
 .. _version-2.9.0:
 
