@@ -605,6 +605,12 @@ class PeriodicTask(models.Model):
     class Meta:
         """Table information."""
 
+        indexes = [
+            models.Index(
+                fields=['enabled'],
+                name='beat_periodic_enabled_idx',
+            ),
+        ]
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
 

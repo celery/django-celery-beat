@@ -812,6 +812,63 @@ class test_DatabaseScheduler(SchedulerCase):
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
+    def test_enabled_models_qs_avoids_outer_join_for_clocked_tasks(self):
+        queryset = self.s.enabled_models_qs()
+
+        candidate_names = set(
+            queryset.filter(
+                id__in=[self.m1.id, self.m5.id, self.m6.id, self.m7.id]
+            ).values_list('name', flat=True)
+        )
+
+        assert candidate_names == {self.m1.name, self.m6.name}
+        sql = str(queryset.query)
+        assert 'LEFT OUTER JOIN' not in sql
+        assert 'NOT EXISTS' in sql
+
+    def test_enabled_models_qs_includes_clocked_cutoff(self):
+        fixed_now = make_aware(datetime(2026, 1, 1, 12, 0))
+        cutoff = fixed_now + timedelta(
+            seconds=schedulers.SCHEDULE_SYNC_MAX_INTERVAL
+        )
+        past = self.create_model_clocked(
+            clocked(fixed_now - timedelta(seconds=1))
+        )
+        at_cutoff = self.create_model_clocked(clocked(cutoff))
+        after_cutoff = self.create_model_clocked(
+            clocked(cutoff + timedelta(microseconds=1))
+        )
+        for model in (past, at_cutoff, after_cutoff):
+            model.save()
+
+        with patch('django_celery_beat.schedulers.now', return_value=fixed_now):
+            candidate_names = set(
+                self.s.enabled_models_qs()
+                .filter(id__in=[past.id, at_cutoff.id, after_cutoff.id])
+                .values_list('name', flat=True)
+            )
+
+        assert candidate_names == {past.name, at_cutoff.name}
+
+    def test_enabled_models_qs_preserves_schedule_prefetches(
+        self, django_assert_num_queries
+    ):
+        models = list(
+            self.s.enabled_models_qs().filter(
+                id__in=[self.m1.id, self.m3.id, self.m4.id, self.m6.id]
+            )
+        )
+
+        assert {model.name for model in models} == {
+            self.m1.name, self.m3.name, self.m4.name, self.m6.name
+        }
+        with django_assert_num_queries(0):
+            for model in models:
+                model.interval
+                model.crontab
+                model.solar
+                model.clocked
+
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
         self.m2.save()
@@ -1529,6 +1586,15 @@ class test_DatabaseScheduler(SchedulerCase):
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
+
+    def test_PeriodicTask_has_enabled_index(self):
+        index = next(
+            index for index in PeriodicTask._meta.indexes
+            if index.name == 'beat_periodic_enabled_idx'
+        )
+
+        assert index.fields == ['enabled']
+        assert index.condition is None
 
     def test_IntervalSchedule_unicode(self):
         assert (str(IntervalSchedule(every=1, period='seconds'))
