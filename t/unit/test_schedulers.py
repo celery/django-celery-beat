@@ -574,7 +574,7 @@ class test_ModelEntry(SchedulerCase):
             last_run_at=one_interval_ago,
             total_run_count=1
         )
-        m2.save()   # persist: is_due()'s one-off branch updates the row via update_fields
+        m2.save()  # persist: is_due() one-off branch updates the row via update_fields
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
