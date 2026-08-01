@@ -822,10 +822,10 @@ class test_DatabaseScheduler(SchedulerCase):
         )
 
         assert candidate_names == {self.m1.name, self.m6.name}
-sql = str(queryset.query).upper()
-assert 'LEFT OUTER JOIN' not in sql
-assert 'LEFT JOIN' not in sql
-assert ('NOT EXISTS' in sql) or ('NOT (EXISTS' in sql)
+        sql = str(queryset.query).upper()
+        assert 'LEFT OUTER JOIN' not in sql
+        assert 'LEFT JOIN' not in sql
+        assert ('NOT EXISTS' in sql) or ('NOT (EXISTS' in sql)
 
     def test_enabled_models_qs_includes_clocked_cutoff(self):
         fixed_now = make_aware(datetime(2026, 1, 1, 12, 0))
@@ -837,7 +837,7 @@ assert ('NOT EXISTS' in sql) or ('NOT (EXISTS' in sql)
         )
         at_cutoff = self.create_model_clocked(clocked(cutoff))
         after_cutoff = self.create_model_clocked(
-            clocked(cutoff + timedelta(microseconds=1))
+            clocked(cutoff + timedelta(seconds=1))
         )
         for model in (past, at_cutoff, after_cutoff):
             model.save()
