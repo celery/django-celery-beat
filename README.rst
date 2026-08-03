@@ -71,20 +71,27 @@ A schedule with fields like entries in cron:
 
 - ``django_celery_beat.models.PeriodicTasks``
 
-This model is only used as an index to keep track of when the schedule has
-changed.
+This model stores a singleton change marker used for deletions and bulk
+updates that cannot be observed via ``auto_now`` timestamps.
 
-Whenever you update a ``PeriodicTask`` a counter in this table is also
-incremented, which tells the ``celery beat`` service to reload the schedule
-from the database.
+Beat detects schedule changes with ``PeriodicTasks.last_change()``, which
+combines that marker with ``MAX(date_changed)`` / ``MAX(updated_at)`` from
+the task and schedule tables. Ordinary ``save()`` calls are detected from
+those timestamps and do not bump the marker row.
 
-If you update periodic tasks in bulk, you will need to update the counter
-manually:
+If you update periodic tasks in bulk (e.g. ``QuerySet.update()``), notify
+Beat manually:
 
 .. code-block:: Python
 
         >>> from django_celery_beat.models import PeriodicTasks
         >>> PeriodicTasks.update_changed()
+
+.. note::
+
+   Prefer ``PeriodicTasks.last_change()`` over reading the raw
+   ``PeriodicTasks.last_update`` column. ``last_update`` is an internal
+   marker and is not updated on every save.
 
 Example creating interval-based periodic task
 ---------------------------------------------

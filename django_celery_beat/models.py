@@ -23,7 +23,8 @@ except ImportError:  # pragma: no cover
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
 from . import querysets, validators
@@ -114,6 +115,11 @@ class SolarSchedule(models.Model):
         help_text=_('Run the task when the event happens at this longitude'),
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -122,6 +128,9 @@ class SolarSchedule(models.Model):
         verbose_name_plural = _('solar events')
         ordering = ('event', 'latitude', 'longitude')
         unique_together = ('event', 'latitude', 'longitude')
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -179,6 +188,11 @@ class IntervalSchedule(models.Model):
         verbose_name=_('Interval Period'),
         help_text=_('The type of period between task runs (Example: days)'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -186,6 +200,9 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -233,6 +250,11 @@ class ClockedSchedule(models.Model):
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -240,6 +262,9 @@ class ClockedSchedule(models.Model):
         verbose_name = _('clocked')
         verbose_name_plural = _('clocked')
         ordering = ['clocked_time']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     def __str__(self):
         return f'{make_aware(self.clocked_time)}'
@@ -322,6 +347,11 @@ class CrontabSchedule(models.Model):
         help_text=_(
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -330,6 +360,9 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def human_readable(self):
@@ -415,12 +448,13 @@ class CrontabSchedule(models.Model):
 
 
 class PeriodicTasks(models.Model):
-    """Helper table for tracking updates to periodic tasks.
+    """Out-of-band change marker for the beat scheduler.
 
-    This stores a single row with ``ident=1``. ``last_update`` is updated via
-    signals whenever anything changes in the :class:`~.PeriodicTask` model.
-    Basically this acts like a DB data audit trigger.
-    Doing this so we also track deletions, and not just insert/update.
+    This stores a single row with ``ident=1``. ``last_update`` is
+    bumped for changes not captured by ``auto_now`` timestamps on
+    :class:`~.PeriodicTask` or schedule models (deletions and admin bulk
+    ``queryset.update()``). Inserts and in-place edits are detected by
+    reading ``MAX(date_changed)`` / ``MAX(updated_at)`` instead.
     """
 
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
@@ -437,14 +471,40 @@ class PeriodicTasks(models.Model):
 
     @classmethod
     def update_changed(cls, **kwargs):
-        cls.objects.update_or_create(ident=1, defaults={'last_update': now()})
+        def _bump():
+            updated = cls.objects.filter(ident=1).update(
+                last_update=now(),
+            )
+            if not updated:
+                try:
+                    cls.objects.create(ident=1, last_update=now())
+                except IntegrityError:
+                    cls.objects.filter(ident=1).update(
+                        last_update=now(),
+                    )
+
+        transaction.on_commit(_bump)
 
     @classmethod
     def last_change(cls):
+        stamps = []
         try:
-            return cls.objects.get(ident=1).last_update
+            if marker := cls.objects.get(ident=1).last_update:
+                stamps.append(marker)
         except cls.DoesNotExist:
             pass
+        stamps.extend(
+            val
+            for model, field in (
+                (PeriodicTask, 'date_changed'),
+                (IntervalSchedule, 'updated_at'),
+                (CrontabSchedule, 'updated_at'),
+                (SolarSchedule, 'updated_at'),
+                (ClockedSchedule, 'updated_at'),
+            )
+            if (val := model.objects.aggregate(m=Max(field))['m'])
+        )
+        return max(stamps) if stamps else None
 
 
 class PeriodicTask(models.Model):
@@ -607,6 +667,9 @@ class PeriodicTask(models.Model):
 
         verbose_name = _('periodic task')
         verbose_name_plural = _('periodic tasks')
+        indexes = [
+            models.Index(fields=['date_changed']),
+        ]
 
     def validate_unique(self, *args, **kwargs):
         super().validate_unique(*args, **kwargs)
@@ -644,11 +707,6 @@ class PeriodicTask(models.Model):
         self._clean_expires()
         self.validate_unique()
         super().save(*args, **kwargs)
-        PeriodicTasks.changed(self)
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        PeriodicTasks.changed(self)
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
