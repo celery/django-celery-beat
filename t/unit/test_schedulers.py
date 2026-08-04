@@ -574,10 +574,39 @@ class test_ModelEntry(SchedulerCase):
             last_run_at=one_interval_ago,
             total_run_count=1
         )
+        m2.save()  # persist: is_due() one-off branch updates the row via update_fields
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
+
+    def test_one_off_disable_uses_update_fields(self):
+        """is_due() for a fired one-off must not full-save the cached instance.
+
+        A full-field save silently overwrites concurrent database changes to
+        the row (and can raise IntegrityError if a related record was
+        deleted concurrently).
+        """
+        task = self.create_model_crontab(
+            crontab(minute='*'),
+            one_off=True,
+            total_run_count=1,
+        )
+        task.save()
+        entry = self.Entry(task, app=self.app)
+
+        # Simulate a concurrent change made after the entry cached the model
+        PeriodicTask.objects.filter(pk=task.pk).update(
+            description='changed concurrently')
+
+        entry.is_due()
+
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.total_run_count == 0
+        # The concurrent change must survive; a full-field save would have
+        # clobbered it with the stale cached value.
+        assert task.description == 'changed concurrently'
 
     def test_task_with_expires(self):
         interval = 10
