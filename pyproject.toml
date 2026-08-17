@@ -128,15 +128,10 @@ lint.pylint.allow-magic-value-types = [
 lint.pylint.max-args = 8  # Default: 5
 
 [tool.coverage]
-run.branch = true
-run.cover_pylib = false
 run.include = [ "*django_celery_beat/*" ]
 run.omit = [ "django_celery_beat.tests.*" ]
-report.exclude_lines = [
-  "except ImportError:",
-  "if TYPE_CHECKING:",
-  "pragma: no cover",
-]
+run.branch = true
+run.cover_pylib = false
 report.omit = [
   "*/.tox/*",
   "*/docker/*",
@@ -145,4 +140,9 @@ report.omit = [
   "*/python?.?/*",
   "*/site-packages/*",
   "*/test_*.py",
+]
+report.exclude_lines = [
+  "except ImportError:",
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
 ]
