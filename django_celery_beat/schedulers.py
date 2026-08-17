@@ -161,10 +161,10 @@ class ModelEntry(ScheduleEntry):
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
-            # Persist only the fields this branch modifies; a full save() of this
-            # cached instance would clobber concurrent DB changes (see #1069).
+            # Persist only the fields this branch modifies; include last_run_at
+            # because PeriodicTask.save() clears it when enabled=False (see #1069).
             self.model.save(update_fields=[
-                'enabled', 'total_run_count', 'date_changed',
+                'enabled', 'total_run_count', 'last_run_at', 'date_changed',
             ])
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
