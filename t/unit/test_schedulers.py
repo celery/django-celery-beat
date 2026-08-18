@@ -604,6 +604,7 @@ class test_ModelEntry(SchedulerCase):
         task.refresh_from_db()
         assert task.enabled is False
         assert task.total_run_count == 0
+        assert task.last_run_at is None
         # The concurrent change must survive; a full-field save would have
         # clobbered it with the stale cached value.
         assert task.description == 'changed concurrently'
