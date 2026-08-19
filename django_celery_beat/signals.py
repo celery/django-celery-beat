@@ -1,4 +1,5 @@
 """Django Application signals."""
+from .utils import clocked_due_after_next_sync
 
 
 def signals_connect():
@@ -9,9 +10,6 @@ def signals_connect():
                          IntervalSchedule, PeriodicTask, PeriodicTasks,
                          SolarSchedule)
 
-    signals.pre_save.connect(
-        PeriodicTasks.changed, sender=PeriodicTask
-    )
     signals.pre_delete.connect(
         PeriodicTasks.changed, sender=PeriodicTask
     )
@@ -38,8 +36,16 @@ def signals_connect():
     )
 
     signals.post_save.connect(
-        PeriodicTasks.update_changed, sender=ClockedSchedule
+        clocked_schedule_post_save, sender=ClockedSchedule
     )
     signals.post_delete.connect(
         PeriodicTasks.update_changed, sender=ClockedSchedule
     )
+
+
+def clocked_schedule_post_save(sender, instance, created, **kwargs):
+    if created and clocked_due_after_next_sync(instance.clocked_time):
+        # No forced reload needed: a regular sync will happen before this task is due
+        return
+    from .models import PeriodicTasks  # noqa: PLC0415
+    PeriodicTasks.update_changed()

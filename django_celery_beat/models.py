@@ -29,7 +29,7 @@ from django.utils.translation import gettext_lazy as _
 from . import querysets, validators
 from .clockedschedule import clocked
 from .tzcrontab import TzAwareCrontab
-from .utils import make_aware, now
+from .utils import clocked_due_after_next_sync, make_aware, now
 
 _CRON_DESCRIPTOR_OPTIONS = CronDescriptorOptions()
 _CRON_DESCRIPTOR_OPTIONS.use_24hour_time_format = False
@@ -432,6 +432,14 @@ class PeriodicTasks(models.Model):
 
     @classmethod
     def changed(cls, instance, **kwargs):
+        if (
+            kwargs.get("created")
+            and instance.clocked
+            and clocked_due_after_next_sync(instance.clocked.clocked_time)
+        ):
+            # No forced reload needed: a regular sync will happen
+            # before this task is due
+            return
         if not instance.no_changes:
             cls.update_changed()
 
@@ -643,8 +651,9 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
+        created = self._state.adding
         super().save(*args, **kwargs)
-        PeriodicTasks.changed(self)
+        PeriodicTasks.changed(self, created=created)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
