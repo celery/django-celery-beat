@@ -86,6 +86,67 @@ manually:
         >>> from django_celery_beat.models import PeriodicTasks
         >>> PeriodicTasks.update_changed()
 
+Custom Models
+=============
+
+It's possible to use your own models instead of the default ones provided by
+``django_celery_beat``. To do that, define your models by inheriting from the
+matching abstract model in ``django_celery_beat.models.abstract``:
+
+.. code-block:: Python
+
+        # custom_app.models.py
+        from django_celery_beat.models.abstract import (
+            AbstractClockedSchedule,
+            AbstractCrontabSchedule,
+            AbstractIntervalSchedule,
+            AbstractPeriodicTask,
+            AbstractPeriodicTasks,
+            AbstractSolarSchedule,
+        )
+
+        class IntervalSchedule(AbstractIntervalSchedule):
+            ...
+
+        class CrontabSchedule(AbstractCrontabSchedule):
+            ...
+
+        class SolarSchedule(AbstractSolarSchedule):
+            ...
+
+        class ClockedSchedule(AbstractClockedSchedule):
+            ...
+
+        class PeriodicTask(AbstractPeriodicTask):
+            ...
+
+        class PeriodicTasks(AbstractPeriodicTasks):
+            ...
+
+``AbstractPeriodicTask`` defines its schedule foreign keys with the canonical
+model names ``IntervalSchedule``, ``CrontabSchedule``, ``SolarSchedule``, and
+``ClockedSchedule``. Using the canonical names for all concrete custom models
+keeps the inherited relationships aligned. If your custom schedule models use
+different class names, you must override those foreign key fields on your
+concrete periodic task model.
+
+Create migrations for the application that defines your custom models, and
+configure Django to use those models before ``django_celery_beat`` imports its
+scheduler or connects model signals.
+
+To let ``django_celery_beat`` use your own models, provide the
+``app_label.ModelName`` values in your Django settings:
+
+.. code-block:: Python
+
+        # settings.py
+        CELERY_BEAT_PERIODICTASK_MODEL = "custom_app.PeriodicTask"
+        CELERY_BEAT_PERIODICTASKS_MODEL = "custom_app.PeriodicTasks"
+        CELERY_BEAT_CRONTABSCHEDULE_MODEL = "custom_app.CrontabSchedule"
+        CELERY_BEAT_INTERVALSCHEDULE_MODEL = "custom_app.IntervalSchedule"
+        CELERY_BEAT_SOLARSCHEDULE_MODEL = "custom_app.SolarSchedule"
+        CELERY_BEAT_CLOCKEDSCHEDULE_MODEL = "custom_app.ClockedSchedule"
+
 Example creating interval-based periodic task
 ---------------------------------------------
 
