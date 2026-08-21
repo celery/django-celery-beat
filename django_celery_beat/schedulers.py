@@ -19,6 +19,7 @@ from django.db import close_old_connections, transaction
 from django.db.models import Case, F, IntegerField, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
@@ -94,6 +95,23 @@ class ModelEntry(ScheduleEntry):
 
         if not model.last_run_at:
             model.last_run_at = model.date_changed or self._default_now()
+            # When USE_TZ is False, Django's auto_now writes date_changed as a
+            # naive datetime in settings.TIME_ZONE (local time). is_due() feeds
+            # last_run_at to maybe_make_aware, which assumes naive == UTC, so
+            # date_changed must be normalized to naive UTC to avoid a timezone-
+            # offset shift. aware values (USE_TZ=True) are left as-is.
+            # The normalized value is persisted on save() and thus coexists
+            # with date_changed (naive local time) in the DB under different
+            # timezone semantics; this is unavoidable for naive datetimes.
+            if (
+                model.date_changed
+                and not getattr(settings, 'USE_TZ', False)
+                and timezone.is_naive(model.last_run_at)
+            ):
+                model.last_run_at = timezone.make_aware(
+                    model.last_run_at,
+                    timezone.get_default_timezone(),
+                ).astimezone(datetime.timezone.utc).replace(tzinfo=None)
             # if last_run_at is not set and
             # model.start_time last_run_at should be in way past.
             # This will trigger the job to run at start_time
@@ -145,10 +163,15 @@ class ModelEntry(ScheduleEntry):
                 and self.model.total_run_count > 0:
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
-            # no_changes is not read on PeriodicTask.save(); this full save
-            # is detected via date_changed (auto_now), not last_update.
+            # no_changes is in-memory only; PeriodicTask.save() no longer calls
+            # PeriodicTasks.changed(). Including date_changed keeps pull-based
+            # last_change() detection working for this disable.
             self.model.no_changes = False
-            self.model.save()
+            # Persist only the fields this branch modifies; include last_run_at
+            # because PeriodicTask.save() clears it when enabled=False (see #1069).
+            self.model.save(update_fields=[
+                'enabled', 'total_run_count', 'last_run_at', 'date_changed',
+            ])
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 

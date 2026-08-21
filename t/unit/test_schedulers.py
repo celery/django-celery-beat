@@ -471,6 +471,62 @@ class test_ModelEntry(SchedulerCase):
         if hasattr(time, "tzset"):
             time.tzset()
 
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        TIME_ZONE='Europe/Berlin',
+    )
+    @pytest.mark.usefixtures('depends_on_current_app')
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_is_due_after_edit_uses_date_changed_no_use_tz(self):
+        # Editing a task clears last_run_at (see PeriodicTask.save), so on
+        # reload the entry falls back to model.date_changed. Under USE_TZ=False
+        # and a non-UTC TIME_ZONE, date_changed is a naive *local* datetime
+        # (Django auto_now), while _default_now() returns naive UTC. is_due()'s
+        # maybe_make_aware assumes naive == UTC, so date_changed must be
+        # normalized to naive UTC first; otherwise last_run_at lands hours in
+        # the future and the task stops firing after a manual edit.
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
+        try:
+            assert self.app.timezone.key == 'Europe/Berlin'
+
+            m = self.create_model_crontab(crontab(minute='*/10'))
+            m.save()
+            m.refresh_from_db()
+            assert m.date_changed is not None
+
+            # Simulate the post-edit reload: last_run_at cleared, so the entry
+            # reconstructs it from date_changed (a naive Berlin datetime here).
+            m.last_run_at = None
+            e = self.Entry(m, app=self.app)
+
+            # date_changed is Berlin local; normalized last_run_at must be the
+            # UTC equivalent (1 or 2 hours earlier, depending on DST), not the
+            # local value. Assert the exact UTC equivalent so the check holds
+            # regardless of the season in which the test runs.
+            expected_utc = (
+                timezone.make_aware(m.date_changed, timezone.get_default_timezone())
+                .astimezone(dt_timezone.utc)
+                .replace(tzinfo=None)
+            )
+            assert e.last_run_at == expected_utc
+
+            # last_run_at must not be in the future: is_due reports the task is
+            # due now or within the next 10-minute slot, not hours away.
+            due = e.is_due()
+            assert due.next <= 600  # 10 minutes
+        finally:
+            if old_tz is not None:
+                os.environ["TZ"] = old_tz
+            else:
+                del os.environ["TZ"]
+            if hasattr(time, "tzset"):
+                time.tzset()
+
     def test_task_with_start_time(self):
         interval = 10
         right_now = self.app.now()
@@ -519,10 +575,40 @@ class test_ModelEntry(SchedulerCase):
             last_run_at=one_interval_ago,
             total_run_count=1
         )
+        m2.save()  # persist: is_due() one-off branch updates the row via update_fields
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
+
+    def test_one_off_disable_uses_update_fields(self):
+        """is_due() for a fired one-off must not full-save the cached instance.
+
+        A full-field save silently overwrites concurrent database changes to
+        the row (and can raise IntegrityError if a related record was
+        deleted concurrently).
+        """
+        task = self.create_model_crontab(
+            crontab(minute='*'),
+            one_off=True,
+            total_run_count=1,
+        )
+        task.save()
+        entry = self.Entry(task, app=self.app)
+
+        # Simulate a concurrent change made after the entry cached the model
+        PeriodicTask.objects.filter(pk=task.pk).update(
+            description='changed concurrently')
+
+        entry.is_due()
+
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.total_run_count == 0
+        assert task.last_run_at is None
+        # The concurrent change must survive; a full-field save would have
+        # clobbered it with the stale cached value.
+        assert task.description == 'changed concurrently'
 
     def test_task_with_expires(self):
         interval = 10
