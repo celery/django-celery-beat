@@ -16,7 +16,7 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Case, F, IntegerField, Q, When
+from django.db.models import Case, Exists, F, IntegerField, OuterRef, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
 from django.utils import timezone
@@ -302,18 +302,21 @@ class DatabaseScheduler(Scheduler):
         next_schedule_sync = now() + datetime.timedelta(
             seconds=SCHEDULE_SYNC_MAX_INTERVAL
         )
-        exclude_clock_tasks_query = Q(
-            clocked__isnull=False,
-            clocked__clocked_time__gt=next_schedule_sync
+        # Keep this as an anti-join: it avoids both the nullable outer join and
+        # the OR-correlated subquery produced by the equivalent positive form.
+        future_clocked_tasks = ClockedSchedule.objects.filter(
+            pk=OuterRef('clocked_id'),
+            clocked_time__gt=next_schedule_sync,
         )
 
         exclude_cron_tasks_query = self._get_crontab_exclude_query()
 
-        # Combine the queries for optimal database filtering
-        exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
-
         # Fetch only the tasks we need to consider
-        return self.Model.objects.enabled().exclude(exclude_query)
+        return (
+            self.Model.objects.enabled()
+            .filter(~Exists(future_clocked_tasks))
+            .exclude(exclude_cron_tasks_query)
+        )
 
     def _get_crontab_exclude_query(self):
         """
