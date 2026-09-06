@@ -592,6 +592,24 @@ class DryRunDatabaseScheduler(DatabaseScheduler):
     is never persisted to the database.
     """
 
+    class Entry(ModelEntry):
+        def is_due(self):
+            # ModelEntry.is_due() persists changes for expired/one-off tasks.
+            # In dry-run mode, avoid DB writes by short-circuiting those cases.
+            if self.model.expires is not None:
+                now = self._default_now()
+                if now >= self.model.expires:
+                    return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
+
+            if (
+                self.model.one_off
+                and self.model.enabled
+                and self.model.total_run_count > 0
+            ):
+                return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
+
+            return super().is_due()
+
     def apply_entry(self, entry, producer=None):
         """Log the triggered task instead of executing it.
 
