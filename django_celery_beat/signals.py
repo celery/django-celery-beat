@@ -5,9 +5,14 @@ def signals_connect():
     """Connect to signals."""
     from django.db.models import signals  # noqa: PLC0415
 
-    from .models import (ClockedSchedule, CrontabSchedule,  # noqa: PLC0415
-                         IntervalSchedule, PeriodicTask, PeriodicTasks,
-                         SolarSchedule)
+    from django_celery_beat import helpers  # noqa: PLC0415
+
+    ClockedSchedule = helpers.clockedschedule_model()
+    CrontabSchedule = helpers.crontabschedule_model()
+    IntervalSchedule = helpers.intervalschedule_model()
+    PeriodicTask = helpers.periodictask_model()
+    PeriodicTasks = helpers.periodictasks_model()
+    SolarSchedule = helpers.solarschedule_model()
 
     signals.pre_save.connect(
         PeriodicTasks.changed, sender=PeriodicTask
