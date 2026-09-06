@@ -575,3 +575,67 @@ class DatabaseScheduler(Scheduler):
                     repr(entry) for entry in self._schedule.values()),
                 )
         return self._schedule
+
+
+class DryRunDatabaseScheduler(DatabaseScheduler):
+    """
+    DatabaseScheduler in dry-run mode.
+
+    The Scheduler reads Periodic Tasks from the database but does not execute
+    them, only logging when they would have been triggered.
+
+    Useful in environments where tasks should not actually run, but the
+    scheduler must remain operational (e.g. development/staging).
+
+    Runtime state (last_run_at, total_run_count) is maintained in memory via
+    reserve() so that tasks are not re-triggered on schedule refreshes, but
+    is never persisted to the database.
+    """
+
+    class Entry(ModelEntry):
+        def is_due(self):
+            # ModelEntry.is_due() persists changes for expired/one-off tasks.
+            # In dry-run mode, avoid DB writes by short-circuiting those cases.
+            if self.model.expires is not None:
+                now = self._default_now()
+                if now >= self.model.expires:
+                    return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
+
+            if (
+                self.model.one_off
+                and self.model.enabled
+                and self.model.total_run_count > 0
+            ):
+                return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
+
+            return super().is_due()
+
+    def apply_entry(self, entry, producer=None):
+        """Log the triggered task instead of executing it.
+
+        In dry-run mode the task is never dispatched (apply_async is not
+        called). By the time tick() calls this method, reserve() has already
+        advanced last_run_at/total_run_count in memory and marked the entry as
+        dirty; that (not this method) is what allows _refresh_schedule() to
+        preserve runtime state across schedule reloads.
+        """
+        info(
+            'Dry-run mode: Task %s would have been sent. args=%s kwargs=%s',
+            entry.name,
+            entry.args,
+            entry.kwargs,
+        )
+
+    def sync(self):
+        """Skip persisting execution metadata to the database.
+
+        In DatabaseScheduler, sync() saves dirty entries (including updated
+        last_run_at and total_run_count) back to the database. In dry-run mode,
+        tasks are never actually executed, so writing this metadata would be
+        misleading.
+
+        The _dirty set is intentionally left uncleared so that
+        _refresh_schedule() continues to preserve in-memory runtime state
+        when the schedule is reloaded from the database.
+        """
+        debug('Dry-run mode: Skipping database sync of scheduled tasks.')
