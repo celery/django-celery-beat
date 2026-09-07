@@ -1,6 +1,6 @@
 setuptools>=40.8.0
 flake8>=7.3.0
 tox>=4.30.3
-sphinx2rst>=1.0
+sphinx2rst>=1.1.0
 bumpversion
 pydocstyle
