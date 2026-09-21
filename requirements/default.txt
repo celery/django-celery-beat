@@ -1,4 +1,4 @@
-celery>=5.3.0,<6.0
+celery>=5.5.0,<6.0
 django-timezone-field>=7.2.1
 backports.zoneinfo; python_version<"3.9"
 tzdata
