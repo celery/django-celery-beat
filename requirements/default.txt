@@ -1,7 +1,6 @@
 celery>=5.5.0,<6.0
-importlib-metadata<5.0; python_version<"3.8" # TODO: remove this when celery >= 5.3.0
 django-timezone-field>=7.2.1
 backports.zoneinfo; python_version<"3.9"
 tzdata
 python-crontab>=3.3.0
-cron-descriptor>=2.0.8,<3.0.0
+cron-descriptor>=2.1.0,<3.0.0

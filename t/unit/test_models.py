@@ -11,6 +11,7 @@ import pytest
 from celery import schedules
 from django.apps import apps
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
@@ -143,6 +144,62 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         kwargs = {'every': 1, 'period': IntervalSchedule.SECONDS}
         schedule = schedules.schedule(run_every=1.0)
         self._test_duplicate_schedules(IntervalSchedule, kwargs, schedule)
+
+    def test_from_schedule_default_period_seconds(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(minutes=3))
+        result = IntervalSchedule.from_schedule(schedule)
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 180)
+        self.assertEqual(result.period, IntervalSchedule.SECONDS)
+
+    def test_from_schedule_period_minutes(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(minutes=3))
+        result = IntervalSchedule.from_schedule(
+            schedule,
+            period=IntervalSchedule.MINUTES
+        )
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 3)
+        self.assertEqual(result.period, IntervalSchedule.MINUTES)
+
+    def test_from_schedule_period_hours(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(hours=2))
+        result = IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.HOURS)
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 2)
+        self.assertEqual(result.period, IntervalSchedule.HOURS)
+
+    def test_from_schedule_period_days(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(days=5))
+        result = IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.DAYS)
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 5)
+        self.assertEqual(result.period, IntervalSchedule.DAYS)
+
+    def test_from_schedule_period_microseconds(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(microseconds=50_000))
+        result = IntervalSchedule.from_schedule(
+            schedule,
+            period=IntervalSchedule.MICROSECONDS
+        )
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 50_000)
+        self.assertEqual(result.period, IntervalSchedule.MICROSECONDS)
+
+    def test_from_schedule_period_rounds_down(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(seconds=100))
+        result = IntervalSchedule.from_schedule(
+            schedule,
+            period=IntervalSchedule.MINUTES
+        )
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 1)
+        self.assertEqual(result.period, IntervalSchedule.MINUTES)
+
+    def test_from_schedule_period_raises_when_run_every_below_period(self):
+        schedule = schedules.schedule(run_every=datetime.timedelta(seconds=30))
+        with self.assertRaises(ValidationError):
+            IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.MINUTES)
 
 
 class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
