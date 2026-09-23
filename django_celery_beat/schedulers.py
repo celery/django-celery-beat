@@ -16,9 +16,10 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Case, F, IntegerField, Q, When
+from django.db.models import Case, Exists, F, IntegerField, OuterRef, Q, When
 from django.db.models.functions import Cast
 from django.db.utils import DatabaseError, InterfaceError
+from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
 from kombu.utils.json import dumps, loads
 
@@ -90,6 +91,23 @@ class ModelEntry(ScheduleEntry):
 
         if not model.last_run_at:
             model.last_run_at = model.date_changed or self._default_now()
+            # When USE_TZ is False, Django's auto_now writes date_changed as a
+            # naive datetime in settings.TIME_ZONE (local time). is_due() feeds
+            # last_run_at to maybe_make_aware, which assumes naive == UTC, so
+            # date_changed must be normalized to naive UTC to avoid a timezone-
+            # offset shift. aware values (USE_TZ=True) are left as-is.
+            # The normalized value is persisted on save() and thus coexists
+            # with date_changed (naive local time) in the DB under different
+            # timezone semantics; this is unavoidable for naive datetimes.
+            if (
+                model.date_changed
+                and not getattr(settings, 'USE_TZ', False)
+                and timezone.is_naive(model.last_run_at)
+            ):
+                model.last_run_at = timezone.make_aware(
+                    model.last_run_at,
+                    timezone.get_default_timezone(),
+                ).astimezone(datetime.timezone.utc).replace(tzinfo=None)
             # if last_run_at is not set and
             # model.start_time last_run_at should be in way past.
             # This will trigger the job to run at start_time
@@ -139,7 +157,11 @@ class ModelEntry(ScheduleEntry):
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
             self.model.no_changes = False  # Mark the model entry as changed
-            self.model.save()
+            # Persist only the fields this branch modifies; include last_run_at
+            # because PeriodicTask.save() clears it when enabled=False (see #1069).
+            self.model.save(update_fields=[
+                'enabled', 'total_run_count', 'last_run_at', 'date_changed',
+            ])
             # Don't recheck
             return schedules.schedstate(False, NEVER_CHECK_TIMEOUT)
 
@@ -274,18 +296,21 @@ class DatabaseScheduler(Scheduler):
 
     def enabled_models_qs(self):
         next_schedule_sync = next_schedule_sync_at()
-        exclude_clock_tasks_query = Q(
-            clocked__isnull=False,
-            clocked__clocked_time__gt=next_schedule_sync
+        # Keep this as an anti-join: it avoids both the nullable outer join and
+        # the OR-correlated subquery produced by the equivalent positive form.
+        future_clocked_tasks = ClockedSchedule.objects.filter(
+            pk=OuterRef('clocked_id'),
+            clocked_time__gt=next_schedule_sync,
         )
 
         exclude_cron_tasks_query = self._get_crontab_exclude_query()
 
-        # Combine the queries for optimal database filtering
-        exclude_query = exclude_clock_tasks_query | exclude_cron_tasks_query
-
         # Fetch only the tasks we need to consider
-        return self.Model.objects.enabled().exclude(exclude_query)
+        return (
+            self.Model.objects.enabled()
+            .filter(~Exists(future_clocked_tasks))
+            .exclude(exclude_cron_tasks_query)
+        )
 
     def _get_crontab_exclude_query(self):
         """
@@ -440,18 +465,15 @@ class DatabaseScheduler(Scheduler):
     def sync(self):
         if logger.isEnabledFor(logging.DEBUG):
             debug('Writing entries...')
-        _tried = set()
-        _failed = set()
+        success = set()
         try:
             close_old_connections()
-
-            while self._dirty:
-                name = self._dirty.pop()
+            for name in self._dirty:
                 try:
                     self._schedule[name].save()
-                    _tried.add(name)
-                except (KeyError, TypeError, ObjectDoesNotExist):
-                    _failed.add(name)
+                    success.add(name)
+                except (KeyError, TypeError, ObjectDoesNotExist) as exc:
+                    debug('Skipping dirty entry %r in sync(): %r', name, exc)
         except DatabaseError as exc:
             logger.exception('Database error while sync: %r', exc)
         except InterfaceError:
@@ -460,8 +482,7 @@ class DatabaseScheduler(Scheduler):
                 'waiting to retry in next call...'
             )
         finally:
-            # retry later, only for the failed ones
-            self._dirty |= _failed
+            self._dirty -= success
 
     def update_from_dict(self, mapping):
         s = {}
@@ -495,6 +516,21 @@ class DatabaseScheduler(Scheduler):
             return False
         return super().schedules_equal(*args, **kwargs)
 
+    def _refresh_schedule(self):
+        fresh = self.all_as_schedule()
+        if not self._schedule:
+            return fresh
+        # Dirty entries aren't saved yet,
+        # keep their in-memory run metadata
+        for name in self._dirty:
+            if name not in fresh or name not in self._schedule:
+                continue
+            old, new = self._schedule[name], fresh[name]
+            new.last_run_at = new.model.last_run_at = old.model.last_run_at
+            new.total_run_count = new.model.total_run_count = old.model.total_run_count
+            new.model.no_changes = old.model.no_changes
+        return fresh
+
     @property
     def schedule(self):
         initial = update = False
@@ -526,7 +562,7 @@ class DatabaseScheduler(Scheduler):
 
         if update:
             self.sync()
-            self._schedule = self.all_as_schedule()
+            self._schedule = self._refresh_schedule()
             # the schedule changed, invalidate the heap in Scheduler.tick
             if not initial:
                 self._heap = []

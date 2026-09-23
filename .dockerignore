@@ -1,0 +1,96 @@
+# Mirrored from .gitignore
+.DS_Store
+*.pyc
+*$py.class
+*~
+.*.sw[pon]
+dist/
+*.egg-info
+*.egg
+*.egg/
+build/
+.build/
+_build/
+pip-log.txt
+.directory
+erl_crash.dump
+*.db
+Documentation/
+.tox/
+.ropeproject/
+.project
+.pydevproject
+.idea/
+.vscode/
+.coverage
+celery/tests/cover/
+.ve*
+cover/
+.vagrant/
+*.sqlite3
+.cache/
+htmlcov/
+coverage.xml
+.eggs/
+.python-version
+venv
+.env
+
+# Docker-specific
+# Git history and metadata
+.git/
+.gitignore
+
+# Environment files — never bake secrets into the image
+.env
+.env.*
+!.env.example
+
+# Documentation
+*.md
+docs/
+LICENSE
+CHANGELOG*
+
+# CI/CD configuration
+.github/
+.gitlab/
+
+# Docker tooling
+docker-compose.yml
+docker-compose*.yml
+.dockerignore
+
+# Development tooling
+Makefile
+.editorconfig
+
+# Test suites and coverage
+tests/
+test/
+spec/
+__tests__/
+coverage/
+.pytest_cache/
+.nyc_output/
+
+# Language runtime caches
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+vendor/
+
+# Build artefacts
+dist/
+build/
+target/
+out/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.log

@@ -1,4 +1,4 @@
-Django>=4.2.30,<6.1
+Django>=4.2.30,<6.2
 sphinxcontrib-django
 https://github.com/celery/sphinx_celery/archive/master.zip
 https://github.com/celery/kombu/zipball/main#egg=kombu

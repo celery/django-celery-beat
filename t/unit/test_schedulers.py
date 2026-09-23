@@ -18,6 +18,8 @@ import pytest
 from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import DatabaseError
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 
@@ -469,6 +471,62 @@ class test_ModelEntry(SchedulerCase):
         if hasattr(time, "tzset"):
             time.tzset()
 
+    @override_settings(
+        USE_TZ=False,
+        DJANGO_CELERY_BEAT_TZ_AWARE=False,
+        TIME_ZONE='Europe/Berlin',
+    )
+    @pytest.mark.usefixtures('depends_on_current_app')
+    @timezone.override('Europe/Berlin')
+    @pytest.mark.celery(timezone='Europe/Berlin')
+    def test_entry_is_due_after_edit_uses_date_changed_no_use_tz(self):
+        # Editing a task clears last_run_at (see PeriodicTask.save), so on
+        # reload the entry falls back to model.date_changed. Under USE_TZ=False
+        # and a non-UTC TIME_ZONE, date_changed is a naive *local* datetime
+        # (Django auto_now), while _default_now() returns naive UTC. is_due()'s
+        # maybe_make_aware assumes naive == UTC, so date_changed must be
+        # normalized to naive UTC first; otherwise last_run_at lands hours in
+        # the future and the task stops firing after a manual edit.
+        old_tz = os.environ.get("TZ")
+        os.environ["TZ"] = "Europe/Berlin"
+        if hasattr(time, "tzset"):
+            time.tzset()
+        try:
+            assert self.app.timezone.key == 'Europe/Berlin'
+
+            m = self.create_model_crontab(crontab(minute='*/10'))
+            m.save()
+            m.refresh_from_db()
+            assert m.date_changed is not None
+
+            # Simulate the post-edit reload: last_run_at cleared, so the entry
+            # reconstructs it from date_changed (a naive Berlin datetime here).
+            m.last_run_at = None
+            e = self.Entry(m, app=self.app)
+
+            # date_changed is Berlin local; normalized last_run_at must be the
+            # UTC equivalent (1 or 2 hours earlier, depending on DST), not the
+            # local value. Assert the exact UTC equivalent so the check holds
+            # regardless of the season in which the test runs.
+            expected_utc = (
+                timezone.make_aware(m.date_changed, timezone.get_default_timezone())
+                .astimezone(dt_timezone.utc)
+                .replace(tzinfo=None)
+            )
+            assert e.last_run_at == expected_utc
+
+            # last_run_at must not be in the future: is_due reports the task is
+            # due now or within the next 10-minute slot, not hours away.
+            due = e.is_due()
+            assert due.next <= 600  # 10 minutes
+        finally:
+            if old_tz is not None:
+                os.environ["TZ"] = old_tz
+            else:
+                del os.environ["TZ"]
+            if hasattr(time, "tzset"):
+                time.tzset()
+
     def test_task_with_start_time(self):
         interval = 10
         right_now = self.app.now()
@@ -517,10 +575,40 @@ class test_ModelEntry(SchedulerCase):
             last_run_at=one_interval_ago,
             total_run_count=1
         )
+        m2.save()  # persist: is_due() one-off branch updates the row via update_fields
         e2 = self.Entry(m2, app=self.app)
         isdue, delay = e2.is_due()
         assert not isdue
         assert delay == NEVER_CHECK_TIMEOUT
+
+    def test_one_off_disable_uses_update_fields(self):
+        """is_due() for a fired one-off must not full-save the cached instance.
+
+        A full-field save silently overwrites concurrent database changes to
+        the row (and can raise IntegrityError if a related record was
+        deleted concurrently).
+        """
+        task = self.create_model_crontab(
+            crontab(minute='*'),
+            one_off=True,
+            total_run_count=1,
+        )
+        task.save()
+        entry = self.Entry(task, app=self.app)
+
+        # Simulate a concurrent change made after the entry cached the model
+        PeriodicTask.objects.filter(pk=task.pk).update(
+            description='changed concurrently')
+
+        entry.is_due()
+
+        task.refresh_from_db()
+        assert task.enabled is False
+        assert task.total_run_count == 0
+        assert task.last_run_at is None
+        # The concurrent change must survive; a full-field save would have
+        # clobbered it with the stale cached value.
+        assert task.description == 'changed concurrently'
 
     def test_task_with_expires(self):
         interval = 10
@@ -755,6 +843,64 @@ class test_DatabaseScheduler(SchedulerCase):
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
 
+    def test_enabled_models_qs_avoids_outer_join_for_clocked_tasks(self):
+        queryset = self.s.enabled_models_qs()
+
+        candidate_names = set(
+            queryset.filter(
+                id__in=[self.m1.id, self.m5.id, self.m6.id, self.m7.id]
+            ).values_list('name', flat=True)
+        )
+
+        assert candidate_names == {self.m1.name, self.m6.name}
+        sql = str(queryset.query).upper()
+        assert 'LEFT OUTER JOIN' not in sql
+        assert 'LEFT JOIN' not in sql
+        assert ('NOT EXISTS' in sql) or ('NOT (EXISTS' in sql)
+
+    def test_enabled_models_qs_includes_clocked_cutoff(self):
+        fixed_now = make_aware(datetime(2026, 1, 1, 12, 0))
+        cutoff = fixed_now + timedelta(
+            seconds=schedulers.SCHEDULE_SYNC_MAX_INTERVAL
+        )
+        past = self.create_model_clocked(
+            clocked(fixed_now - timedelta(seconds=1))
+        )
+        at_cutoff = self.create_model_clocked(clocked(cutoff))
+        after_cutoff = self.create_model_clocked(
+            clocked(cutoff + timedelta(seconds=1))
+        )
+        for model in (past, at_cutoff, after_cutoff):
+            model.save()
+
+        with patch('django_celery_beat.schedulers.now', return_value=fixed_now):
+            candidate_names = set(
+                self.s.enabled_models_qs()
+                .filter(id__in=[past.id, at_cutoff.id, after_cutoff.id])
+                .values_list('name', flat=True)
+            )
+
+        assert candidate_names == {past.name, at_cutoff.name}
+
+    def test_enabled_models_qs_preserves_schedule_prefetches(
+        self, django_assert_num_queries
+    ):
+        models = list(
+            self.s.enabled_models_qs().filter(
+                id__in=[self.m1.id, self.m3.id, self.m4.id, self.m6.id]
+            )
+        )
+
+        assert {model.name for model in models} == {
+            self.m1.name, self.m3.name, self.m4.name, self.m6.name
+        }
+        with django_assert_num_queries(0):
+            for model in models:
+                model.interval
+                model.crontab
+                model.solar
+                model.clocked
+
     def test_schedule_changed(self):
         self.m2.args = '[16, 16]'
         self.m2.save()
@@ -843,6 +989,67 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 2
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
+
+    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(self):
+        # Disable m1 - its 10s interval would outrace m2 to the heap top
+        # on slow runs
+        self.m1.enabled = False
+        self.m1.save()
+
+        # Initial state: m2 starts overdue (interval is 20min,
+        # last run 30min ago)
+        m2 = PeriodicTask.objects.get(pk=self.m2.pk)
+        m2.last_run_at = timezone.now() - timedelta(minutes=30)
+        m2.save()
+
+        with patch.object(self.s, 'apply_entry') as apply_entry:
+            # First tick: m2 fires.
+            self.s.tick()
+            PeriodicTasks.update_changed()
+
+            with patch.object(schedulers.ModelEntry, 'save',
+                              side_effect=DatabaseError('boom')):
+                # Second tick: must not re-dispatch m2
+                self.s.tick()
+
+        m2_dispatches = [
+            call for call in apply_entry.call_args_list
+            if call.args and call.args[0].name == self.m2.name
+        ]
+        assert len(m2_dispatches) == 1
+
+    def test_sync_keeps_only_failed_entries_dirty_after_partial_success(self):
+        # reserve() advances each entry and adds it to _dirty.
+        self.s.reserve(self.s.schedule[self.m1.name])
+        self.s.reserve(self.s.schedule[self.m2.name])
+
+        saved = []
+
+        def fake_save(entry):
+            saved.append(entry.name)
+            if entry.name == self.m2.name:
+                raise ObjectDoesNotExist('gone')
+            # m1: succeed (no-op)
+
+        with patch.object(schedulers.ModelEntry, 'save', autospec=True,
+                          side_effect=fake_save):
+            self.s.sync()
+
+        assert set(saved) == {self.m1.name, self.m2.name}
+        assert self.s._dirty == {self.m2.name}
+
+    def test_refresh_schedule_skips_dirty_entry_missing_from_db(self):
+        # reserve() advances m2 and marks it dirty.
+        self.s.reserve(self.s.schedule[self.m2.name])
+        assert self.m2.name in self.s._dirty
+
+        # The dirty entry is deleted before it gets synced, so it's
+        # absent from the freshly loaded schedule.
+        PeriodicTask.objects.filter(pk=self.m2.pk).delete()
+
+        fresh = self.s._refresh_schedule()
+        # The stale dirty entry is skipped, not carried over or raised on.
+        assert self.m2.name not in fresh
 
     def test_periodic_task_disabled_and_enabled(self):
         # Get the entry for m2
@@ -1411,6 +1618,15 @@ class test_DatabaseScheduler(SchedulerCase):
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
+
+    def test_PeriodicTask_has_enabled_index(self):
+        index = next(
+            index for index in PeriodicTask._meta.indexes
+            if index.name == 'beat_periodic_enabled_idx'
+        )
+
+        assert index.fields == ['enabled']
+        assert index.condition is None
 
     def test_IntervalSchedule_unicode(self):
         assert (str(IntervalSchedule(every=1, period='seconds'))

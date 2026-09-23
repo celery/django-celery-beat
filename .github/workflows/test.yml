@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions: {}
+
 jobs:
   build:
     runs-on: blacksmith-4vcpu-ubuntu-2204
@@ -13,7 +15,7 @@ jobs:
       fail-fast: false
       matrix: # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
         django-version: ["3.2", "4.2", "5.2"]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', 'pypy-3.11']
+        python-version: ['3.10', '3.11', '3.12', '3.13', 'pypy-3.11']
         exclude:
           - django-version: "3.2"
             python-version: "3.11"
@@ -23,8 +25,7 @@ jobs:
             python-version: "3.13"
           - django-version: "4.2"
             python-version: "3.13"
-          - django-version: "5.2"
-            python-version: "3.9"
+      
           
         include: 
           - django-version: "5.2"
@@ -35,17 +36,25 @@ jobs:
             python-version: "3.13"
           - django-version: "6.0"
             python-version: "3.14"
+          - django-version: "6.1"
+            python-version: "3.12"
+          - django-version: "6.1"
+            python-version: "3.13"
+          - django-version: "6.1"
+            python-version: "3.14"
 
     services:
       rabbitmq:
-        image: rabbitmq
+        image: rabbitmq  # zizmor: ignore[unpinned-images]
         ports:
           - "5672:5672"
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Set up Python ${{ matrix.python-version }}
-      uses: useblacksmith/setup-python@v6
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: true
@@ -67,7 +76,7 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       with:
         fail_ci_if_error: true # optional (default = false)
         token: ${{ secrets.CODECOV_TOKEN }}
