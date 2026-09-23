@@ -10,6 +10,9 @@ def signals_connect():
                          IntervalSchedule, PeriodicTask, PeriodicTasks,
                          SolarSchedule)
 
+    signals.post_save.connect(
+        periodic_task_post_save, sender=PeriodicTask
+    )
     signals.pre_delete.connect(
         PeriodicTasks.changed, sender=PeriodicTask
     )
@@ -41,6 +44,15 @@ def signals_connect():
     signals.post_delete.connect(
         PeriodicTasks.update_changed, sender=ClockedSchedule
     )
+
+
+def periodic_task_post_save(sender, instance, raw, **kwargs):
+    # Fixture loading uses raw=True and skips PeriodicTask.save().
+    # Normal saves call PeriodicTasks.changed() directly in save().
+    if raw:
+        from .models import PeriodicTasks  # noqa: PLC0415
+
+        PeriodicTasks.changed(instance)
 
 
 def clocked_schedule_post_save(sender, instance, created, **kwargs):

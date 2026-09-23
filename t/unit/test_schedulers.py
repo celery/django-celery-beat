@@ -1584,6 +1584,18 @@ class test_model_PeriodicTasks(SchedulerCase):
         assert y
         assert y > x
 
+    def test_raw_task_update_tracks_change(self):
+        task = self.create_model_clocked(
+            clocked(timezone.now() + timedelta(minutes=10)),
+        )
+        task.save()
+        PeriodicTasks.update_changed()
+        before = PeriodicTasks.last_change()
+
+        task.enabled = False
+        task.save_base(raw=True)
+        assert PeriodicTasks.last_change() > before
+
     def test_clocked_create_in_window_tracks_change(self):
         assert PeriodicTasks.last_change() is None
         ClockedSchedule.objects.create(
@@ -1645,12 +1657,13 @@ class test_model_PeriodicTasks(SchedulerCase):
         assert PeriodicTasks.last_change() > before
 
     def test_task_clocked_create_out_of_window_skips_change(self):
-        assert PeriodicTasks.last_change() is None
+        PeriodicTasks.update_changed()
+        before = PeriodicTasks.last_change()
         m = self.create_model_clocked(
             clocked(make_aware(datetime.now() + timedelta(minutes=10)))
         )
         m.save()
-        assert PeriodicTasks.last_change() is None
+        assert PeriodicTasks.last_change() == before
 
     @override_settings(USE_TZ=True)
     def test_task_clocked_create_out_of_window_tz_mismatch_skips_change(self):

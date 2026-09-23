@@ -11,6 +11,7 @@ except ImportError:
 
 from celery import current_app
 from django.conf import settings
+from django.db.models import DateTimeField
 from django.utils import timezone
 
 is_aware = timezone.is_aware
@@ -72,20 +73,13 @@ def is_database_scheduler(scheduler):
     )
 
 
-def next_schedule_sync_at(now_func=now):
-    """Scheduled time of the next full schedule sync."""
-    return now_func() + datetime.timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL)
-
-
-def next_schedule_sync_by(now_func=now):
-    """Latest time by which the next full schedule sync must have run."""
-    max_interval = (
-        current_app.conf.beat_max_loop_interval or DEFAULT_MAX_INTERVAL)
-    return next_schedule_sync_at(now_func) + datetime.timedelta(seconds=max_interval)
-
-
 def clocked_due_after_next_sync(clocked_time):
     """True if the clocked task is due after the next full schedule sync."""
+    if hasattr(clocked_time, 'resolve_expression'):
+        # The database evaluates expressions; their due time is not known here.
+        return False
+    # Convert strings and dates to datetimes before checking the timezone.
+    clocked_time = DateTimeField().to_python(clocked_time)
     use_tz = getattr(settings, 'USE_TZ', False)
     clocked_aware = timezone.is_aware(clocked_time)
     now_func = now
@@ -96,4 +90,25 @@ def clocked_due_after_next_sync(clocked_time):
         clocked_time = timezone.make_aware(
             clocked_time, timezone.get_default_timezone()
         )
+    if timezone.is_aware(clocked_time):
+        # Compare in UTC to avoid incorrect results around DST changes.
+        clocked_time = clocked_time.astimezone(datetime_timezone.utc)
     return clocked_time > next_schedule_sync_by(now_func)
+
+
+def next_schedule_sync_by(now_func=now):
+    """Latest time by which the next full schedule sync must have run."""
+    # Beat may be sleeping when the full sync becomes due. Allow one extra
+    # loop interval for it to wake up and check: 300 + 5 seconds by default.
+    max_interval = (
+        current_app.conf.beat_max_loop_interval or DEFAULT_MAX_INTERVAL)
+    return next_schedule_sync_at(now_func) + datetime.timedelta(seconds=max_interval)
+
+
+def next_schedule_sync_at(now_func=now):
+    """Scheduled time of the next full schedule sync."""
+    current = now_func()
+    if timezone.is_aware(current):
+        # Calculate in UTC to avoid incorrect deadlines around DST changes.
+        current = current.astimezone(datetime_timezone.utc)
+    return current + datetime.timedelta(seconds=SCHEDULE_SYNC_MAX_INTERVAL)
