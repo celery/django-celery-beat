@@ -409,8 +409,23 @@ class CrontabSchedule(models.Model):
             return cls.objects.filter(**spec).first()
 
     def due_start_time(self, initial_start_time, tz):
-        start_time = initial_start_time.astimezone(tz)
-        start, ends_in, now = self.schedule.remaining_delta(start_time)
+        schedule = self.schedule
+        # The cron fields must be matched in the schedule's own timezone:
+        # that is also the frame remaining_delta() evaluates them in.
+        start_time = initial_start_time.astimezone(schedule.tz)
+        if (
+            start_time.minute in schedule.minute
+            and start_time.hour in schedule.hour
+            and start_time.day in schedule.day_of_month
+            and start_time.month in schedule.month_of_year
+            and start_time.isoweekday() % 7 in schedule.day_of_week
+        ):
+            # start_time falls inside a matching cron window: the task
+            # should run at start_time itself. Skipping to the next
+            # occurrence could defer the first run by months or years
+            # for narrowly pinned schedules.
+            return start_time
+        start, ends_in, now = schedule.remaining_delta(start_time)
         return start + ends_in
 
 
