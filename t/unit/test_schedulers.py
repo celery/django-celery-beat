@@ -1614,6 +1614,25 @@ class test_DatabaseScheduler(SchedulerCase):
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
 
+    @pytest.mark.django_db
+    def test_get_unique_timezone_names_no_duplicates(self):
+        """Test _get_unique_timezone_names returns each timezone once."""
+        s = self.Scheduler(app=self.app)
+
+        # Several crontabs sharing the same timezone but differing in
+        # every other ordering column.
+        CrontabSchedule.objects.create(
+            minute='0', hour='8', day_of_week='1',
+            day_of_month='1', month_of_year='1', timezone='UTC')
+        CrontabSchedule.objects.create(
+            minute='30', hour='9', day_of_week='2',
+            day_of_month='2', month_of_year='2', timezone='UTC')
+        CrontabSchedule.objects.create(
+            minute='15', hour='10', timezone='Asia/Tokyo')
+
+        names = [str(tz) for tz in s._get_unique_timezone_names()]
+        assert sorted(names) == ['Asia/Tokyo', 'UTC']
+
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
