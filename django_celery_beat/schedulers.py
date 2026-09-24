@@ -5,9 +5,11 @@ import math
 from multiprocessing.util import Finalize
 
 try:
-    from zoneinfo import ZoneInfo  # Python 3.9+
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError  # Python 3.9+
 except ImportError:
-    from backports.zoneinfo import ZoneInfo  # Python 3.8
+    from backports.zoneinfo import (  # Python 3.8
+        ZoneInfo, ZoneInfoNotFoundError,
+    )
 
 from celery import current_app, schedules
 from celery.beat import ScheduleEntry, Scheduler
@@ -16,8 +18,7 @@ from celery.utils.time import maybe_make_aware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import close_old_connections, transaction
-from django.db.models import Case, Exists, F, IntegerField, OuterRef, Q, When
-from django.db.models.functions import Cast
+from django.db.models import Exists, OuterRef, Q
 from django.db.utils import DatabaseError, InterfaceError
 from django.utils import timezone
 from kombu.utils.encoding import safe_repr, safe_str
@@ -323,8 +324,11 @@ class DatabaseScheduler(Scheduler):
         Build a query to exclude crontab tasks based on their hour value,
         adjusted for timezone differences relative to the server.
 
-        This creates an annotation for each crontab task that represents the
-        server-equivalent hour, then filters on that annotation.
+        The hour spec is plain text and may contain wildcards or ranges,
+        so the comparison is done by matching per-timezone sets of local
+        hour strings instead of casting the column to a number. This
+        keeps the query portable to databases that cannot coerce
+        non-numeric text (e.g. Oracle raising ORA-01722 on '*').
         """
         # Get server time based on Django settings
 
@@ -337,47 +341,58 @@ class DatabaseScheduler(Scheduler):
         ]
         hours_to_include += [4]  # celery's default cleanup task
 
-        # Get all tasks with a simple numeric hour value
-        valid_numeric_hours = self._get_valid_hour_formats()
-        numeric_hour_tasks = CrontabSchedule.objects.filter(
-            hour__in=valid_numeric_hours
-        )
+        # Hour specs that don't resolve to a single hour ('*', '*/2',
+        # '9-17', '1,13') can't be mapped onto the window; keep them.
+        include_q = ~Q(hour__in=self._get_valid_hour_formats())
 
-        # Annotate these tasks with their server-hour equivalent
-        annotated_tasks = numeric_hour_tasks.annotate(
-            # Cast hour string to integer
-            hour_int=Cast('hour', IntegerField()),
-
-            # Calculate server-hour based on timezone offset
-            server_hour=Case(
-                # Handle each timezone specifically
-                *[
-                    When(
-                        timezone=timezone_name,
-                        then=(
-                            F('hour_int')
-                            + self._get_timezone_offset(timezone_name)
-                            + 24
-                        ) % 24
-                    )
-                    for timezone_name in self._get_unique_timezone_names()
-                ],
-                # Default case - use hour as is
-                default=F('hour_int')
+        # For each timezone used by a crontab, translate the server-side
+        # window into local hour values and match the spec as text.
+        timezone_names = list(self._get_unique_timezone_names())
+        for timezone_name in timezone_names:
+            if timezone_name is None:
+                continue
+            try:
+                offset = self._get_timezone_offset(timezone_name)
+            except ZoneInfoNotFoundError:
+                # Unresolvable timezone: compare its raw hour against
+                # the server window instead of dropping the schedule.
+                offset = 0
+            local_hours = {
+                (hour - offset) % 24 for hour in hours_to_include
+            }
+            include_q |= Q(
+                timezone=timezone_name,
+                hour__in=self._hour_strings(local_hours),
             )
+
+        # Schedules whose timezone is missing or not in the table yet
+        # (e.g. inserted between the two queries) are compared against
+        # the server window directly, like the previous default case.
+        include_q |= Q(
+            Q(timezone__isnull=True) | ~Q(timezone__in=timezone_names),
+            hour__in=self._hour_strings(hours_to_include),
         )
 
-        excluded_hour_task_ids = annotated_tasks.exclude(
-            server_hour__in=hours_to_include
-        ).values_list('id', flat=True)
+        excluded_crontabs = CrontabSchedule.objects.exclude(include_q)
 
         # Build the final exclude query:
         # Exclude crontab tasks that are not in our include list
         exclude_query = Q(crontab__isnull=False) & Q(
-            crontab__id__in=excluded_hour_task_ids
+            crontab__in=excluded_crontabs
         )
 
         return exclude_query
+
+    @staticmethod
+    def _hour_strings(hours):
+        """Return the text forms an hour spec may use for the given hours.
+
+        Both plain ("0"-"23") and zero-padded ("00"-"09") spellings are
+        produced, mirroring ``_get_valid_hour_formats``.
+        """
+        strings = {str(hour) for hour in hours}
+        strings.update(f"{hour:02d}" for hour in hours)
+        return list(strings)
 
     def _get_valid_hour_formats(self):
         """
