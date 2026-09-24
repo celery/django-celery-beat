@@ -934,6 +934,25 @@ class test_DatabaseScheduler(SchedulerCase):
         assert self.s.flushed == 1
         assert self.m2.name in self.s._dirty
 
+    def test_reserve_persists_one_off_run_state(self):
+        # m6 is a clocked one-off task already loaded in the schedule.
+        e6 = self.s.schedule[self.m6.name]
+        self.s.schedule[self.m6.name] = self.s.reserve(e6)
+
+        # The row reflects the run without waiting for the deferred
+        # sync(), so a beat restart can't dispatch the task again.
+        self.m6.refresh_from_db()
+        assert self.m6.total_run_count == 1
+
+    def test_reserve_defers_run_state_for_recurring_tasks(self):
+        e1 = self.s.schedule[self.m1.name]
+        self.s.schedule[self.m1.name] = self.s.reserve(e1)
+
+        # Recurring tasks still go through the deferred sync() path.
+        self.m1.refresh_from_db()
+        assert self.m1.total_run_count == 0
+        assert self.m1.name in self.s._dirty
+
     def test_sync_not_saves_last_run_at_while_schedule_changed(self):
         # Update e1 last_run_at and add to dirty
         e1 = self.s.schedule[self.m2.name]
