@@ -390,9 +390,13 @@ class DatabaseScheduler(Scheduler):
 
     def _get_unique_timezone_names(self):
         """Get a list of all unique timezone names used in CrontabSchedule"""
+        # The Meta.ordering columns are otherwise included in the SELECT
+        # DISTINCT clause, so every row is distinct and duplicate timezone
+        # values are returned. Explicitly ordering by 'timezone' replaces
+        # the default ordering and keeps only that column in the SELECT.
         return CrontabSchedule.objects.values_list(
             'timezone', flat=True
-        ).distinct()
+        ).order_by('timezone').distinct()
 
     def _get_timezone_offset(self, timezone_name):
         """
