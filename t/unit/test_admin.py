@@ -139,3 +139,58 @@ class DisableTasksTest(TestCase):
             self.assertFalse(periodic_task.enabled)
             self.assertIsNone(periodic_task.last_run_at)
         mock_message_user.assert_called_once()
+
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.message_user')
+    def test_enable_tasks(self, mock_message_user):
+        PeriodicTask.objects.create(name='name1', task='task1', enabled=False,
+                                    interval=self.interval_schedule)
+        PeriodicTask.objects.create(name='name2', task='task2', enabled=False,
+                                    interval=self.interval_schedule)
+
+        qs = PeriodicTask.objects.all()
+        PeriodicTaskAdmin(PeriodicTask, None).enable_tasks(None, qs)
+
+        for periodic_task in qs:
+            periodic_task.refresh_from_db()
+            self.assertTrue(periodic_task.enabled)
+        mock_message_user.assert_called_once()
+
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.message_user')
+    def test_toggle_tasks(self, mock_message_user):
+        PeriodicTask.objects.create(name='name1', task='task1', enabled=False,
+                                    interval=self.interval_schedule)
+        PeriodicTask.objects.create(name='name2', task='task2', enabled=True,
+                                    interval=self.interval_schedule)
+
+        qs = PeriodicTask.objects.all()
+        PeriodicTaskAdmin(PeriodicTask, None).toggle_tasks(None, qs)
+
+        self.assertTrue(
+            PeriodicTask.objects.get(name='name1', task='task1').enabled,
+        )
+        self.assertFalse(
+            PeriodicTask.objects.get(name='name2', task='task2').enabled,
+        )
+        mock_message_user.assert_called_once()
+
+    @mock.patch('django_celery_beat.admin.PeriodicTasks.update_changed')
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.message_user')
+    def test_enable_tasks_skips_marker_when_queryset_empty(
+            self, mock_message_user, mock_update_changed,
+    ):
+        PeriodicTaskAdmin(PeriodicTask, None).enable_tasks(
+            None, PeriodicTask.objects.none(),
+        )
+        mock_update_changed.assert_not_called()
+        mock_message_user.assert_called_once()
+
+    @mock.patch('django_celery_beat.admin.PeriodicTasks.update_changed')
+    @mock.patch('django_celery_beat.admin.PeriodicTaskAdmin.message_user')
+    def test_toggle_tasks_skips_marker_when_queryset_empty(
+            self, mock_message_user, mock_update_changed,
+    ):
+        PeriodicTaskAdmin(PeriodicTask, None).toggle_tasks(
+            None, PeriodicTask.objects.none(),
+        )
+        mock_update_changed.assert_not_called()
+        mock_message_user.assert_called_once()
