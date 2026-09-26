@@ -58,6 +58,18 @@ class EntrySaveRaises(schedulers.ModelEntry):
         raise RuntimeError('this is expected')
 
 
+class DryRunTrackingScheduler(schedulers.DryRunDatabaseScheduler):
+    Entry = EntryTrackSave
+
+    def __init__(self, *args, **kwargs):
+        self.flushed = 0
+        schedulers.DryRunDatabaseScheduler.__init__(self, *args, **kwargs)
+
+    def sync(self):
+        self.flushed += 1
+        schedulers.DryRunDatabaseScheduler.sync(self)
+
+
 class TrackingScheduler(schedulers.DatabaseScheduler):
     Entry = EntryTrackSave
 
@@ -1613,6 +1625,135 @@ class test_DatabaseScheduler(SchedulerCase):
         for hour_str in valid_hours:
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
+
+
+@pytest.mark.django_db
+class test_DryRunDatabaseScheduler(SchedulerCase):
+    Scheduler = DryRunTrackingScheduler
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.app.conf.beat_schedule = {}
+
+        self.m1 = self.create_model_interval(
+            schedule(timedelta(seconds=10)),
+            last_run_at=self.app.now() - timedelta(days=1),
+        )
+        self.m1.save()
+
+        self.s = self.Scheduler(app=self.app)
+
+    def test_apply_entry_logs_without_dispatching(self):
+        entry = self.s.schedule[self.m1.name]
+
+        with patch('django_celery_beat.schedulers.info') as mock_info:
+            self.s.apply_entry(entry)
+
+        mock_info.assert_called_once_with(
+            'Dry-run mode: Task %s would have been sent. args=%s kwargs=%s',
+            entry.name,
+            entry.args,
+            entry.kwargs,
+        )
+
+    def test_apply_entry_does_not_send_task(self):
+        entry = self.s.schedule[self.m1.name]
+        self.s.apply_async = MagicMock()
+
+        self.s.apply_entry(entry)
+
+        self.s.apply_async.assert_not_called()
+
+    def _simulate_tick(self, entry):
+        """Mirror what Scheduler.tick() does for a due entry.
+
+        tick() reserves the entry (advancing run metadata in memory and
+        returning the next entry), then calls apply_entry() with the original
+        entry. Returns the reserved (next) entry, matching tick()'s local var.
+        """
+        next_entry = self.s.reserve(entry)
+        self.s.apply_entry(entry)
+        return next_entry
+
+    def test_tick_cycle_advances_run_metadata_in_memory(self):
+        # tick() calls reserve() (which advances state) then apply_entry().
+        # This test simulates that cycle and verifies the in-memory run
+        # metadata is advanced and the entry is marked dirty.
+        entry = self.s.schedule[self.m1.name]
+        original_last_run_at = entry.model.last_run_at
+        original_total_run_count = entry.model.total_run_count
+
+        next_entry = self._simulate_tick(entry)
+
+        # reserve() should have advanced last_run_at and total_run_count
+        assert next_entry.model.last_run_at > original_last_run_at
+        assert next_entry.model.total_run_count == (
+            original_total_run_count + 1
+        )
+        # Entry should be marked dirty
+        assert self.m1.name in self.s._dirty
+
+    def test_sync_does_not_persist_run_metadata(self):
+        entry = self.s.schedule[self.m1.name]
+        initial_flushes = self.s.flushed
+        original_last_run_at = entry.model.last_run_at
+        original_total_run_count = entry.model.total_run_count
+
+        self._simulate_tick(entry)
+        self.s.sync()
+        self.m1.refresh_from_db()
+
+        assert self.s.flushed == initial_flushes + 1
+        # Database should still have the original values
+        assert self.m1.last_run_at == original_last_run_at
+        assert self.m1.total_run_count == original_total_run_count
+
+    def test_schedule_refresh_preserves_last_run_at(self):
+        """Regression test: schedule refresh must not reset last_run_at.
+
+        When the schedule property triggers a full reload from the DB
+        (e.g. every SCHEDULE_SYNC_MAX_INTERVAL), tasks that were "run" in
+        dry-run mode must retain their in-memory last_run_at so they don't
+        become due again immediately.
+        """
+        entry = self.s.schedule[self.m1.name]
+
+        next_entry = self._simulate_tick(entry)
+        last_run_after_apply = next_entry.model.last_run_at
+
+        # Force a full schedule refresh by backdating _last_full_sync
+        self.s._last_full_sync = (
+            datetime.now() - timedelta(
+                seconds=schedulers.SCHEDULE_SYNC_MAX_INTERVAL + 1
+            )
+        )
+        # Access .schedule to trigger the refresh
+        refreshed_schedule = self.s.schedule
+
+        # last_run_at should be preserved from in-memory state, not reset
+        # to the stale DB value
+        refreshed_entry = refreshed_schedule[self.m1.name]
+        assert refreshed_entry.model.last_run_at == last_run_after_apply
+
+    def test_schedule_refresh_picks_up_new_tasks(self):
+        """New tasks added to the DB should appear after a schedule refresh."""
+        m2 = self.create_model_interval(
+            schedule(timedelta(seconds=30)),
+            last_run_at=self.app.now() - timedelta(hours=1),
+        )
+        m2.save()
+        PeriodicTasks.update_changed()
+
+        # Force a full schedule refresh
+        self.s._last_full_sync = (
+            datetime.now() - timedelta(
+                seconds=schedulers.SCHEDULE_SYNC_MAX_INTERVAL + 1
+            )
+        )
+        refreshed_schedule = self.s.schedule
+
+        assert m2.name in refreshed_schedule
 
 
 @pytest.mark.django_db
