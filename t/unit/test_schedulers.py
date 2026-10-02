@@ -1614,6 +1614,54 @@ class test_DatabaseScheduler(SchedulerCase):
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
 
+    @pytest.mark.django_db
+    def test_crontab_exclusion_keeps_non_numeric_hour_specs(self):
+        """Hour specs that are not a single hour are never excluded.
+
+        Wildcards, steps, ranges and lists can't be mapped onto the
+        +-2h window, so they must always be loaded and left to
+        ``is_due`` evaluation.
+        """
+        for spec in ('*', '*/2', '9-17', '1,13'):
+            task = self.create_model(
+                name=f'task-hour-{spec}',
+                crontab=CrontabSchedule.objects.create(hour=spec),
+            )
+            task.save()
+
+        exclude_query = self.s._get_crontab_exclude_query()
+        excluded_tasks = set(
+            PeriodicTask.objects.filter(exclude_query).values_list(
+                'id', flat=True
+            )
+        )
+
+        for spec in ('*', '*/2', '9-17', '1,13'):
+            task = PeriodicTask.objects.get(name=f'task-hour-{spec}')
+            assert task.id not in excluded_tasks, (
+                f'crontab hour spec {spec!r} should never be excluded'
+            )
+
+    @pytest.mark.django_db
+    def test_crontab_exclude_query_avoids_numeric_cast(self):
+        """The exclusion query must not cast the hour column to a number.
+
+        The stored spec may hold non-numeric values ('*', '9-17'), and
+        some databases (e.g. Oracle) evaluate the cast before the row
+        filter and abort the whole query with a conversion error.
+        """
+        CrontabSchedule.objects.create(hour='*')
+        CrontabSchedule.objects.create(hour='9-17')
+
+        exclude_query = self.s._get_crontab_exclude_query()
+        sql, params = (
+            PeriodicTask.objects.filter(exclude_query).query
+            .sql_with_params()
+        )
+        for fragment in sql, ' '.join(map(str, params)):
+            assert 'CAST' not in fragment.upper()
+            assert 'TO_NUMBER' not in fragment.upper()
+
 
 @pytest.mark.django_db
 class test_models(SchedulerCase):
