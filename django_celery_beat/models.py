@@ -554,6 +554,13 @@ class PeriodicTask(models.Model):
             'trigger the task to run'),
 
     )
+    options = models.TextField(
+        blank=True, default='{}',
+        verbose_name=_('Additional Options'),
+        help_text=_(
+            'JSON encoded additional execution options for the task '
+            '(Example: {"MessageGroupId": "my_group"}).'),
+    )
     one_off = models.BooleanField(
         default=False,
         verbose_name=_('One-off Task'),
