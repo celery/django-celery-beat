@@ -7,6 +7,62 @@
 Next
 ====
 
+- Fix PeriodicTasks singleton row lock contention under concurrent Beat
+  saves (#1000) by switching to pull-based change detection:
+
+  - Beat now detects schedule changes via ``PeriodicTasks.last_change()``,
+    which returns the ``MAX()`` of ``PeriodicTask.date_changed``,
+    ``updated_at`` on the four schedule models, and the singleton
+    ``PeriodicTasks.last_update`` marker.
+  - Marker writes (``PeriodicTasks.update_changed()``) are deferred with
+    ``transaction.on_commit()`` so they no longer hold a row lock for the
+    duration of the surrounding request/transaction.
+  - Normal ``PeriodicTask`` / schedule ``save()`` no longer writes to the
+    singleton marker row; deletes and admin bulk ``queryset.update()`` still
+    bump it.
+  - Under ``ATOMIC_REQUESTS`` / ``atomic()``, each real schedule edit still
+    gets a short post-commit restamp of that row's ``date_changed`` /
+    ``updated_at``. That is an extra per-row write, not a return of the
+    shared ``ident=1`` lock hotspot.
+
+- Migration ``0021`` adds ``updated_at`` columns and indexes (plus a
+  ``date_changed`` index). On large tables this can be expensive (table
+  rebuilds on older MySQL; blocking index builds on PostgreSQL unless you
+  use ``CREATE INDEX CONCURRENTLY``). Plan a maintenance window or apply
+  equivalent index DDL out-of-band if needed.
+
+- **Breaking change for undocumented use of ``PeriodicTasks.last_update``:**
+
+  ``last_update`` is an internal marker field. It was never part of the
+  documented public API. The documented interface is
+  ``PeriodicTasks.last_change()`` (what Beat itself uses).
+
+  Before this change, every ``PeriodicTask`` / schedule save bumped
+  ``last_update``, so reading that column looked like a complete change
+  timestamp. After this change:
+
+  - ``last_update`` is only advanced on deletes, admin bulk updates
+    (enable/disable/toggle), and first creation of the singleton row.
+  - A normal ``save()`` leaves ``last_update`` unchanged (it may look stale).
+  - ``PeriodicTasks.last_change()`` still reflects the real latest change.
+
+  If you have monitoring, dashboards, or third-party code that reads
+  ``PeriodicTasks.objects.get(ident=1).last_update`` (or equivalent SQL)
+  instead of calling ``last_change()``, switch to ``last_change()``.
+  Relying on the raw ``last_update`` column will under-report changes
+  after ordinary saves, with no error.
+
+- After bulk ``queryset.update()``, call ``PeriodicTasks.update_changed()``
+  so Beat notices the change. ``PeriodicTasks.changed()`` is the delete
+  signal handler and is not the bulk-update API.
+
+- ``PeriodicTask.save(update_fields=...)`` now includes ``date_changed``
+  (and schedule models include ``updated_at``) so partial saves stay
+  visible to Beat. Saves inside ``atomic()`` restamp that field after
+  commit so overlapping transactions cannot hide a change behind an
+  older save-time ``MAX()``. Beat's own ``last_run_at`` /
+  ``total_run_count`` housekeeping saves are excluded.
+
 - Use the stable Django 6.1 release in the test matrix.
 
 .. _version-2.9.0:

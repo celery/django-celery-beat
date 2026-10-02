@@ -123,6 +123,9 @@ class ModelEntry(ScheduleEntry):
         self.last_run_at = model.last_run_at
 
     def _disable(self, model):
+        # no_changes is in-memory only; PeriodicTask.save() no longer calls
+        # PeriodicTasks.changed(), so this does not suppress marker bumps on
+        # save. Change detection relies on date_changed (auto_now) instead.
         model.no_changes = True
         model.enabled = False
         model.save()
@@ -160,7 +163,10 @@ class ModelEntry(ScheduleEntry):
                 and self.model.total_run_count > 0:
             self.model.enabled = False
             self.model.total_run_count = 0  # Reset
-            self.model.no_changes = False  # Mark the model entry as changed
+            # no_changes is in-memory only; PeriodicTask.save() no longer calls
+            # PeriodicTasks.changed(). Including date_changed keeps pull-based
+            # last_change() detection working for this disable.
+            self.model.no_changes = False
             # Persist only the fields this branch modifies; include last_run_at
             # because PeriodicTask.save() clears it when enabled=False (see #1069).
             self.model.save(update_fields=[
@@ -187,6 +193,8 @@ class ModelEntry(ScheduleEntry):
     def __next__(self):
         self.model.last_run_at = self._default_now()
         self.model.total_run_count += 1
+        # In-memory flag copied by _refresh_schedule(); not used on the
+        # ModelEntry.save() path (update_fields excludes date_changed).
         self.model.no_changes = True
         return self.__class__(self.model)
 
@@ -196,7 +204,13 @@ class ModelEntry(ScheduleEntry):
         obj = type(self.model)._default_manager.get(pk=self.model.pk)
         for field in self.save_fields:
             setattr(obj, field, getattr(self.model, field))
-        obj.save()
+        # IMPORTANT: use update_fields so date_changed (auto_now) is NOT bumped.
+        # Beat detects schedule changes via MAX(date_changed). A full save() here
+        # would update date_changed on every task run, causing schedule_changed()
+        # to always return True and beat to reload the schedule in an infinite loop.
+        # Do not add date_changed or switch to a full save() without revisiting
+        # change detection in PeriodicTasks.last_change().
+        obj.save(update_fields=['last_run_at', 'total_run_count'])
 
     @classmethod
     def to_model_schedule(cls, schedule):
