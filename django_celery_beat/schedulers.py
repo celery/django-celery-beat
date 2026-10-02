@@ -463,6 +463,11 @@ class DatabaseScheduler(Scheduler):
 
     def reserve(self, entry):
         new_entry = next(entry)
+        if new_entry.model.one_off:
+            # Persist the run right away: sync() may lag a restart by
+            # minutes, and reloading the row with total_run_count=0
+            # would dispatch a one-off task a second time.
+            new_entry.save()
         # Need to store entry by name, because the entry may change
         # in the mean time.
         self._dirty.add(new_entry.name)
