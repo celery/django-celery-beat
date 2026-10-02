@@ -229,6 +229,46 @@ with only one command (recommended for **development environment only**):
 
 
 
+Dry-run mode (DryRunDatabaseScheduler)
+---------------------------------------
+
+The ``DryRunDatabaseScheduler`` reads periodic tasks from the database exactly
+like the standard ``DatabaseScheduler``, but never actually executes them.
+Instead it logs a message each time a task *would* have been sent.
+
+This is useful in development or staging environments where you want to verify
+that your schedule configuration is correct and tasks are triggering at the
+expected times, without producing side-effects.
+
+To use it, specify the dry-run scheduler when starting beat:
+
+.. code-block:: sh
+
+   $ celery -A [project-name] beat -l info --scheduler django_celery_beat.schedulers:DryRunDatabaseScheduler
+
+Or via Django settings:
+
+.. code-block:: python
+
+   CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DryRunDatabaseScheduler'
+
+When a task becomes due you will see a log line like::
+
+   [INFO] Dry-run mode: Task my-periodic-task would have been sent. args=[1, 2] kwargs={'key': 'value'}
+
+Key behaviours:
+
+- **No task execution**: ``apply_async`` is never called; workers will not
+  receive any messages from this scheduler.
+- **No database writes**: execution metadata (``last_run_at``,
+  ``total_run_count``) is maintained in memory but never persisted to the
+  database, so switching back to the standard scheduler resumes from where
+  it last actually ran.
+- **Correct scheduling**: the scheduler still tracks ``last_run_at`` in memory
+  so that tasks are not re-triggered incorrectly within the same process
+  lifetime, even across periodic schedule refreshes from the database.
+
+
 Working with django-celery-results
 -----------------------------------
 
