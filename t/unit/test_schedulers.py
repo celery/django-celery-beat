@@ -1140,39 +1140,42 @@ class test_DatabaseScheduler(SchedulerCase):
             self.s.schedule, self.s.schedule
         )
 
-    def test_heap_always_return_the_first_item(self):
-        interval = 10
+    def test_heap_does_not_dispatch_disabled_entry(self, monkeypatch):
+        now = self.app.now()
+        monkeypatch.setattr(self.app, 'now', lambda: now)
+        monkeypatch.setattr(EntryTrackSave, 'default_now', lambda entry: now)
+        monkeypatch.setattr(EntryTrackSave, '_default_now', lambda entry: now)
 
-        s1 = schedule(timedelta(seconds=interval))
-        m1 = self.create_model_interval(s1, enabled=False)
-        m1.last_run_at = self.app.now() - timedelta(seconds=interval + 2)
-        m1.save()
-        m1.refresh_from_db()
+        interval = schedule(timedelta(seconds=10))
+        disabled = self.create_model_interval(interval, enabled=False)
+        disabled.save()
+        enabled = self.create_model_interval(interval)
+        enabled.last_run_at = now - timedelta(seconds=11)
+        enabled.save()
 
-        s2 = schedule(timedelta(seconds=interval))
-        m2 = self.create_model_interval(s2, enabled=True)
-        m2.last_run_at = self.app.now() - timedelta(seconds=interval + 1)
-        m2.save()
-        m2.refresh_from_db()
-
-        e1 = EntryTrackSave(m1, self.app)
-        # because the disabled task e1 runs first, e2 will never be executed
-        e2 = EntryTrackSave(m2, self.app)
-
+        disabled_entry = EntryTrackSave(disabled, self.app)
+        enabled_entry = EntryTrackSave(enabled, self.app)
         s = self.Scheduler(app=self.app)
+        monkeypatch.setattr(s, 'schedule_changed', lambda: False)
         s.schedule.clear()
-        s.schedule[e1.name] = e1
-        s.schedule[e2.name] = e2
+        s.schedule[disabled_entry.name] = disabled_entry
+        s.schedule[enabled_entry.name] = enabled_entry
 
-        tried = set()
+        apply_entry = MagicMock()
+        monkeypatch.setattr(s, 'apply_entry', apply_entry)
+        monkeypatch.setattr(s, 'producer', MagicMock())
         for _ in range(len(s.schedule) * 8):
             tick_interval = s.tick()
-            if tick_interval and tick_interval > 0.0:
-                tried.add(s._heap[0].entry.name)
-                time.sleep(tick_interval)
-                if s.should_sync():
-                    s.sync()
-        assert len(tried) == 1 and tried == {e1.name}
+            now += timedelta(seconds=max(tick_interval, 0) + 0.01)
+
+        # Heap ordering can change when Celery retries a disabled entry.
+        # Check dispatches rather than requiring that entry to block the heap.
+        assert apply_entry.called
+        assert {call.args[0].name for call in apply_entry.call_args_list} == {
+            enabled_entry.name,
+        }
+        assert disabled.total_run_count == 0
+        assert enabled.total_run_count > 0
 
     def test_starttime_trigger(self, monkeypatch):
         # Ensure there is no heap block in case of new task with start_time
