@@ -19,6 +19,7 @@ from celery.schedules import crontab, schedule, solar
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError, transaction
 from django.db.utils import DatabaseError
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
@@ -900,7 +901,7 @@ class test_DatabaseScheduler(SchedulerCase):
                 model.solar
                 model.clocked
 
-    def test_schedule_changed(self):
+    def test_schedule_changed(self, django_capture_on_commit_callbacks):
         self.m2.args = '[16, 16]'
         self.m2.save()
         e2 = self.s.schedule[self.m2.name]
@@ -913,7 +914,8 @@ class test_DatabaseScheduler(SchedulerCase):
         e1 = self.s.schedule[self.m1.name]
         assert e1.args == [32, 32]
 
-        self.m3.delete()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m3.delete()
         with pytest.raises(KeyError):
             self.s.schedule.__getitem__(self.m3.name)
 
@@ -964,8 +966,8 @@ class test_DatabaseScheduler(SchedulerCase):
         self.s._dirty.add(self.m2.name)
         self.s.sync()
 
-        e2 = self.s.schedule[self.m2.name]
-        assert e2.last_run_at == last_run2
+        m2_db = PeriodicTask.objects.get(pk=self.m2.pk)
+        assert m2_db.last_run_at == last_run2
 
     def test_sync_syncs_before_save(self):
         # Get the entry for m2
@@ -989,7 +991,9 @@ class test_DatabaseScheduler(SchedulerCase):
         assert e3.last_run_at == e2.last_run_at
         assert e3.args == [16, 16]
 
-    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(self):
+    def test_database_error_during_sync_does_not_redispatch_task_on_next_tick(
+            self, django_capture_on_commit_callbacks,
+    ):
         # Disable m1 - its 10s interval would outrace m2 to the heap top
         # on slow runs
         self.m1.enabled = False
@@ -1004,7 +1008,8 @@ class test_DatabaseScheduler(SchedulerCase):
         with patch.object(self.s, 'apply_entry') as apply_entry:
             # First tick: m2 fires.
             self.s.tick()
-            PeriodicTasks.update_changed()
+            with django_capture_on_commit_callbacks(execute=True):
+                PeriodicTasks.update_changed()
 
             with patch.object(schedulers.ModelEntry, 'save',
                               side_effect=DatabaseError('boom')):
@@ -1782,6 +1787,410 @@ class test_models(SchedulerCase):
         isdue2, nextcheck2 = s.schedule.is_due(dt2_lastrun)
         assert isdue2 is True  # True means task is due and should run.
         assert (nextcheck2 == NEVER_CHECK_TIMEOUT) and (isdue2 is True)
+
+
+@pytest.mark.django_db
+class test_change_detection(SchedulerCase):
+    """Tests for pull-based schedule change detection (issue #1000)."""
+
+    @pytest.fixture(autouse=True)
+    def setup_scheduler(self, app):
+        self.app = app
+        self.app.conf.beat_schedule = {}
+        self.m1 = self.create_model_interval(schedule(timedelta(seconds=10)))
+        self.m1.save()
+        self.s = TrackingScheduler(app=self.app)
+
+    def test_housekeeping_save_does_not_trigger_schedule_reload(
+            self, django_capture_on_commit_callbacks,
+    ):
+        entry = self.s.schedule[self.m1.name]
+        before_last_change = PeriodicTasks.last_change()
+        before_date_changed = PeriodicTask.objects.get(
+            pk=self.m1.pk,
+        ).date_changed
+        self.s._last_timestamp = before_last_change
+        with django_capture_on_commit_callbacks(execute=True):
+            self.s.reserve(entry)
+            self.s.sync()
+        after_date_changed = PeriodicTask.objects.get(
+            pk=self.m1.pk,
+        ).date_changed
+        assert after_date_changed == before_date_changed
+        assert PeriodicTasks.last_change() == before_last_change
+        assert not self.s.schedule_changed()
+
+    @pytest.mark.parametrize(('schedule_model', 'field_name'), [
+        (IntervalSchedule, 'every'),
+        (CrontabSchedule, 'minute'),
+        (SolarSchedule, 'latitude'),
+        (ClockedSchedule, 'clocked_time'),
+    ])
+    def test_in_place_schedule_edit_advances_last_change(
+            self, schedule_model, field_name,
+    ):
+        if schedule_model is IntervalSchedule:
+            task = self.create_model_interval(schedule(timedelta(seconds=10)))
+        elif schedule_model is CrontabSchedule:
+            task = self.create_model_crontab(crontab(minute='1,2'))
+        elif schedule_model is SolarSchedule:
+            task = self.create_model_solar(
+                solar('solar_noon', 48.06, 12.86),
+            )
+        else:
+            due = make_aware(datetime.now() + timedelta(minutes=5))
+            task = self.create_model_clocked(clocked(due))
+        task.save()
+        before = PeriodicTasks.last_change()
+        if schedule_model is IntervalSchedule:
+            schedule_obj = task.interval
+        elif schedule_model is CrontabSchedule:
+            schedule_obj = task.crontab
+        elif schedule_model is SolarSchedule:
+            schedule_obj = task.solar
+        else:
+            schedule_obj = task.clocked
+        if field_name == 'every':
+            schedule_obj.every += 1
+        elif field_name == 'minute':
+            schedule_obj.minute = '3,4'
+        elif field_name == 'latitude':
+            schedule_obj.latitude = 49.0
+        else:
+            schedule_obj.clocked_time = schedule_obj.clocked_time + timedelta(
+                minutes=1,
+            )
+        schedule_obj.save()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_delete_advances_last_change(
+            self, django_capture_on_commit_callbacks,
+    ):
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m1.delete()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_bulk_update_advances_last_change(
+            self, django_capture_on_commit_callbacks,
+    ):
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTask.objects.filter(pk=self.m1.pk).update(args='[99]')
+            PeriodicTasks.update_changed()
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_normal_save_does_not_bump_last_update_field(self):
+        marker_time = timezone.now() - timedelta(days=1)
+        PeriodicTasks.objects.create(ident=1, last_update=marker_time)
+        before_last_change = PeriodicTasks.last_change()
+        self.m1.args = '[42]'
+        self.m1.save()
+        after_last_change = PeriodicTasks.last_change()
+        assert after_last_change > before_last_change
+        assert PeriodicTasks.objects.get(ident=1).last_update == marker_time
+
+    def test_schedule_save_does_not_bump_change_marker(self):
+        interval = self.m1.interval
+        try:
+            marker_before = PeriodicTasks.objects.get(
+                ident=1,
+            ).last_update
+        except PeriodicTasks.DoesNotExist:
+            marker_before = None
+        before_last_change = PeriodicTasks.last_change()
+        interval.every += 1
+        interval.save()
+        assert PeriodicTasks.last_change() > before_last_change
+        if marker_before is None:
+            assert not PeriodicTasks.objects.filter(ident=1).exists()
+        else:
+            marker_after = PeriodicTasks.objects.get(
+                ident=1,
+            ).last_update
+            assert marker_after == marker_before
+
+    def test_schedule_delete_bumps_change_marker(
+            self, django_capture_on_commit_callbacks,
+    ):
+        interval = IntervalSchedule.objects.create(every=5, period=DAYS)
+        with django_capture_on_commit_callbacks(execute=True):
+            interval.delete()
+        assert PeriodicTasks.objects.filter(ident=1).exists()
+
+    def test_delete_max_date_changed_row_remains_detectable(
+            self, django_capture_on_commit_callbacks,
+    ):
+        time.sleep(0.01)
+        self.m1.args = '[1, 2]'
+        self.m1.save()
+        before = PeriodicTasks.last_change()
+        with django_capture_on_commit_callbacks(execute=True):
+            self.m1.delete()
+        after = PeriodicTasks.last_change()
+        assert after >= before
+
+    def test_update_changed_integrity_error_fallback(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTasks.objects.create(
+            ident=1, last_update=timezone.now(),
+        )
+        real_filter = PeriodicTasks.objects.filter
+        update_calls = []
+
+        def filtering(*args, **kwargs):
+            qs = real_filter(*args, **kwargs)
+            if kwargs == {'ident': 1}:
+                original_update = qs.update
+
+                def spy_update(**fields):
+                    update_calls.append(fields)
+                    if len(update_calls) == 1:
+                        return 0
+                    return original_update(**fields)
+
+                qs.update = spy_update
+            return qs
+
+        with patch.object(
+            PeriodicTasks.objects, 'filter', side_effect=filtering,
+        ), patch.object(
+            PeriodicTasks.objects, 'create', side_effect=IntegrityError,
+        ), django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+
+        assert len(update_calls) == 2
+
+    def test_update_changed_skips_create_when_row_exists(
+            self, django_capture_on_commit_callbacks,
+    ):
+        old = timezone.now() - timedelta(days=1)
+        PeriodicTasks.objects.create(ident=1, last_update=old)
+        with patch.object(PeriodicTasks.objects, 'create') as mock_create:
+            with django_capture_on_commit_callbacks(execute=True):
+                PeriodicTasks.update_changed()
+            mock_create.assert_not_called()
+        new = PeriodicTasks.objects.get(ident=1).last_update
+        assert new > old
+
+    def test_update_changed_creates_marker_row_when_absent(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTasks.objects.all().delete()
+        assert not PeriodicTasks.objects.filter(ident=1).exists()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+        row = PeriodicTasks.objects.get(ident=1)
+        assert row.last_update is not None
+
+    def test_last_change_uses_change_marker(
+            self, django_capture_on_commit_callbacks,
+    ):
+        PeriodicTask.objects.all().delete()
+        with django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+        marker = PeriodicTasks.objects.get(ident=1).last_update
+        assert PeriodicTasks.last_change() == marker
+
+    def test_last_change_skips_falsy_marker(self):
+        PeriodicTask.objects.all().delete()
+        IntervalSchedule.objects.all().delete()
+        CrontabSchedule.objects.all().delete()
+        SolarSchedule.objects.all().delete()
+        ClockedSchedule.objects.all().delete()
+        PeriodicTasks.objects.create(
+            ident=1, last_update=timezone.now(),
+        )
+        mock_row = MagicMock()
+        mock_row.last_update = None
+        with patch.object(PeriodicTasks.objects, 'get', return_value=mock_row):
+            assert PeriodicTasks.last_change() is None
+
+    def test_save_update_fields_omitting_date_changed_is_detected(self):
+        """save(update_fields=...) must still bump date_changed for Beat.
+
+        Django skips auto_now unless the field is listed in update_fields.
+        A partial save that omits date_changed would leave MAX(date_changed)
+        unchanged, so Beat would miss the edit.
+        """
+        before = PeriodicTasks.last_change()
+        self.m1.args = '[1]'
+        self.m1.save(update_fields=['args'])
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_late_commit_with_older_save_stamp_is_detected(
+            self, django_capture_on_commit_callbacks,
+    ):
+        """Out-of-order commit must still be visible to Beat (#1061 review).
+
+        Transaction A stamps ``date_changed`` at save time (older) but
+        commits after transaction B (newer). Beat consumes the newer
+        watermark. After A commits, the row is restamped to commit time
+        so ``MAX(date_changed)`` moves and Beat reloads.
+        """
+        newer = timezone.now()
+        older = newer - timedelta(seconds=30)
+
+        # Transaction B committed; Beat already advanced past its stamp.
+        PeriodicTask.objects.filter(pk=self.m1.pk).update(
+            args='["b-committed"]',
+            date_changed=newer,
+        )
+        self.s._last_timestamp = PeriodicTasks.last_change()
+        assert not self.s.schedule_changed()
+
+        # Reuse m1's interval so creating A does not bump schedule
+        # ``updated_at`` past the watermark and mask the race.
+        late = self.create_model(
+            interval=self.m1.interval,
+            args='["a-late-commit"]',
+        )
+        with django_capture_on_commit_callbacks(execute=True), transaction.atomic():
+            late.save()
+            PeriodicTask.objects.filter(pk=late.pk).update(
+                date_changed=older,
+                args='["a-late-commit"]',
+            )
+            # Save-time stamp is still behind Beat's watermark.
+            assert PeriodicTasks.last_change() == self.s._last_timestamp
+
+        assert PeriodicTasks.last_change() > self.s._last_timestamp
+        assert late.name in self.s.schedule
+        assert self.s.schedule[late.name].args == ['a-late-commit']
+
+    def test_schedule_save_update_fields_omitting_updated_at_is_detected(self):
+        """Partial schedule saves must still bump updated_at for Beat.
+
+        The TimestampedScheduleMixin path is separate from PeriodicTask.save().
+        """
+        interval = self.m1.interval
+        before = PeriodicTasks.last_change()
+        interval.every += 1
+        interval.save(update_fields=['every'])
+        after = PeriodicTasks.last_change()
+        assert after > before
+
+    def test_late_commit_schedule_edit_with_older_stamp_is_detected(
+            self, django_capture_on_commit_callbacks,
+    ):
+        """In-place schedule edits restamp updated_at at commit time."""
+        newer = timezone.now()
+        older = newer - timedelta(seconds=30)
+        PeriodicTask.objects.filter(pk=self.m1.pk).update(
+            date_changed=newer,
+        )
+        IntervalSchedule.objects.filter(pk=self.m1.interval_id).update(
+            updated_at=newer - timedelta(seconds=1),
+        )
+        self.s._last_timestamp = PeriodicTasks.last_change()
+        assert not self.s.schedule_changed()
+
+        interval = self.m1.interval
+        interval.every += 1
+        with django_capture_on_commit_callbacks(execute=True), transaction.atomic():
+            interval.save()
+            IntervalSchedule.objects.filter(pk=interval.pk).update(
+                updated_at=older,
+                every=interval.every,
+            )
+            assert PeriodicTasks.last_change() == self.s._last_timestamp
+
+        assert PeriodicTasks.last_change() > self.s._last_timestamp
+        entry = self.s.schedule[self.m1.name]
+        assert entry.model.interval.every == interval.every
+
+    def test_autocommit_save_does_not_register_commit_restamp(self):
+        """Outside an atomic block, save() must stay a single write."""
+        mock_conn = MagicMock()
+        mock_conn.in_atomic_block = False
+        with patch(
+            'django_celery_beat.models.transaction.get_connection',
+            return_value=mock_conn,
+        ), patch(
+            'django_celery_beat.models.transaction.on_commit',
+        ) as mock_on_commit:
+            self.m1.args = '[7]'
+            self.m1.save()
+            interval = self.m1.interval
+            interval.every += 1
+            interval.save()
+        mock_on_commit.assert_not_called()
+
+    def test_restamp_skips_when_pk_is_none(self):
+        from django_celery_beat.models import \
+            _restamp_tracking_field_on_commit  # noqa: PLC0415
+        with patch(
+            'django_celery_beat.models.transaction.on_commit',
+        ) as mock_on_commit:
+            _restamp_tracking_field_on_commit(
+                PeriodicTask, None, 'date_changed',
+            )
+        mock_on_commit.assert_not_called()
+
+    def test_restamp_without_using_updates_tracking_field(
+            self, django_capture_on_commit_callbacks,
+    ):
+        from django_celery_beat.models import \
+            _restamp_tracking_field_on_commit  # noqa: PLC0415
+        older = timezone.now() - timedelta(seconds=30)
+        PeriodicTask.objects.filter(pk=self.m1.pk).update(
+            date_changed=older,
+        )
+        with django_capture_on_commit_callbacks(execute=True):
+            _restamp_tracking_field_on_commit(
+                PeriodicTask, self.m1.pk, 'date_changed', using=None,
+            )
+        self.m1.refresh_from_db()
+        assert self.m1.date_changed > older
+
+    def test_schedule_empty_update_fields_does_not_restamp(
+            self, django_capture_on_commit_callbacks,
+    ):
+        interval = self.m1.interval
+        before = IntervalSchedule.objects.get(pk=interval.pk).updated_at
+        with django_capture_on_commit_callbacks(execute=True):
+            interval.save(update_fields=[])
+        after = IntervalSchedule.objects.get(pk=interval.pk).updated_at
+        assert after == before
+
+    def test_restamp_callback_exception_is_logged_not_raised(
+            self, django_capture_on_commit_callbacks,
+    ):
+        """A failed post-commit restamp must not fail the caller."""
+        from django_celery_beat.models import \
+            _restamp_tracking_field_on_commit  # noqa: PLC0415
+        qs = MagicMock()
+        qs.update.side_effect = RuntimeError('transient db error')
+        with patch.object(
+            PeriodicTask._default_manager, 'filter', return_value=qs,
+        ), patch(
+            'django_celery_beat.models.logger.warning',
+        ) as mock_warning, django_capture_on_commit_callbacks(execute=True):
+            _restamp_tracking_field_on_commit(
+                PeriodicTask, self.m1.pk, 'date_changed', using=None,
+            )
+        mock_warning.assert_called_once()
+        assert 'Failed to restamp' in mock_warning.call_args.args[0]
+
+    def test_update_changed_callback_exception_is_logged_not_raised(
+            self, django_capture_on_commit_callbacks,
+    ):
+        """A failed post-commit marker bump must not fail the caller."""
+        qs = MagicMock()
+        qs.update.side_effect = RuntimeError('transient db error')
+        with patch.object(
+            PeriodicTasks.objects, 'filter', return_value=qs,
+        ), patch(
+            'django_celery_beat.models.logger.warning',
+        ) as mock_warning, django_capture_on_commit_callbacks(execute=True):
+            PeriodicTasks.update_changed()
+        mock_warning.assert_called_once()
+        assert 'Failed to bump PeriodicTasks' in mock_warning.call_args.args[0]
 
 
 @pytest.mark.django_db
