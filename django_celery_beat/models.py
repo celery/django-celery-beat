@@ -196,6 +196,11 @@ class IntervalSchedule(models.Model):
 
     @classmethod
     def from_schedule(cls, schedule, period=SECONDS):
+        if period == SECONDS and schedule.run_every < timedelta(seconds=1):
+            # Sub-second intervals can't be expressed as an integer
+            # number of seconds; store them in microseconds instead of
+            # failing validation on every=0.
+            period = MICROSECONDS
         period_delta = timedelta(**{period: 1})
         every = max(schedule.run_every // period_delta, 0)
         try:
