@@ -22,6 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DatabaseError
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
+from kombu.utils.json import loads
 
 from django_celery_beat import schedulers
 from django_celery_beat.admin import PeriodicTaskAdmin
@@ -1613,6 +1614,46 @@ class test_DatabaseScheduler(SchedulerCase):
         for hour_str in valid_hours:
             hour_value = int(hour_str)
             assert 0 <= hour_value <= 23
+
+    @pytest.mark.django_db
+    def test_entry_preserves_extra_options(self, app):
+        """Options without a dedicated column survive the DB round trip."""
+        entry = EntryTrackSave.from_entry(
+            'task-with-options', app=app,
+            task='djcelery.unittest.add',
+            schedule=timedelta(seconds=60),
+            options={
+                'queue': 'fifo',
+                'MessageGroupId': 'reminders',
+                'delivery_mode': 2,
+            },
+        )
+        entry.save()
+
+        assert entry.model.queue == 'fifo'
+        stored = loads(entry.model.options)
+        assert stored == {
+            'MessageGroupId': 'reminders',
+            'delivery_mode': 2,
+        }
+        # Dedicated columns are not duplicated into the options JSON.
+        assert 'queue' not in stored
+
+        # Rebuild the entry from the persisted model: extra options are
+        # applied next to the dedicated columns.
+        entry2 = EntryTrackSave(entry.model, app=app)
+        assert entry2.options['queue'] == 'fifo'
+        assert entry2.options['MessageGroupId'] == 'reminders'
+        assert entry2.options['delivery_mode'] == 2
+
+    @pytest.mark.django_db
+    def test_entry_options_default_to_empty(self, app):
+        """Models without stored options produce an empty extras dict."""
+        task = self.create_model_interval(schedule(timedelta(seconds=10)))
+        task.save()
+        entry = EntryTrackSave(task, app=app)
+        assert entry.model.options == '{}'
+        assert 'MessageGroupId' not in entry.options
 
 
 @pytest.mark.django_db

@@ -76,7 +76,9 @@ class ModelEntry(ScheduleEntry):
             )
             self._disable(model)
 
-        self.options = {}
+        # Options not mapped to a dedicated column (e.g. broker-specific
+        # send options like MessageGroupId) are stored as JSON.
+        self.options = loads(model.options or '{}')
         for option in ['queue', 'exchange', 'routing_key', 'priority']:
             value = getattr(model, option)
             if value is None:
@@ -244,6 +246,7 @@ class ModelEntry(ScheduleEntry):
             'priority': priority,
             'headers': dumps(headers or {}),
             'expire_seconds': expire_seconds,
+            'options': dumps(kwargs),
         }
 
     def __repr__(self):
