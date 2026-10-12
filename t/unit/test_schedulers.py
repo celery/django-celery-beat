@@ -1145,6 +1145,7 @@ class test_DatabaseScheduler(SchedulerCase):
         monkeypatch.setattr(self.app, 'now', lambda: now)
         monkeypatch.setattr(EntryTrackSave, 'default_now', lambda entry: now)
         monkeypatch.setattr(EntryTrackSave, '_default_now', lambda entry: now)
+        monkeypatch.setattr('django_celery_beat.models.now', lambda: now)
 
         interval = schedule(timedelta(seconds=10))
         disabled = self.create_model_interval(interval, enabled=False)
