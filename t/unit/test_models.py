@@ -1,5 +1,5 @@
-import datetime
 import os
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 try:
@@ -146,14 +146,14 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         self._test_duplicate_schedules(IntervalSchedule, kwargs, schedule)
 
     def test_from_schedule_default_period_seconds(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(minutes=3))
+        schedule = schedules.schedule(run_every=timedelta(minutes=3))
         result = IntervalSchedule.from_schedule(schedule)
         self.assertIsInstance(result.every, int)
         self.assertEqual(result.every, 180)
         self.assertEqual(result.period, IntervalSchedule.SECONDS)
 
     def test_from_schedule_period_minutes(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(minutes=3))
+        schedule = schedules.schedule(run_every=timedelta(minutes=3))
         result = IntervalSchedule.from_schedule(
             schedule,
             period=IntervalSchedule.MINUTES
@@ -163,21 +163,21 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         self.assertEqual(result.period, IntervalSchedule.MINUTES)
 
     def test_from_schedule_period_hours(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(hours=2))
+        schedule = schedules.schedule(run_every=timedelta(hours=2))
         result = IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.HOURS)
         self.assertIsInstance(result.every, int)
         self.assertEqual(result.every, 2)
         self.assertEqual(result.period, IntervalSchedule.HOURS)
 
     def test_from_schedule_period_days(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(days=5))
+        schedule = schedules.schedule(run_every=timedelta(days=5))
         result = IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.DAYS)
         self.assertIsInstance(result.every, int)
         self.assertEqual(result.every, 5)
         self.assertEqual(result.period, IntervalSchedule.DAYS)
 
     def test_from_schedule_period_microseconds(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(microseconds=50_000))
+        schedule = schedules.schedule(run_every=timedelta(microseconds=50_000))
         result = IntervalSchedule.from_schedule(
             schedule,
             period=IntervalSchedule.MICROSECONDS
@@ -187,7 +187,7 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         self.assertEqual(result.period, IntervalSchedule.MICROSECONDS)
 
     def test_from_schedule_period_rounds_down(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(seconds=100))
+        schedule = schedules.schedule(run_every=timedelta(seconds=100))
         result = IntervalSchedule.from_schedule(
             schedule,
             period=IntervalSchedule.MINUTES
@@ -197,7 +197,7 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         self.assertEqual(result.period, IntervalSchedule.MINUTES)
 
     def test_from_schedule_period_raises_when_run_every_below_period(self):
-        schedule = schedules.schedule(run_every=datetime.timedelta(seconds=30))
+        schedule = schedules.schedule(run_every=timedelta(seconds=30))
         with self.assertRaises(ValidationError):
             IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.MINUTES)
 
@@ -212,8 +212,8 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
     @override_settings(TIME_ZONE='Africa/Cairo')
     def test_timezone_format(self):
         """Ensure scheduled time is not shown in UTC when timezone is used"""
-        tz_info = datetime.datetime.now(ZoneInfo(settings.TIME_ZONE))
-        schedule, created = ClockedSchedule.objects.get_or_create(
+        tz_info = datetime.now(ZoneInfo(settings.TIME_ZONE))
+        schedule, _created = ClockedSchedule.objects.get_or_create(
             clocked_time=tz_info)
         # testnig str(schedule) calls make_aware() internally
         assert str(schedule.clocked_time) == str(schedule)
