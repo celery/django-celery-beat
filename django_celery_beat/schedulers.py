@@ -1,7 +1,8 @@
 """Beat Scheduler Implementation."""
-import datetime
 import logging
 import math
+from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 from multiprocessing.util import Finalize
 
 try:
@@ -111,14 +112,14 @@ class ModelEntry(ScheduleEntry):
                 model.last_run_at = timezone.make_aware(
                     model.last_run_at,
                     timezone.get_default_timezone(),
-                ).astimezone(datetime.timezone.utc).replace(tzinfo=None)
+                ).astimezone(datetime_timezone.utc).replace(tzinfo=None)
             # if last_run_at is not set and
             # model.start_time last_run_at should be in way past.
             # This will trigger the job to run at start_time
             # and avoid the heap block.
             if self.model.start_time:
                 model.last_run_at = model.last_run_at \
-                    - datetime.timedelta(days=365 * 30)
+                    - timedelta(days=365 * 30)
 
         self.last_run_at = model.last_run_at
 
@@ -177,11 +178,11 @@ class ModelEntry(ScheduleEntry):
 
     def _default_now(self):
         if getattr(settings, 'DJANGO_CELERY_BEAT_TZ_AWARE', True):
-            now = datetime.datetime.now(self.app.timezone)
+            now = datetime.now(self.app.timezone)
         else:
             # this ends up getting passed to maybe_make_aware, which expects
             # all naive datetime objects to be in utc time.
-            now = datetime.datetime.utcnow()
+            now = datetime.utcnow()
         return now
 
     def __next__(self):
@@ -299,7 +300,7 @@ class DatabaseScheduler(Scheduler):
         return list(self.enabled_models_qs())
 
     def enabled_models_qs(self):
-        next_schedule_sync = now() + datetime.timedelta(
+        next_schedule_sync = now() + timedelta(
             seconds=SCHEDULE_SYNC_MAX_INTERVAL
         )
         # Keep this as an anti-join: it avoids both the nullable outer join and
@@ -416,7 +417,7 @@ class DatabaseScheduler(Scheduler):
         target_tz = ZoneInfo(timezone_name)
 
         # Use a fixed point in time for the calculation to avoid DST issues
-        fixed_dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
+        fixed_dt = datetime(2023, 1, 1, 12, 0, 0)
 
         # Calculate the offset
         dt1 = fixed_dt.replace(tzinfo=server_tz)
@@ -540,7 +541,7 @@ class DatabaseScheduler(Scheduler):
     @property
     def schedule(self):
         initial = update = False
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
 
         if self._initial_read:
             debug('DatabaseScheduler: initial read')
