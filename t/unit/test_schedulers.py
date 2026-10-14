@@ -1,3 +1,5 @@
+# ruff: noqa: DTZ001,DTZ003,DTZ005  # many tests require naive datetimes
+
 import math
 import os
 import time
