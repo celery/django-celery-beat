@@ -1314,6 +1314,57 @@ class test_DatabaseScheduler(SchedulerCase):
             assert s._heap[0][2].name != m2.name
             is_due, _ = e2.is_due()
 
+    def test_crontab_with_start_time_inside_matching_slot(self, app):
+        # A crontab pinned to a single calendar slot must still wake at
+        # start_time when start_time falls inside that slot, not at the
+        # next occurrence (which may be years away).
+        now = app.now()
+        test_start_time = now + timedelta(minutes=2)
+
+        task = self.create_model_crontab(
+            crontab(
+                minute=f'{test_start_time.minute}',
+                hour=f'{test_start_time.hour}',
+                day_of_month=f'{test_start_time.day}',
+                month_of_year=f'{test_start_time.month}',
+                day_of_week=f'{test_start_time.isoweekday() % 7}',
+            ),
+            start_time=test_start_time)
+
+        entry = EntryTrackSave(task, app=app)
+        is_due, next_check = entry.is_due()
+
+        assert not is_due
+        assert next_check == pytest.approx(2 * 60, abs=60)
+
+    def test_crontab_with_start_time_crontab_timezone(self, app):
+        # The next matching slot must be evaluated in the crontab's own
+        # timezone, not in the app timezone.
+        tokyo = ZoneInfo('Asia/Tokyo')
+        now = app.now()
+        now_tokyo = now.astimezone(tokyo)
+
+        next_nine = now_tokyo.replace(
+            hour=9, minute=0, second=0, microsecond=0)
+        if now_tokyo >= next_nine:
+            next_nine += timedelta(days=1)
+        test_start_time = next_nine - timedelta(minutes=30)
+
+        crontab_schedule = CrontabSchedule.objects.create(
+            hour='9', timezone='Asia/Tokyo')
+        task = self.create_model(
+            name='tokyo-start-time',
+            crontab=crontab_schedule,
+            start_time=test_start_time)
+        task.save()
+
+        entry = EntryTrackSave(task, app=app)
+        is_due, next_check = entry.is_due()
+
+        assert not is_due
+        expected_delay = (next_nine - now).total_seconds()
+        assert next_check == pytest.approx(expected_delay, abs=60)
+
     @pytest.mark.django_db
     def test_crontab_exclusion_logic_basic(self):
         current_hour = datetime.now().hour
