@@ -38,6 +38,9 @@ SCHEDULE_SYNC_MAX_INTERVAL = 300  # 5 minutes
 ADD_ENTRY_ERROR = """\
 Cannot add entry %r to database schedule: %r. Contents: %r
 """
+LOAD_ENTRY_ERROR = """\
+Cannot load periodic task %r from the database, it will not run: %r
+"""
 
 logger = get_logger(__name__)
 debug, info, warning = logger.debug, logger.info, logger.warning
@@ -287,8 +290,8 @@ class DatabaseScheduler(Scheduler):
         for model in self.enabled_models():
             try:
                 s[model.name] = self.Entry(model, app=self.app)
-            except ValueError:
-                pass
+            except ValueError as exc:
+                logger.exception(LOAD_ENTRY_ERROR, model.name, exc)
         return s
 
     def enabled_models(self):
