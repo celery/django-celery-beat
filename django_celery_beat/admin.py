@@ -115,13 +115,15 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
     celery_app = current_app
     date_hierarchy = 'start_time'
     list_display = ('name', 'enabled', 'scheduler', 'interval', 'start_time',
-                    'last_run_at', 'one_off')
-    list_filter = ['enabled', 'one_off', 'task', 'start_time', 'last_run_at']
+                    'last_run_at', 'one_off', 'from_configuration')
+    list_filter = ['enabled', 'one_off', 'task', 'start_time', 'last_run_at',
+                   'from_configuration']
     actions = ('enable_tasks', 'disable_tasks', 'toggle_tasks', 'run_tasks')
     search_fields = ('name', 'task',)
     fieldsets = (
         (None, {
-            'fields': ('name', 'regtask', 'task', 'enabled', 'description',),
+            'fields': ('name', 'regtask', 'task', 'enabled',
+                       'from_configuration', 'description',),
             'classes': ('extrapretty', 'wide'),
         }),
         (_('Schedule'), {
@@ -140,7 +142,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = (
-        'last_run_at', 'crontab_translation',
+        'last_run_at', 'crontab_translation', 'from_configuration',
     )
 
     def crontab_translation(self, obj):
@@ -156,6 +158,17 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         for crontab in crontabs:
             crontab_dict[crontab.id] = crontab.human_readable
         extra_context['readable_crontabs'] = crontab_dict
+        if object_id and request.method == 'GET':
+            obj = self.get_object(request, object_id)
+            if obj is not None and obj.from_configuration:
+                messages.warning(
+                    request,
+                    _('This task was imported from CELERY_BEAT_SCHEDULE. '
+                      'Any changes saved here will be reverted the next '
+                      'time celery beat restarts. To make changes durable, '
+                      'edit the task in your application configuration, or '
+                      'remove it from CELERY_BEAT_SCHEDULE first.'),
+                )
         return super().changeform_view(request, object_id,
                                        extra_context=extra_context)
 
