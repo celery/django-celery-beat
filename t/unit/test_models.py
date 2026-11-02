@@ -5,7 +5,7 @@ from unittest.mock import patch
 try:
     from zoneinfo import ZoneInfo, available_timezones
 except ImportError:
-    from backports.zoneinfo import available_timezones, ZoneInfo
+    from backports.zoneinfo import ZoneInfo, available_timezones
 
 import pytest
 from celery import schedules
