@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import time
@@ -841,6 +842,59 @@ class test_DatabaseScheduler(SchedulerCase):
         # Verify all entries are the right type
         for n, e in sched.items():
             assert isinstance(e, self.s.Entry)
+
+    def _unloadable_errors(self, caplog, name):
+        return [
+            r for r in caplog.records
+            if r.levelno >= logging.ERROR and r.exc_info
+            and name in r.getMessage()
+        ]
+
+    def test_all_as_schedule_logs_task_with_invalid_headers(self, caplog):
+        # The admin form validates args and kwargs as JSON, not headers.
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=10)), headers="{'x': 1}")
+        m.save()
+
+        with caplog.at_level(logging.DEBUG):
+            sched = self.s.all_as_schedule()
+
+        assert m.name not in sched
+        assert self._unloadable_errors(caplog, m.name)
+
+    def test_all_as_schedule_logs_task_with_invalid_crontab(self, caplog):
+        # A list saved through the ORM is stored as its str() (#433).
+        cron = CrontabSchedule.objects.create(
+            minute='0', hour='*', day_of_week=[1, 2, 3])
+        m = self.create_model(crontab=cron)
+        m.save()
+
+        with caplog.at_level(logging.DEBUG):
+            sched = self.s.all_as_schedule()
+
+        assert m.name not in sched
+        assert self._unloadable_errors(caplog, m.name)
+
+    def test_all_as_schedule_skips_unloadable_task_keeps_others(self):
+        m = self.create_model_interval(
+            schedule(timedelta(seconds=10)), headers="{'x': 1}")
+        m.save()
+
+        sched = self.s.all_as_schedule()
+
+        assert m.name not in sched
+        assert {self.m1.name, self.m2.name, self.m3.name} <= set(sched)
+        m.refresh_from_db()
+        assert m.enabled
+
+    def test_all_as_schedule_valid_tasks_log_no_error(self, caplog):
+        with caplog.at_level(logging.DEBUG):
+            sched = self.s.all_as_schedule()
+
+        assert self.m1.name in sched
+        assert not [
+            r for r in caplog.records if r.levelno >= logging.ERROR
+        ]
 
     def test_enabled_models_qs_avoids_outer_join_for_clocked_tasks(self):
         queryset = self.s.enabled_models_qs()
