@@ -875,6 +875,19 @@ class test_DatabaseScheduler(SchedulerCase):
         assert m.name not in sched
         assert self._unloadable_errors(caplog, m.name)
 
+    def test_all_as_schedule_logs_task_with_unparsable_crontab(self, caplog):
+        # crontab_parser raises ParseException, which is not a ValueError.
+        cron = CrontabSchedule.objects.create(minute='1,,2', hour='*')
+        m = self.create_model(crontab=cron)
+        m.save()
+
+        with caplog.at_level(logging.DEBUG):
+            sched = self.s.all_as_schedule()
+
+        assert m.name not in sched
+        assert {self.m1.name, self.m2.name, self.m3.name} <= set(sched)
+        assert self._unloadable_errors(caplog, m.name)
+
     def test_all_as_schedule_skips_unloadable_task_keeps_others(self):
         m = self.create_model_interval(
             schedule(timedelta(seconds=10)), headers="{'x': 1}")

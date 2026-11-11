@@ -290,7 +290,7 @@ class DatabaseScheduler(Scheduler):
         for model in self.enabled_models():
             try:
                 s[model.name] = self.Entry(model, app=self.app)
-            except ValueError as exc:
+            except (ValueError, schedules.ParseException) as exc:
                 logger.exception(LOAD_ENTRY_ERROR, model.name, exc)
         return s
 
