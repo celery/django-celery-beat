@@ -8,6 +8,7 @@ from datetime import timedelta
 
 import timezone_field
 from celery import current_app, schedules
+from celery.utils.log import get_logger
 # cron-descriptor >= 2.0 renamed *Exception to *Error
 from cron_descriptor import Options as CronDescriptorOptions
 from cron_descriptor import get_description
@@ -23,13 +24,16 @@ except ImportError:  # pragma: no cover
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
+from django.db.models import Max
 from django.utils.translation import gettext_lazy as _
 
 from . import querysets, validators
 from .clockedschedule import clocked
 from .tzcrontab import TzAwareCrontab
 from .utils import make_aware, now
+
+logger = get_logger(__name__)
 
 _CRON_DESCRIPTOR_OPTIONS = CronDescriptorOptions()
 _CRON_DESCRIPTOR_OPTIONS.use_24hour_time_format = False
@@ -89,7 +93,88 @@ def crontab_schedule_celery_timezone():
     return 'UTC'
 
 
-class SolarSchedule(models.Model):
+# Beat's ModelEntry.save() only persists run metadata. Those fields must not
+# bump date_changed or the scheduler reloads itself on every tick.
+_PERIODIC_TASK_HOUSEKEEPING_FIELDS = frozenset({
+    'last_run_at', 'total_run_count',
+})
+
+
+def _ensure_tracking_in_update_fields(
+        kwargs, tracking_field, housekeeping_fields=frozenset()):
+    """Include ``tracking_field`` in ``update_fields`` for real edits.
+
+    Django skips ``auto_now`` when the field is omitted from
+    ``update_fields``, which would make ``MAX()`` change detection miss the
+    save. Housekeeping updates (run count / last run) are left alone so Beat
+    does not reload the schedule on every tick.
+
+    Returns True when this save should be ignored for change detection.
+    """
+    update_fields = kwargs.get('update_fields')
+    if update_fields is None:
+        return False
+    update_fields = set(update_fields)
+    if not (update_fields - housekeeping_fields):
+        return True
+    update_fields.add(tracking_field)
+    kwargs['update_fields'] = list(update_fields)
+    return False
+
+
+def _restamp_tracking_field_on_commit(model_cls, pk, field_name, using=None):
+    """Rewrite the tracking timestamp after commit when inside a transaction.
+
+    ``auto_now`` records save time, not commit time. A later-committing
+    transaction can therefore carry an older stamp than one Beat already
+    consumed. Updating the row after commit makes ``MAX()`` follow
+    visibility order. Autocommit saves are left as a single write.
+
+    If the process dies between ``COMMIT`` and this restamp, the row keeps
+    its save-time stamp and may sit below Beat's watermark until the
+    periodic full sync (``SCHEDULE_SYNC_MAX_INTERVAL``). Callback errors
+    are logged and swallowed so a successful commit is not turned into a
+    caller-facing failure.
+    """
+    if pk is None:
+        return
+    if not transaction.get_connection(using).in_atomic_block:
+        return
+
+    def _touch():
+        try:
+            manager = model_cls._default_manager
+            if using:
+                manager = manager.using(using)
+            manager.filter(pk=pk).update(**{field_name: now()})
+        except Exception as exc:
+            logger.warning(
+                'Failed to restamp %s.%s for pk=%s after commit: %r',
+                model_cls.__name__, field_name, pk, exc,
+                exc_info=True,
+            )
+
+    transaction.on_commit(_touch, using=using)
+
+
+class TimestampedScheduleMixin(models.Model):
+    """Keep ``updated_at`` visible to pull-based Beat change detection."""
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        skip_change_detection = _ensure_tracking_in_update_fields(
+            kwargs, 'updated_at',
+        )
+        super().save(*args, **kwargs)
+        if not skip_change_detection:
+            _restamp_tracking_field_on_commit(
+                type(self), self.pk, 'updated_at', using=self._state.db,
+            )
+
+
+class SolarSchedule(TimestampedScheduleMixin):
     """Schedule following astronomical patterns.
 
     Example: to run every sunrise in New York City:
@@ -114,6 +199,11 @@ class SolarSchedule(models.Model):
         help_text=_('Run the task when the event happens at this longitude'),
         validators=[MinValueValidator(-180), MaxValueValidator(180)],
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -122,6 +212,9 @@ class SolarSchedule(models.Model):
         verbose_name_plural = _('solar events')
         ordering = ('event', 'latitude', 'longitude')
         unique_together = ('event', 'latitude', 'longitude')
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -151,7 +244,7 @@ class SolarSchedule(models.Model):
         )
 
 
-class IntervalSchedule(models.Model):
+class IntervalSchedule(TimestampedScheduleMixin):
     """Schedule executing on a regular interval.
 
     Example: execute every 2 days:
@@ -179,6 +272,11 @@ class IntervalSchedule(models.Model):
         verbose_name=_('Interval Period'),
         help_text=_('The type of period between task runs (Example: days)'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -186,6 +284,9 @@ class IntervalSchedule(models.Model):
         verbose_name = _('interval')
         verbose_name_plural = _('intervals')
         ordering = ['period', 'every']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def schedule(self):
@@ -226,12 +327,17 @@ class IntervalSchedule(models.Model):
         return self.period[:-1]
 
 
-class ClockedSchedule(models.Model):
+class ClockedSchedule(TimestampedScheduleMixin):
     """clocked schedule."""
 
     clocked_time = models.DateTimeField(
         verbose_name=_('Clock Time'),
         help_text=_('Run the task at clocked time'),
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
     )
 
     class Meta:
@@ -240,6 +346,9 @@ class ClockedSchedule(models.Model):
         verbose_name = _('clocked')
         verbose_name_plural = _('clocked')
         ordering = ['clocked_time']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     def __str__(self):
         return f'{make_aware(self.clocked_time)}'
@@ -260,7 +369,7 @@ class ClockedSchedule(models.Model):
             return cls.objects.filter(**spec).first()
 
 
-class CrontabSchedule(models.Model):
+class CrontabSchedule(TimestampedScheduleMixin):
     """Timezone Aware Crontab-like schedule.
 
     Example:  Run every hour at 0 minutes for days of month 10-15:
@@ -322,6 +431,11 @@ class CrontabSchedule(models.Model):
         help_text=_(
             'Timezone to Run the Cron Schedule on. Default is UTC.'),
     )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        null=True,
+        verbose_name=_('Last Modified'),
+    )
 
     class Meta:
         """Table information."""
@@ -330,6 +444,9 @@ class CrontabSchedule(models.Model):
         verbose_name_plural = _('crontabs')
         ordering = ['month_of_year', 'day_of_month',
                     'day_of_week', 'hour', 'minute', 'timezone']
+        indexes = [
+            models.Index(fields=['updated_at']),
+        ]
 
     @property
     def human_readable(self):
@@ -415,12 +532,19 @@ class CrontabSchedule(models.Model):
 
 
 class PeriodicTasks(models.Model):
-    """Helper table for tracking updates to periodic tasks.
+    """Out-of-band change marker for the beat scheduler.
 
-    This stores a single row with ``ident=1``. ``last_update`` is updated via
-    signals whenever anything changes in the :class:`~.PeriodicTask` model.
-    Basically this acts like a DB data audit trigger.
-    Doing this so we also track deletions, and not just insert/update.
+    This stores a single row with ``ident=1``. ``last_update`` is
+    bumped for changes not captured by timestamps on
+    :class:`~.PeriodicTask` or schedule models (deletions and admin bulk
+    ``queryset.update()``). Inserts and in-place edits are detected by
+    reading ``MAX(date_changed)`` / ``MAX(updated_at)`` instead. Saves
+    inside an atomic block restamp those fields at commit time so the
+    ``MAX()`` cursor follows visibility order.
+
+    Under ``ATOMIC_REQUESTS`` (or any surrounding ``atomic()``), that
+    restamp is an extra per-row write after commit. It does not touch this
+    singleton, so it does not recreate the old lock hotspot.
     """
 
     ident = models.SmallIntegerField(default=1, primary_key=True, unique=True)
@@ -437,14 +561,58 @@ class PeriodicTasks(models.Model):
 
     @classmethod
     def update_changed(cls, **kwargs):
-        cls.objects.update_or_create(ident=1, defaults={'last_update': now()})
+        """Bump the change marker after the current transaction commits.
+
+        Call this after bulk ``QuerySet.update()`` (and similar paths that
+        bypass model ``save()``). The marker write runs via
+        ``transaction.on_commit()``, so reading ``last_change()`` in the
+        same still-open transaction will not see the bump yet. Callback
+        errors are logged and swallowed so a successful commit is not
+        turned into a caller-facing failure; Beat's periodic full sync
+        remains a backstop.
+        """
+        def _bump():
+            try:
+                updated = cls.objects.filter(ident=1).update(
+                    last_update=now(),
+                )
+                if not updated:
+                    try:
+                        cls.objects.create(ident=1, last_update=now())
+                    except IntegrityError:
+                        cls.objects.filter(ident=1).update(
+                            last_update=now(),
+                        )
+            except Exception as exc:
+                logger.warning(
+                    'Failed to bump PeriodicTasks change marker '
+                    'after commit: %r',
+                    exc,
+                    exc_info=True,
+                )
+
+        transaction.on_commit(_bump)
 
     @classmethod
     def last_change(cls):
+        stamps = []
         try:
-            return cls.objects.get(ident=1).last_update
+            if marker := cls.objects.get(ident=1).last_update:
+                stamps.append(marker)
         except cls.DoesNotExist:
             pass
+        stamps.extend(
+            val
+            for model, field in (
+                (PeriodicTask, 'date_changed'),
+                (IntervalSchedule, 'updated_at'),
+                (CrontabSchedule, 'updated_at'),
+                (SolarSchedule, 'updated_at'),
+                (ClockedSchedule, 'updated_at'),
+            )
+            if (val := model.objects.aggregate(m=Max(field))['m'])
+        )
+        return max(stamps) if stamps else None
 
 
 class PeriodicTask(models.Model):
@@ -605,14 +773,15 @@ class PeriodicTask(models.Model):
     class Meta:
         """Table information."""
 
+        verbose_name = _('periodic task')
+        verbose_name_plural = _('periodic tasks')
         indexes = [
             models.Index(
                 fields=['enabled'],
                 name='beat_periodic_enabled_idx',
             ),
+            models.Index(fields=['date_changed']),
         ]
-        verbose_name = _('periodic task')
-        verbose_name_plural = _('periodic tasks')
 
     def validate_unique(self, *args, **kwargs):
         super().validate_unique(*args, **kwargs)
@@ -649,12 +818,14 @@ class PeriodicTask(models.Model):
             self.last_run_at = None
         self._clean_expires()
         self.validate_unique()
+        skip_change_detection = _ensure_tracking_in_update_fields(
+            kwargs, 'date_changed', _PERIODIC_TASK_HOUSEKEEPING_FIELDS,
+        )
         super().save(*args, **kwargs)
-        PeriodicTasks.changed(self)
-
-    def delete(self, *args, **kwargs):
-        super().delete(*args, **kwargs)
-        PeriodicTasks.changed(self)
+        if not skip_change_detection:
+            _restamp_tracking_field_on_commit(
+                type(self), self.pk, 'date_changed', using=self._state.db,
+            )
 
     def _clean_expires(self):
         if self.expire_seconds is not None and self.expires:
