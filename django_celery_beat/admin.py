@@ -221,6 +221,23 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             ).format(rows_updated)
         )
 
+    def _get_execution_options(self, task):
+        """Return the options the beat scheduler would send ``task`` with."""
+        options = {}
+        for option in ('queue', 'exchange', 'routing_key', 'priority'):
+            value = getattr(task, option)
+            if value is None or value == '':
+                continue
+            options[option] = value
+
+        if task.expires_:
+            options['expires'] = task.expires_
+
+        headers = loads(task.headers or '{}')
+        headers['periodic_task_name'] = task.name
+        options['headers'] = headers
+        return options
+
     @admin.action(
         description=_('Run selected tasks')
     )
@@ -229,8 +246,7 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         tasks = [(self.celery_app.tasks.get(task.task),
                   loads(task.args),
                   loads(task.kwargs),
-                  task.queue,
-                  task.name)
+                  self._get_execution_options(task))
                  for task in queryset]
 
         if any(t[0] is None for t in tasks):
@@ -249,19 +265,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
             return
 
         task_ids = [
-            task.apply_async(
-                args=args,
-                kwargs=kwargs,
-                queue=queue,
-                headers={'periodic_task_name': periodic_task_name}
-            )
-            if queue and len(queue)
-            else task.apply_async(
-                args=args,
-                kwargs=kwargs,
-                headers={'periodic_task_name': periodic_task_name}
-            )
-            for task, args, kwargs, queue, periodic_task_name in tasks
+            task.apply_async(args=args, kwargs=kwargs, **options)
+            for task, args, kwargs, options in tasks
         ]
         tasks_run = len(task_ids)
         self.message_user(
