@@ -1868,6 +1868,57 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
         assert 'periodic_task_name' in self.captured_headers
         assert self.captured_headers['periodic_task_name'] == self.m1.name
 
+    @pytest.mark.timeout(5)
+    def test_run_task_execution_options(self, monkeypatch):
+        def mock_apply_async(*args, **kwargs):
+            self.captured_kwargs = kwargs
+
+        monkeypatch.setattr('celery.app.task.Task.apply_async',
+                            mock_apply_async)
+        self.m1.expire_seconds = 60
+        self.m1.queue = 'periodic'
+        self.m1.exchange = 'periodic-exchange'
+        self.m1.routing_key = 'periodic.key'
+        self.m1.priority = 5
+        self.m1.headers = '{"custom": "value"}'
+        self.m1.save()
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
+        assert self.captured_kwargs == {
+            'args': [],
+            'kwargs': {},
+            'queue': 'periodic',
+            'exchange': 'periodic-exchange',
+            'routing_key': 'periodic.key',
+            'priority': 5,
+            'expires': 60,
+            'headers': {
+                'custom': 'value',
+                'periodic_task_name': self.m1.name,
+            },
+        }
+
+    @pytest.mark.timeout(5)
+    def test_run_task_expires_datetime(self, monkeypatch):
+        def mock_apply_async(*args, **kwargs):
+            self.captured_kwargs = kwargs
+
+        monkeypatch.setattr('celery.app.task.Task.apply_async',
+                            mock_apply_async)
+        expires = timezone.now() + timedelta(hours=1)
+        self.m1.expires = expires
+        self.m1.save()
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
+        assert self.captured_kwargs == {
+            'args': [],
+            'kwargs': {},
+            'expires': expires,
+            'headers': {'periodic_task_name': self.m1.name},
+        }
+
 
 @pytest.mark.django_db
 class test_timezone_offset_handling:
