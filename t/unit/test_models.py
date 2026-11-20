@@ -201,6 +201,21 @@ class IntervalScheduleTestCase(TestCase, TestDuplicatesMixin):
         with self.assertRaises(ValidationError):
             IntervalSchedule.from_schedule(schedule, period=IntervalSchedule.MINUTES)
 
+    def test_from_schedule_subsecond_run_every_uses_microseconds(self):
+        schedule = schedules.schedule(
+            run_every=datetime.timedelta(milliseconds=500))
+        result = IntervalSchedule.from_schedule(schedule)
+        self.assertIsInstance(result.every, int)
+        self.assertEqual(result.every, 500_000)
+        self.assertEqual(result.period, IntervalSchedule.MICROSECONDS)
+
+    def test_from_schedule_subsecond_schedule_round_trips(self):
+        schedule = schedules.schedule(
+            run_every=datetime.timedelta(milliseconds=250))
+        result = IntervalSchedule.from_schedule(schedule)
+        self.assertEqual(result.schedule.run_every,
+                         datetime.timedelta(milliseconds=250))
+
 
 class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
 
