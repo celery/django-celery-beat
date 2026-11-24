@@ -1,4 +1,4 @@
-celery>=5.5.0,<6.0
+celery>=5.4.0,<6.0
 django-timezone-field>=7.2.1
 tzdata
 python-crontab>=3.4.0
