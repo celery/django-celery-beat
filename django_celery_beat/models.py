@@ -16,9 +16,9 @@ try:
     from cron_descriptor import (FormatError, MissingFieldError,
                                  WrongArgumentError)
 except ImportError:  # pragma: no cover
-    from cron_descriptor import (FormatException as FormatError,
-                                 MissingFieldException as MissingFieldError,
-                                 WrongArgumentException as WrongArgumentError)
+    from cron_descriptor import FormatException as FormatError
+    from cron_descriptor import MissingFieldException as MissingFieldError
+    from cron_descriptor import WrongArgumentException as WrongArgumentError
 
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError

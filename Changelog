@@ -8,6 +8,7 @@ Next
 ====
 
 - Use the stable Django 6.1 release in the test matrix.
+- Test on Python 3.15 with Django 6.1.
 
 .. _version-2.9.0:
 

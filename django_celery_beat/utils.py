@@ -1,5 +1,5 @@
 """Utilities."""
-import datetime
+import datetime as dt
 # -- XXX This module must not use translation as that causes
 # -- a recursive loader import!
 from datetime import timezone as datetime_timezone
@@ -50,7 +50,7 @@ def aware_now():
     else:
         # When USE_TZ is False, use the project's timezone
         project_tz = ZoneInfo(getattr(settings, 'TIME_ZONE', 'UTC'))
-        return datetime.datetime.now(project_tz)
+        return dt.datetime.now(project_tz)
 
 
 def is_database_scheduler(scheduler):
