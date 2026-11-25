@@ -105,6 +105,19 @@ class PeriodicTaskForm(forms.ModelForm):
     def clean_kwargs(self):
         return self._clean_json('kwargs')
 
+    def clean_headers(self):
+        value = self.cleaned_data['headers']
+        if not value:
+            # PeriodicTask.save() turns '' into None, and the column is
+            # NOT NULL, so store the model default instead.
+            return '{}'
+        self._clean_json('headers')
+        if not isinstance(loads(value), dict):
+            raise forms.ValidationError(
+                _('Headers must be a JSON object'),
+            )
+        return value
+
 
 @admin.register(PeriodicTask)
 class PeriodicTaskAdmin(admin.ModelAdmin):

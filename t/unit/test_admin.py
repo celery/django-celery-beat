@@ -5,7 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from django_celery_beat.admin import PeriodicTaskAdmin
+from django_celery_beat.admin import PeriodicTaskAdmin, PeriodicTaskForm
 from django_celery_beat.models import (DAYS, ClockedSchedule, CrontabSchedule,
                                        IntervalSchedule, PeriodicTask,
                                        SolarSchedule)
@@ -113,6 +113,56 @@ class ValidateUniqueTests(TestCase):
         PeriodicTask(interval=IntervalSchedule()).validate_unique()
         PeriodicTask(solar=SolarSchedule()).validate_unique()
         PeriodicTask(clocked=ClockedSchedule(), one_off=True).validate_unique()
+
+
+@pytest.mark.django_db
+class PeriodicTaskFormHeadersTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.interval_schedule = IntervalSchedule.objects.create(every=10,
+                                                                period=DAYS)
+
+    def _form(self, headers):
+        return PeriodicTaskForm(data={
+            'name': 'name1',
+            'task': 'task1',
+            'interval': self.interval_schedule.pk,
+            'args': '[]',
+            'kwargs': '{}',
+            'headers': headers,
+        })
+
+    def test_headers_invalid_json(self):
+        form = self._form('{bad')
+        self.assertFalse(form.is_valid())
+        self.assertIn('Unable to parse JSON', form.errors['headers'][0])
+
+    def test_headers_not_an_object(self):
+        for headers in ('[1]', '1', '"x"', 'true', 'null'):
+            with self.subTest(headers=headers):
+                form = self._form(headers)
+                self.assertFalse(form.is_valid())
+                self.assertEqual(
+                    form.errors['headers'], ['Headers must be a JSON object'],
+                )
+
+    def test_headers_object(self):
+        form = self._form('{"a": 1}')
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_headers_default(self):
+        self.assertTrue(self._form('{}').is_valid())
+
+    def test_headers_blank_saved_as_empty_object(self):
+        for blank in ('', '   '):
+            with self.subTest(headers=blank):
+                form = self._form(blank)
+                self.assertTrue(form.is_valid(), form.errors)
+                task = form.save()
+                self.assertEqual(task.headers, '{}')
+                task.delete()
 
 
 @pytest.mark.django_db
