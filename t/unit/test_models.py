@@ -223,7 +223,7 @@ class ClockedScheduleTestCase(TestCase, TestDuplicatesMixin):
 class OneToOneRelTestCase(TestCase):
     """
     Make sure that when OneToOne relation Model changed,
-    the `PeriodicTasks.last_update` will be update.
+    ``PeriodicTasks.last_change()`` reflects the update.
     """
 
     @classmethod
@@ -246,9 +246,8 @@ class OneToOneRelTestCase(TestCase):
         has_changed_dt = PeriodicTasks.last_change()
         self.assertTrue(
             not_changed_dt != has_changed_dt,
-            'The `PeriodicTasks.last_update` has not be update.'
+            'PeriodicTasks.last_change() was not updated after save.'
         )
-        # Check the `PeriodicTasks` does be updated.
 
     def test_trigger_update_when_deleted(self):
         o2o_to_periodic_tasks = O2OToPeriodicTasks.objects.create(
@@ -258,13 +257,13 @@ class OneToOneRelTestCase(TestCase):
             interval=self.interval_schedule
         )
         not_changed_dt = PeriodicTasks.last_change()
-        o2o_to_periodic_tasks.delete()
+        with self.captureOnCommitCallbacks(execute=True):
+            o2o_to_periodic_tasks.delete()
         has_changed_dt = PeriodicTasks.last_change()
         self.assertTrue(
             not_changed_dt != has_changed_dt,
-            'The `PeriodicTasks.last_update` has not be update.'
+            'PeriodicTasks.last_change() was not updated after delete.'
         )
-        # Check the `PeriodicTasks` does be updated.
 
 
 class HumanReadableTestCase(TestCase):
