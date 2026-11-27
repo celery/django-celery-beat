@@ -9,6 +9,9 @@ Next
 
 - Use the stable Django 6.1 release in the test matrix.
 - Test on Python 3.15 with Django 6.1.
+- Validate the headers field in the PeriodicTask admin form: reject invalid
+  JSON and JSON that is not an object, and save a blank value as ``{}``
+  instead of failing on save.
 
 .. _version-2.9.0:
 
