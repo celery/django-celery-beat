@@ -1919,6 +1919,20 @@ class test_modeladmin_PeriodicTaskAdmin(SchedulerCase):
             'headers': {'periodic_task_name': self.m1.name},
         }
 
+    @pytest.mark.timeout(5)
+    def test_run_task_priority_zero(self, monkeypatch):
+        def mock_apply_async(*args, **kwargs):
+            self.captured_kwargs = kwargs
+
+        monkeypatch.setattr('celery.app.task.Task.apply_async',
+                            mock_apply_async)
+        self.m1.priority = 0
+        self.m1.save()
+        ma = PeriodicTaskAdmin(PeriodicTask, self.site)
+        self.request = self.patch_request(self.request_factory.get('/'))
+        ma.run_tasks(self.request, PeriodicTask.objects.filter(id=self.m1.id))
+        assert self.captured_kwargs['priority'] == 0
+
 
 @pytest.mark.django_db
 class test_timezone_offset_handling:

@@ -225,8 +225,8 @@ class PeriodicTaskAdmin(admin.ModelAdmin):
         """Return the options the beat scheduler would send ``task`` with."""
         options = {}
         for option in ('queue', 'exchange', 'routing_key', 'priority'):
-            if value := getattr(task, option):
-            options[option] = value
+            if (value := getattr(task, option)) not in (None, ''):
+                options[option] = value
 
         if task.expires_:
             options['expires'] = task.expires_
