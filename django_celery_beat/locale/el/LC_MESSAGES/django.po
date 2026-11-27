@@ -1,0 +1,569 @@
+# Greek translation strings for django-celery-beat.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Konstantinos Giannopoulos <giannopoulosk.data@gmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-27 23:41+0200\n"
+"PO-Revision-Date: 2026-11-27 23:45+0200\n"
+"Last-Translator: Konstantinos Giannopoulos <giannopoulosk.data@gmail.com>\n"
+"Language-Team: Greek\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:61
+msgid "Task (registered)"
+msgstr "Εργασία (καταχωρημένη)"
+
+#: admin.py:65
+msgid "Task (custom)"
+msgstr "Εργασία (προσαρμοσμένη)"
+
+#: admin.py:82
+msgid "Need name of task"
+msgstr "Απαιτείται το όνομα της εργασίας"
+
+#: admin.py:88 models.py:662
+msgid "Only one can be set, in expires and expire_seconds"
+msgstr "Μόνο ένα από τα expires και expire_seconds μπορεί να οριστεί"
+
+#: admin.py:98
+#, python-format
+msgid "Unable to parse JSON: %s"
+msgstr "Αδυναμία ανάλυσης JSON: %s"
+
+#: admin.py:127
+msgid "Schedule"
+msgstr "Προγραμματισμός"
+
+#: admin.py:132
+msgid "Arguments"
+msgstr "Ορίσματα"
+
+#: admin.py:136
+msgid "Execution Options"
+msgstr "Επιλογές εκτέλεσης"
+
+#: admin.py:174
+msgid "Enable selected tasks"
+msgstr "Ενεργοποίηση επιλεγμένων εργασιών"
+
+#: admin.py:182
+#, python-brace-format
+msgid "{0} task was successfully enabled"
+msgid_plural "{0} tasks were successfully enabled"
+msgstr[0] "{0} εργασία ενεργοποιήθηκε επιτυχώς"
+msgstr[1] "{0} εργασίες ενεργοποιήθηκαν επιτυχώς"
+
+#: admin.py:189
+msgid "Disable selected tasks"
+msgstr "Απενεργοποίηση επιλεγμένων εργασιών"
+
+#: admin.py:197
+#, python-brace-format
+msgid "{0} task was successfully disabled"
+msgid_plural "{0} tasks were successfully disabled"
+msgstr[0] "{0} εργασία απενεργοποιήθηκε επιτυχώς"
+msgstr[1] "{0} εργασίες απενεργοποιήθηκαν επιτυχώς"
+
+#: admin.py:210
+msgid "Toggle activity of selected tasks"
+msgstr "Εναλλαγή κατάστασης επιλεγμένων εργασιών"
+
+#: admin.py:218
+#, python-brace-format
+msgid "{0} task was successfully toggled"
+msgid_plural "{0} tasks were successfully toggled"
+msgstr[0] "Η κατάσταση {0} εργασίας άλλαξε επιτυχώς"
+msgstr[1] "Η κατάσταση {0} εργασιών άλλαξε επιτυχώς"
+
+#: admin.py:225
+msgid "Run selected tasks"
+msgstr "Εκτέλεση επιλεγμένων εργασιών"
+
+#: admin.py:269
+msgid "{0} task{1} {2} successfully run"
+msgstr "Εργασίες που εκτελέστηκαν επιτυχώς: {0}"
+
+#: admin.py:272
+msgid "was,were"
+msgstr "εκτελέστηκε,εκτελέστηκαν"
+
+#: admin.py:284
+msgid "Periodic Tasks Using This Schedule"
+msgstr "Περιοδικές εργασίες που χρησιμοποιούν αυτόν τον προγραμματισμό"
+
+#: apps.py:13
+msgid "Periodic Tasks"
+msgstr "Περιοδικές εργασίες"
+
+#: models.py:44
+msgid "Days"
+msgstr "Ημέρες"
+
+#: models.py:45
+msgid "Hours"
+msgstr "Ώρες"
+
+#: models.py:46
+msgid "Minutes"
+msgstr "Λεπτά"
+
+#: models.py:47
+msgid "Seconds"
+msgstr "Δευτερόλεπτα"
+
+#: models.py:48
+msgid "Microseconds"
+msgstr "Μικροδευτερόλεπτα"
+
+#: models.py:52
+msgid "Day"
+msgstr "Ημέρα"
+
+#: models.py:53
+msgid "Hour"
+msgstr "Ώρα"
+
+#: models.py:54
+msgid "Minute"
+msgstr "Λεπτό"
+
+#: models.py:55
+msgid "Second"
+msgstr "Δευτερόλεπτο"
+
+#: models.py:56
+msgid "Microsecond"
+msgstr "Μικροδευτερόλεπτο"
+
+#: models.py:60
+msgid "Astronomical dawn"
+msgstr "Αστρονομικό λυκαυγές"
+
+#: models.py:61
+msgid "Civil dawn"
+msgstr "Πολιτικό λυκαυγές"
+
+#: models.py:62
+msgid "Nautical dawn"
+msgstr "Ναυτικό λυκαυγές"
+
+#: models.py:63
+msgid "Astronomical dusk"
+msgstr "Αστρονομικό λυκόφως"
+
+#: models.py:64
+msgid "Civil dusk"
+msgstr "Πολιτικό λυκόφως"
+
+#: models.py:65
+msgid "Nautical dusk"
+msgstr "Ναυτικό λυκόφως"
+
+#: models.py:66
+msgid "Solar noon"
+msgstr "Ηλιακό μεσημέρι"
+
+#: models.py:67
+msgid "Sunrise"
+msgstr "Ανατολή ηλίου"
+
+#: models.py:68
+msgid "Sunset"
+msgstr "Δύση ηλίου"
+
+#: models.py:102
+msgid "Solar Event"
+msgstr "Ηλιακό γεγονός"
+
+#: models.py:103
+msgid "The type of solar event when the job should run"
+msgstr "Ο τύπος του ηλιακού γεγονότος κατά το οποίο θα εκτελείται η εργασία"
+
+#: models.py:107
+msgid "Latitude"
+msgstr "Γεωγραφικό πλάτος"
+
+#: models.py:108
+msgid "Run the task when the event happens at this latitude"
+msgstr "Εκτέλεση της εργασίας όταν το γεγονός συμβαίνει σε αυτό το γεωγραφικό πλάτος"
+
+#: models.py:113
+msgid "Longitude"
+msgstr "Γεωγραφικό μήκος"
+
+#: models.py:114
+msgid "Run the task when the event happens at this longitude"
+msgstr "Εκτέλεση της εργασίας όταν το γεγονός συμβαίνει σε αυτό το γεωγραφικό μήκος"
+
+#: models.py:121
+msgid "solar event"
+msgstr "ηλιακό γεγονός"
+
+#: models.py:122
+msgid "solar events"
+msgstr "ηλιακά γεγονότα"
+
+#: models.py:172
+msgid "Number of Periods"
+msgstr "Αριθμός περιόδων"
+
+#: models.py:173
+msgid "Number of interval periods to wait before running the task again"
+msgstr "Αριθμός περιόδων αναμονής πριν την επανεκτέλεση της εργασίας"
+
+#: models.py:179
+msgid "Interval Period"
+msgstr "Περίοδος διαστήματος"
+
+#: models.py:180
+msgid "The type of period between task runs (Example: days)"
+msgstr "Ο τύπος περιόδου μεταξύ των εκτελέσεων της εργασίας (Παράδειγμα: ημέρες)"
+
+#: models.py:186
+msgid "interval"
+msgstr "διάστημα"
+
+#: models.py:187
+msgid "intervals"
+msgstr "διαστήματα"
+
+#: models.py:217
+msgid "every {}"
+msgstr "κάθε {}"
+
+#: models.py:222
+msgid "every {} {}"
+msgstr "κάθε {} {}"
+
+#: models.py:233
+msgid "Clock Time"
+msgstr "Συγκεκριμένη ώρα"
+
+#: models.py:234
+msgid "Run the task at clocked time"
+msgstr "Εκτέλεση της εργασίας στην καθορισμένη ώρα"
+
+#: models.py:240 models.py:241
+msgid "clocked"
+msgstr "Συγκεκριμένη ώρα"
+
+#: models.py:281
+msgid "Minute(s)"
+msgstr "Λεπτά"
+
+#: models.py:283
+msgid "Cron Minutes to Run. Use \"*\" for \"all\". (Example: \"0,30\")"
+msgstr ""
+"Λεπτά εκτέλεσης του cron. Χρησιμοποιήστε \"*\" για \"όλα\". (Παράδειγμα: "
+"\"0,30\")"
+
+#: models.py:288
+msgid "Hour(s)"
+msgstr "Ώρες"
+
+#: models.py:290
+msgid "Cron Hours to Run. Use \"*\" for \"all\". (Example: \"8,20\")"
+msgstr ""
+"Ώρες εκτέλεσης του cron. Χρησιμοποιήστε \"*\" για \"όλες\". (Παράδειγμα: "
+"\"8,20\")"
+
+#: models.py:295
+msgid "Day(s) Of The Month"
+msgstr "Ημέρες του μήνα"
+
+#: models.py:297
+msgid ""
+"Cron Days Of The Month to Run. Use \"*\" for \"all\". (Example: \"1,15\")"
+msgstr ""
+"Ημέρες του μήνα για την εκτέλεση του cron. Χρησιμοποιήστε \"*\" για "
+"\"όλες\". (Παράδειγμα: \"1,15\")"
+
+#: models.py:303
+msgid "Month(s) Of The Year"
+msgstr "Μήνες του έτους"
+
+#: models.py:305
+msgid ""
+"Cron Months (1-12) Of The Year to Run. Use \"*\" for \"all\". (Example: "
+"\"1,12\")"
+msgstr ""
+"Μήνες (1-12) του έτους για την εκτέλεση του cron. Χρησιμοποιήστε \"*\" για "
+"\"όλους\". (Παράδειγμα: \"1,12\")"
+
+#: models.py:311
+msgid "Day(s) Of The Week"
+msgstr "Ημέρες της εβδομάδας"
+
+#: models.py:313
+msgid ""
+"Cron Days Of The Week to Run. Use \"*\" for \"all\", Sunday is 0 or 7, "
+"Monday is 1. (Example: \"0,5\")"
+msgstr ""
+"Ημέρες της εβδομάδας για την εκτέλεση του cron. Χρησιμοποιήστε \"*\" για "
+"\"όλες\", η Κυριακή είναι 0 ή 7, η Δευτέρα είναι 1. (Παράδειγμα: \"0,5\")"
+
+#: models.py:321
+msgid "Cron Timezone"
+msgstr "Ζώνη ώρας του cron"
+
+#: models.py:323
+msgid "Timezone to Run the Cron Schedule on. Default is UTC."
+msgstr ""
+"Ζώνη ώρας στην οποία εκτελείται ο προγραμματισμός cron. Η προεπιλογή "
+"είναι UTC."
+
+#: models.py:329
+msgid "crontab"
+msgstr "crontab"
+
+#: models.py:330
+msgid "crontabs"
+msgstr "crontabs"
+
+#: models.py:430
+msgid "periodic task track"
+msgstr "παρακολούθηση περιοδικής εργασίας"
+
+#: models.py:431
+msgid "periodic task tracks"
+msgstr "παρακολουθήσεις περιοδικών εργασιών"
+
+#: models.py:455
+msgid "Name"
+msgstr "Όνομα"
+
+#: models.py:456
+msgid "Short Description For This Task"
+msgstr "Σύντομη περιγραφή για αυτή την εργασία"
+
+#: models.py:461
+msgid ""
+"The Name of the Celery Task that Should be Run.  (Example: "
+"\"proj.tasks.import_contacts\")"
+msgstr ""
+"Το όνομα της εργασίας Celery που πρέπει να εκτελεστεί.  (Παράδειγμα: "
+"\"proj.tasks.import_contacts\")"
+
+#: models.py:469
+msgid "Interval Schedule"
+msgstr "Προγραμματισμός διαστήματος"
+
+#: models.py:470
+msgid ""
+"Interval Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Προγραμματισμός διαστήματος για την εκτέλεση της εργασίας.  Ορίστε "
+"μόνο έναν τύπο προγραμματισμού, αφήστε τους υπόλοιπους κενούς."
+
+#: models.py:475
+msgid "Crontab Schedule"
+msgstr "Προγραμματισμός crontab"
+
+#: models.py:476
+msgid ""
+"Crontab Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Προγραμματισμός crontab για την εκτέλεση της εργασίας.  Ορίστε μόνο "
+"έναν τύπο προγραμματισμού, αφήστε τους υπόλοιπους κενούς."
+
+#: models.py:481
+msgid "Solar Schedule"
+msgstr "Ηλιακός προγραμματισμός"
+
+#: models.py:482
+msgid ""
+"Solar Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Ηλιακός προγραμματισμός για την εκτέλεση της εργασίας.  Ορίστε μόνο "
+"έναν τύπο προγραμματισμού, αφήστε τους υπόλοιπους κενούς."
+
+#: models.py:487
+msgid "Clocked Schedule"
+msgstr "Προγραμματισμός συγκεκριμένης ώρας"
+
+#: models.py:488
+msgid ""
+"Clocked Schedule to run the task on.  Set only one schedule type, leave the "
+"others null."
+msgstr ""
+"Προγραμματισμός συγκεκριμένης ώρας για την εκτέλεση της εργασίας.  "
+"Ορίστε μόνο έναν τύπο προγραμματισμού, αφήστε τους υπόλοιπους κενούς."
+
+#: models.py:494
+msgid "Positional Arguments"
+msgstr "Ορίσματα θέσης"
+
+#: models.py:496
+msgid "JSON encoded positional arguments (Example: [\"arg1\", \"arg2\"])"
+msgstr ""
+"Ορίσματα θέσης κωδικοποιημένα σε JSON (Παράδειγμα: [\"arg1\", \"arg2\"])"
+
+#: models.py:501
+msgid "Keyword Arguments"
+msgstr "Ορίσματα λέξεων-κλειδιών"
+
+#: models.py:503
+msgid "JSON encoded keyword arguments (Example: {\"argument\": \"value\"})"
+msgstr ""
+"Ορίσματα λέξεων-κλειδιών κωδικοποιημένα σε JSON (Παράδειγμα: {\"argument\": "
+"\"value\"})"
+
+#: models.py:509
+msgid "Queue Override"
+msgstr "Αντικατάσταση ουράς"
+
+#: models.py:511
+msgid "Queue defined in CELERY_TASK_QUEUES. Leave None for default queuing."
+msgstr ""
+"Ουρά που ορίζεται στο CELERY_TASK_QUEUES. Αφήστε κενό για την "
+"προεπιλεγμένη ουρά."
+
+#: models.py:520
+msgid "Exchange"
+msgstr "Exchange"
+
+#: models.py:521
+msgid "Override Exchange for low-level AMQP routing"
+msgstr "Παράκαμψη του exchange για δρομολόγηση AMQP χαμηλού επιπέδου"
+
+#: models.py:525
+msgid "Routing Key"
+msgstr "Κλειδί δρομολόγησης"
+
+#: models.py:526
+msgid "Override Routing Key for low-level AMQP routing"
+msgstr ""
+"Παράκαμψη του κλειδιού δρομολόγησης για δρομολόγηση AMQP χαμηλού επιπέδου"
+
+#: models.py:530
+msgid "AMQP Message Headers"
+msgstr "Κεφαλίδες μηνύματος AMQP"
+
+#: models.py:531
+msgid "JSON encoded message headers for the AMQP message."
+msgstr "Κεφαλίδες μηνύματος κωδικοποιημένες σε JSON για το μήνυμα AMQP."
+
+#: models.py:537
+msgid "Priority"
+msgstr "Προτεραιότητα"
+
+#: models.py:539
+msgid ""
+"Priority Number between 0 and 255. Supported by: RabbitMQ, Redis (priority "
+"reversed, 0 is highest)."
+msgstr ""
+"Αριθμός προτεραιότητας μεταξύ 0 και 255. Υποστηρίζεται από: RabbitMQ, Redis "
+"(αντεστραμμένη προτεραιότητα, το 0 είναι η υψηλότερη)."
+
+#: models.py:544
+msgid "Expires Datetime"
+msgstr "Ημερομηνία και ώρα λήξης"
+
+#: models.py:546
+msgid ""
+"Datetime after which the schedule will no longer trigger the task to run"
+msgstr ""
+"Ημερομηνία και ώρα μετά την οποία ο προγραμματισμός δεν θα ενεργοποιεί "
+"πλέον την εκτέλεση της εργασίας"
+
+#: models.py:551
+msgid "Expires timedelta with seconds"
+msgstr "Λήξη σε δευτερόλεπτα (timedelta)"
+
+#: models.py:553
+msgid ""
+"Timedelta with seconds which the schedule will no longer trigger the task to "
+"run"
+msgstr ""
+"Χρονικό διάστημα σε δευτερόλεπτα μετά το οποίο ο προγραμματισμός δεν θα "
+"ενεργοποιεί πλέον την εκτέλεση της εργασίας"
+
+#: models.py:559
+msgid "One-off Task"
+msgstr "Εφάπαξ εργασία"
+
+#: models.py:561
+msgid "If True, the schedule will only run the task a single time"
+msgstr ""
+"Αν είναι True, ο προγραμματισμός θα εκτελέσει την εργασία μόνο μία φορά"
+
+#: models.py:565
+msgid "Start Datetime"
+msgstr "Ημερομηνία και ώρα έναρξης"
+
+#: models.py:567
+msgid "Datetime when the schedule should begin triggering the task to run"
+msgstr ""
+"Ημερομηνία και ώρα κατά την οποία ο προγραμματισμός θα αρχίσει να "
+"ενεργοποιεί την εκτέλεση της εργασίας"
+
+#: models.py:572
+msgid "Enabled"
+msgstr "Ενεργοποιημένη"
+
+#: models.py:573
+msgid "Set to False to disable the schedule"
+msgstr "Ορίστε σε False για να απενεργοποιήσετε τον προγραμματισμό"
+
+#: models.py:578
+msgid "Last Run Datetime"
+msgstr "Ημερομηνία και ώρα τελευταίας εκτέλεσης"
+
+#: models.py:580
+msgid ""
+"Datetime that the schedule last triggered the task to run. Reset to None if "
+"enabled is set to False."
+msgstr ""
+"Ημερομηνία και ώρα κατά την οποία ο προγραμματισμός ενεργοποίησε "
+"τελευταία φορά την εκτέλεση της εργασίας. Επαναφέρεται σε None αν το "
+"enabled οριστεί σε False."
+
+#: models.py:585
+msgid "Total Run Count"
+msgstr "Συνολικός αριθμός εκτελέσεων"
+
+#: models.py:587
+msgid "Running count of how many times the schedule has triggered the task"
+msgstr ""
+"Αριθμός φορών που ο προγραμματισμός έχει ενεργοποιήσει την εκτέλεση της "
+"εργασίας"
+
+#: models.py:592
+msgid "Last Modified"
+msgstr "Τελευταία τροποποίηση"
+
+#: models.py:593
+msgid "Datetime that this PeriodicTask was last modified"
+msgstr ""
+"Ημερομηνία και ώρα τελευταίας τροποποίησης αυτής της περιοδικής εργασίας"
+
+#: models.py:597
+msgid "Description"
+msgstr "Περιγραφή"
+
+#: models.py:599
+msgid "Detailed description about the details of this Periodic Task"
+msgstr "Αναλυτική περιγραφή αυτής της περιοδικής εργασίας"
+
+#: models.py:614
+msgid "periodic task"
+msgstr "περιοδική εργασία"
+
+#: models.py:615
+msgid "periodic tasks"
+msgstr "περιοδικές εργασίες"
+
+#: templates/admin/djcelery/change_list.html:6
+msgid "Home"
+msgstr "Αρχική"
